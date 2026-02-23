@@ -1,0 +1,52 @@
+{
+  "name": "Broadcast Content Pack",
+  "version": "1.0.0",
+  "description": "Extra narrative prompts and headlines tuned for the BOW Sports Capital broadcast UI.",
+  "eventSeeds": {
+    "extension": [
+      { "title": "Prime-Time Extension Deadline", "description": "A key star wants a decision before a national TV stretch." },
+      { "title": "Agent Ultimatum Week", "description": "The agent sets a hard date for contract certainty." },
+      { "title": "All-Star Bonus Debate", "description": "Your cap team proposes bonus language tied to awards and games played." }
+    ],
+    "option": [
+      { "title": "Option Year Leverage", "description": "A veteran uses his option year to push for role security." },
+      { "title": "Mutual Exit Scenario", "description": "You can clear money now or keep a useful piece for one more run." },
+      { "title": "Bench Option Standoff", "description": "A scoring reserve wants guarantees before accepting a smaller role." }
+    ],
+    "tax": [
+      { "title": "Ownership Cash-Flow Memo", "description": "Finance warns that another tax month shrinks offseason options." },
+      { "title": "Tax Apron Countdown", "description": "You are one move away from harder spending restrictions." },
+      { "title": "Sponsor Margin Pressure", "description": "Commercial partners ask for clearer return on tax spending." }
+    ],
+    "trade": [
+      { "title": "Deadline Desk Frenzy", "description": "Rival teams call with rapid offers as leverage shifts by the hour." },
+      { "title": "Two-Way Wing Market", "description": "A valuable wing archetype becomes available if you move quickly." },
+      { "title": "Asset Stack Decision", "description": "Use picks for certainty now or preserve them for a larger summer move." }
+    ],
+    "injury": [
+      { "title": "Backcourt Fatigue Alarm", "description": "Wearable data shows elevated fatigue on your lead guards." },
+      { "title": "Medical Clearance Debate", "description": "Doctors clear a player, but coaches prefer one extra recovery week." },
+      { "title": "Travel Recovery Concern", "description": "Heavy road travel creates higher soft-tissue risk this month." }
+    ],
+    "pr": [
+      { "title": "Studio Segment Backlash", "description": "A national panel questions your contract strategy in prime time." },
+      { "title": "Fan Poll Narrative", "description": "A public poll trends against your recent cap decisions." },
+      { "title": "Reporter Leak Cycle", "description": "Anonymous sources drive speculation about locker-room trust." }
+    ],
+    "breakout": [
+      { "title": "Second Unit Star Turn", "description": "A bench player turns into a nightly mismatch and forces minutes." },
+      { "title": "Development Milestone", "description": "Player development staff says one prospect is ahead of schedule." },
+      { "title": "Unexpected Two-Way Rise", "description": "A young role player suddenly impacts both ends of the floor." }
+    ],
+    "sponsor": [
+      { "title": "Premium Partner Activation", "description": "A major sponsor offers upside tied to spotlight matchups." },
+      { "title": "Community Brand Push", "description": "A partner wants broader player participation in city events." },
+      { "title": "Broadcast Feature Buy", "description": "A sponsor wants branded in-game features if results stay strong." }
+    ],
+    "philosophy": [
+      { "title": "Roster Identity Summit", "description": "Leadership asks for a clear identity: upside bets or cap stability." },
+      { "title": "Film Room vs Data Model", "description": "Scouting reports conflict with the front-office projection model." },
+      { "title": "Long View vs Short Window", "description": "The room splits between preserving flexibility and pushing now." }
+    ]
+  }
+}

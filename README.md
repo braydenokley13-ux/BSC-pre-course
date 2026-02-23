@@ -27,6 +27,7 @@ Notes:
 - `/game.js`
 - `/data/teams.json`
 - `/data/players.json`
+- `/data/content-pack.json` (optional external event-content pack)
 
 ## How to Add Teams (`/data/teams.json`)
 Each team object should include:
@@ -79,6 +80,28 @@ Example:
   "source": "generated"
 }
 ```
+
+## How to Add/Update Event Content Pack (`/data/content-pack.json`)
+`game.js` now loads this file automatically when present and merges those event seeds with built-in defaults.
+
+Structure:
+- `name`
+- `version`
+- `description`
+- `eventSeeds` object by category:
+  - `extension`
+  - `option`
+  - `tax`
+  - `trade`
+  - `injury`
+  - `pr`
+  - `breakout`
+  - `sponsor`
+  - `philosophy`
+
+Each seed can be either:
+- object: `{ \"title\": \"...\", \"description\": \"...\" }`
+- array: `[\"title\", \"description\"]`
 
 ## Data + Gameplay Notes
 - Player salaries/ratings are **game approximations**, not exact real-world values.

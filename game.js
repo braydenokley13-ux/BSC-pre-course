@@ -617,10 +617,11 @@ Polish Checklist
   ];
 
   let ui = {};
-  let gameData = { teams: [], players: [] };
+  let gameData = { teams: [], players: [], contentPack: null };
   let playersByName = new Map();
   let state = null;
   let eventLibrary = [];
+  let scoreVisualState = null;
 
   let settings = {
     alwaysTooltips: false
@@ -634,7 +635,7 @@ Polish Checklist
     bindGlobalEvents();
     gameData = await loadGameData();
     playersByName = new Map(gameData.players.map((p) => [p.name, p]));
-    eventLibrary = buildEventLibrary();
+    eventLibrary = buildEventLibrary(gameData.contentPack);
     renderStartScreen();
     renderBestScoreBanner();
     maybeShowLastRunHint();
@@ -649,15 +650,21 @@ Polish Checklist
       teamGrid: byId("teamGrid"),
       bestScoreBanner: byId("bestScoreBanner"),
       capSpaceValue: byId("capSpaceValue"),
+      capSpaceTrend: byId("capSpaceTrend"),
       teamRatingValue: byId("teamRatingValue"),
+      teamRatingTrend: byId("teamRatingTrend"),
       franchiseValueValue: byId("franchiseValueValue"),
+      franchiseValueTrend: byId("franchiseValueTrend"),
       ownerPatienceValue: byId("ownerPatienceValue"),
+      ownerPatienceTrend: byId("ownerPatienceTrend"),
       riskHeatValue: byId("riskHeatValue"),
+      riskHeatTrend: byId("riskHeatTrend"),
       settingsBtn: byId("settingsBtn"),
       settingsOverlay: byId("settingsOverlay"),
       closeSettingsBtn: byId("closeSettingsBtn"),
       tooltipToggle: byId("tooltipToggle"),
       resetDataBtn: byId("resetDataBtn"),
+      tickerBar: byId("tickerBar"),
       tickerText: byId("tickerText"),
       weekBadge: byId("weekBadge"),
       teamNameText: byId("teamNameText"),
@@ -815,25 +822,68 @@ Polish Checklist
 
   async function loadGameData() {
     try {
-      const [teamsResp, playersResp] = await Promise.all([
+      const contentPackPromise = fetch("data/content-pack.json", { cache: "no-cache" }).catch(() => null);
+      const [teamsResp, playersResp, contentResp] = await Promise.all([
         fetch("data/teams.json", { cache: "no-cache" }),
-        fetch("data/players.json", { cache: "no-cache" })
+        fetch("data/players.json", { cache: "no-cache" }),
+        contentPackPromise
       ]);
       if (!teamsResp.ok || !playersResp.ok) {
         throw new Error("Data files unavailable");
       }
       const teams = await teamsResp.json();
       const players = await playersResp.json();
+      let contentPack = null;
+      if (contentResp && contentResp.ok) {
+        try {
+          contentPack = sanitizeContentPack(await contentResp.json());
+        } catch (_) {
+          contentPack = null;
+        }
+      }
       return {
         teams: sanitizeTeams(teams),
-        players: sanitizePlayers(players)
+        players: sanitizePlayers(players),
+        contentPack
       };
     } catch (_) {
       return {
         teams: sanitizeTeams(FALLBACK_TEAMS),
-        players: sanitizePlayers(FALLBACK_PLAYERS)
+        players: sanitizePlayers(FALLBACK_PLAYERS),
+        contentPack: null
       };
     }
+  }
+
+  function sanitizeContentPack(contentPack) {
+    if (!contentPack || typeof contentPack !== "object") return null;
+    const inputSeeds = contentPack.eventSeeds;
+    if (!inputSeeds || typeof inputSeeds !== "object") return null;
+
+    const normalized = {};
+    Object.entries(inputSeeds).forEach(([category, seeds]) => {
+      if (!Array.isArray(seeds)) return;
+      const valid = seeds
+        .map((seed) => {
+          if (Array.isArray(seed) && seed.length >= 2) {
+            return [String(seed[0]), String(seed[1])];
+          }
+          if (seed && typeof seed === "object" && seed.title && seed.description) {
+            return [String(seed.title), String(seed.description)];
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (valid.length) {
+        normalized[category] = valid;
+      }
+    });
+
+    if (!Object.keys(normalized).length) return null;
+    return {
+      ...contentPack,
+      eventSeeds: normalized
+    };
   }
 
   function sanitizeTeams(teams) {
@@ -865,6 +915,15 @@ Polish Checklist
 
   function renderStartScreen() {
     ui.teamGrid.innerHTML = "";
+    const shell = ui.startScreen.querySelector(".broadcast-shell");
+    const existingPack = shell.querySelector(".content-pack-note");
+    if (existingPack) existingPack.remove();
+    if (gameData.contentPack && gameData.contentPack.name) {
+      const note = document.createElement("p");
+      note.className = "disclaimer content-pack-note";
+      note.textContent = `Content pack connected: ${gameData.contentPack.name}`;
+      shell.insertBefore(note, ui.teamGrid);
+    }
     gameData.teams.forEach((team) => {
       const card = document.createElement("article");
       card.className = "team-card";
@@ -974,6 +1033,8 @@ Polish Checklist
       goalHistory: []
     };
 
+    scoreVisualState = null;
+
     state.ownerGoals = generateOwnerGoals();
     startWeekRecap();
 
@@ -1013,11 +1074,81 @@ Polish Checklist
   }
 
   function renderScoreboard() {
-    ui.capSpaceValue.textContent = signed(state.capSpace, 1);
-    ui.teamRatingValue.textContent = Math.round(state.teamRating).toString();
-    ui.franchiseValueValue.textContent = state.franchiseValueB.toFixed(2);
-    ui.ownerPatienceValue.textContent = Math.round(state.ownerPatience).toString();
-    ui.riskHeatValue.textContent = Math.round(state.riskHeat).toString();
+    const nextValues = {
+      capSpace: state.capSpace,
+      teamRating: state.teamRating,
+      franchiseValue: state.franchiseValueB,
+      ownerPatience: state.ownerPatience,
+      riskHeat: state.riskHeat
+    };
+
+    const previous = scoreVisualState || { ...nextValues };
+
+    animateScoreValue(ui.capSpaceValue, previous.capSpace, nextValues.capSpace, (value) => signed(value, 1));
+    animateScoreValue(ui.teamRatingValue, previous.teamRating, nextValues.teamRating, (value) => Math.round(value).toString());
+    animateScoreValue(ui.franchiseValueValue, previous.franchiseValue, nextValues.franchiseValue, (value) => value.toFixed(2));
+    animateScoreValue(ui.ownerPatienceValue, previous.ownerPatience, nextValues.ownerPatience, (value) => Math.round(value).toString());
+    animateScoreValue(ui.riskHeatValue, previous.riskHeat, nextValues.riskHeat, (value) => Math.round(value).toString());
+
+    setTrendState(ui.capSpaceTrend, ui.capSpaceValue.closest(".meter-card"), nextValues.capSpace - previous.capSpace, 1);
+    setTrendState(ui.teamRatingTrend, ui.teamRatingValue.closest(".meter-card"), nextValues.teamRating - previous.teamRating, 1);
+    setTrendState(ui.franchiseValueTrend, ui.franchiseValueValue.closest(".meter-card"), nextValues.franchiseValue - previous.franchiseValue, 2);
+    setTrendState(ui.ownerPatienceTrend, ui.ownerPatienceValue.closest(".meter-card"), nextValues.ownerPatience - previous.ownerPatience, 1);
+    setTrendState(ui.riskHeatTrend, ui.riskHeatValue.closest(".meter-card"), nextValues.riskHeat - previous.riskHeat, 1);
+
+    scoreVisualState = { ...nextValues };
+  }
+
+  function animateScoreValue(element, from, to, formatter) {
+    if (!element) return;
+    if (!Number.isFinite(from) || !Number.isFinite(to) || Math.abs(to - from) < 0.01) {
+      element.textContent = formatter(to);
+      return;
+    }
+
+    if (element._animFrame) {
+      cancelAnimationFrame(element._animFrame);
+    }
+
+    const startTime = performance.now();
+    const duration = 220;
+    const step = (now) => {
+      const progress = clamp((now - startTime) / duration, 0, 1);
+      const eased = 1 - (1 - progress) ** 3;
+      const current = from + (to - from) * eased;
+      element.textContent = formatter(current);
+      if (progress < 1) {
+        element._animFrame = requestAnimationFrame(step);
+      } else {
+        element._animFrame = null;
+      }
+    };
+    element._animFrame = requestAnimationFrame(step);
+  }
+
+  function setTrendState(trendEl, cardEl, delta, decimals) {
+    if (!trendEl || !cardEl) return;
+    const roundedDelta = roundTo(delta, decimals);
+    const threshold = decimals >= 2 ? 0.01 : 0.1;
+    cardEl.classList.remove("is-up", "is-down");
+    trendEl.classList.remove("positive", "negative", "neutral");
+
+    if (Math.abs(roundedDelta) < threshold) {
+      trendEl.textContent = `• ${Math.abs(roundedDelta).toFixed(decimals)}`;
+      trendEl.classList.add("neutral");
+      return;
+    }
+
+    if (roundedDelta > 0) {
+      trendEl.textContent = `▲ ${Math.abs(roundedDelta).toFixed(decimals)}`;
+      trendEl.classList.add("positive");
+      cardEl.classList.add("is-up");
+      return;
+    }
+
+    trendEl.textContent = `▼ ${Math.abs(roundedDelta).toFixed(decimals)}`;
+    trendEl.classList.add("negative");
+    cardEl.classList.add("is-down");
   }
 
   function renderBroadcastPanel() {
@@ -1128,6 +1259,7 @@ Polish Checklist
     if (!state) return;
 
     state.locked = false;
+    playWeekTransition();
     startWeekRecap();
     ui.continueWeekBtn.classList.add("hidden");
     ui.continueWeekBtn.textContent = "Continue";
@@ -1168,7 +1300,8 @@ Polish Checklist
         return;
       }
       const card = document.createElement("article");
-      card.className = "option-card";
+      const tierClass = `option-${option.tier.toLowerCase().replace(/\\s+/g, "-")}`;
+      card.className = `option-card ${tierClass}`;
 
       const capDelta = -option.impacts.payrollM;
       const chips = [
@@ -1183,6 +1316,7 @@ Polish Checklist
           <strong>${option.label}</strong>
           <span class="option-tier">${option.tier}</span>
         </div>
+        <div class="risk-meter" aria-hidden="true"><span></span></div>
         <div class="option-impact">${chips.map((chip) => `<span>${chip}</span>`).join("")}</div>
         <p class="risk-note">Risk note: ${option.riskNote}</p>
       `;
@@ -1285,12 +1419,13 @@ Polish Checklist
 
     minor.options.forEach((opt, idx) => {
       const card = document.createElement("article");
-      card.className = "option-card";
+      card.className = `option-card ${idx === 0 ? "option-conservative" : "option-aggressive"}`;
       card.innerHTML = `
         <div class="option-head">
           <strong>${opt.label}</strong>
           <span class="option-tier">${idx === 0 ? "Conservative" : "Aggressive"}</span>
         </div>
+        <div class="risk-meter" aria-hidden="true"><span></span></div>
         <div class="option-impact">
           <span>Rating ${signed(opt.impacts.teamRating || 0, 1)}</span>
           <span>Value ${signed(opt.impacts.franchiseValueB || 0, 2)}B</span>
@@ -1465,12 +1600,16 @@ Polish Checklist
 
     prospects.forEach((prospect) => {
       const card = document.createElement("article");
-      card.className = "option-card";
+      let tierClass = "option-balanced";
+      if (prospect.archetype.includes("Ceiling")) tierClass = "option-risky";
+      if (prospect.archetype.includes("Floor")) tierClass = "option-safe";
+      card.className = `option-card ${tierClass}`;
       card.innerHTML = `
         <div class="option-head">
           <strong>${prospect.name} (${prospect.position})</strong>
           <span class="option-tier">${prospect.archetype}</span>
         </div>
+        <div class="risk-meter" aria-hidden="true"><span></span></div>
         <p>${prospect.summary}</p>
         <div class="option-impact">
           <span>Cap ${signed(-prospect.impacts.payrollM, 1)}M</span>
@@ -1545,14 +1684,16 @@ Polish Checklist
     ui.offseasonChoices.innerHTML = "";
 
     const offseasonOptions = getOffseasonOptions();
-    offseasonOptions.forEach((option) => {
+    offseasonOptions.forEach((option, idx) => {
       const card = document.createElement("article");
-      card.className = "option-card";
+      const tierClass = idx === 0 ? "option-risky" : idx === 1 ? "option-commitment" : "option-safe";
+      card.className = `option-card ${tierClass}`;
       card.innerHTML = `
         <div class="option-head">
           <strong>${option.label}</strong>
           <span class="option-tier">Commitment</span>
         </div>
+        <div class="risk-meter" aria-hidden="true"><span></span></div>
         <p>${option.description}</p>
         <div class="option-impact">
           <span>Cap ${signed(-option.impacts.payrollM, 1)}M</span>
@@ -2508,6 +2649,7 @@ Polish Checklist
     state.currentWeekRecap.headlines.push(text);
     state.tickerHeadlines.unshift(text);
     state.tickerHeadlines = state.tickerHeadlines.slice(0, 7);
+    triggerBreakingVisual(text);
   }
 
   function mergeRecapDeltas(diff) {
@@ -2598,6 +2740,35 @@ Polish Checklist
 
   function showToastHeadline(text) {
     ui.topHeadline.textContent = text;
+    triggerBreakingVisual(text);
+  }
+
+  function triggerBreakingVisual(text) {
+    if (!ui.tickerBar || !ui.topHeadline) return;
+    const urgent = /(breaking|deadline|shock|alert|fired|meltdown)/i.test(text || "");
+
+    ui.topHeadline.classList.remove("headline-flash");
+    void ui.topHeadline.offsetWidth;
+    ui.topHeadline.classList.add("headline-flash");
+
+    if (!urgent) return;
+    ui.tickerBar.classList.remove("breaking-news");
+    void ui.tickerBar.offsetWidth;
+    ui.tickerBar.classList.add("breaking-news");
+    window.clearTimeout(triggerBreakingVisual._timer);
+    triggerBreakingVisual._timer = window.setTimeout(() => {
+      ui.tickerBar.classList.remove("breaking-news");
+    }, 520);
+  }
+
+  function playWeekTransition() {
+    ui.gameScreen.classList.remove("week-transition");
+    void ui.gameScreen.offsetWidth;
+    ui.gameScreen.classList.add("week-transition");
+    window.clearTimeout(playWeekTransition._timer);
+    playWeekTransition._timer = window.setTimeout(() => {
+      ui.gameScreen.classList.remove("week-transition");
+    }, 360);
   }
 
   function normalizeTags() {
@@ -2613,12 +2784,14 @@ Polish Checklist
     state.tags = new Set([...merged].slice(-8));
   }
 
-  function buildEventLibrary() {
+  function buildEventLibrary(contentPack = null) {
     const library = [];
+    const eventSeedSource = resolveEventSeedSource(contentPack);
 
-    Object.entries(EVENT_SEEDS).forEach(([category, seeds]) => {
+    Object.entries(eventSeedSource).forEach(([category, seeds]) => {
       seeds.forEach((seed, idx) => {
         const profile = CATEGORY_PROFILES[category];
+        if (!profile) return;
         const options = profile.base.map((base, optionIndex) => ({
           label: profile.labels[optionIndex],
           tier: optionIndex === 0 ? "Safe" : optionIndex === 1 ? "Balanced" : optionIndex === 2 ? "Risky" : "Wildcard",
@@ -2650,6 +2823,33 @@ Polish Checklist
     });
 
     return library;
+  }
+
+  function resolveEventSeedSource(contentPack) {
+    const merged = {};
+    const external = contentPack && contentPack.eventSeeds ? contentPack.eventSeeds : {};
+    const categories = new Set([...Object.keys(EVENT_SEEDS), ...Object.keys(external)]);
+
+    categories.forEach((category) => {
+      const fallback = EVENT_SEEDS[category] || [];
+      const custom = Array.isArray(external[category]) ? external[category] : [];
+      const seenTitles = new Set();
+      const combined = [];
+
+      [...custom, ...fallback].forEach((seed) => {
+        if (!Array.isArray(seed) || seed.length < 2) return;
+        const titleKey = String(seed[0]).trim().toLowerCase();
+        if (!titleKey || seenTitles.has(titleKey)) return;
+        seenTitles.add(titleKey);
+        combined.push([String(seed[0]), String(seed[1])]);
+      });
+
+      if (combined.length) {
+        merged[category] = combined;
+      }
+    });
+
+    return merged;
   }
 
   function seedInitialTags(team, payroll, rating, roster) {

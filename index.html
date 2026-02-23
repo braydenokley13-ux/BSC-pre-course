@@ -9,160 +9,194 @@
 <body>
   <div id="app">
     <section id="startScreen" class="screen active">
-      <div class="broadcast-shell">
-        <p class="kicker">BOW SPORTS CAPITAL</p>
-        <h1>BOW Sports Capital: Pregame</h1>
-        <p class="tagline">Cap &amp; Contracts — Front Office Simulator</p>
-        <p class="disclaimer">All player ratings and salaries are game approximations for learning and strategy play.</p>
-        <div id="bestScoreBanner" class="best-score"></div>
+      <div class="broadcast-shell hero-shell">
+        <div class="hero-head">
+          <p class="kicker">BOW SPORTS CAPITAL</p>
+          <h1>BOW Sports Capital: Pregame</h1>
+          <p class="tagline">Cap &amp; Contracts — Front Office Simulator</p>
+          <p class="disclaimer">All player ratings and salaries are game approximations for learning and strategy play.</p>
+          <div id="bestScoreBanner" class="best-score"></div>
+        </div>
+
         <div class="section-head">
           <h2>Pick Your Front Office</h2>
           <p>One season run = 12 fast weeks. Survive ownership pressure and protect the cap sheet.</p>
         </div>
+
         <div id="teamGrid" class="team-grid"></div>
       </div>
     </section>
 
     <section id="gameScreen" class="screen hidden">
       <header class="scoreboard">
-        <div class="meter-card">
-          <span class="meter-label" data-tooltip="Cap Space is your room under the salary cap. Negative means you are over the cap.">Cap Space ($M)</span>
-          <strong id="capSpaceValue">0.0</strong>
+        <div class="scoreboard-meta">
+          <p class="kicker">LIVE FRONT OFFICE FEED</p>
+          <p class="scoreboard-sub">Broadcast Control Panel</p>
         </div>
-        <div class="meter-card">
-          <span class="meter-label" data-tooltip="Team Rating estimates how strong your roster is right now.">Team Rating</span>
-          <strong id="teamRatingValue">0</strong>
+
+        <div class="scoreboard-stats">
+          <div class="meter-card" data-stat="cap-space">
+            <span class="meter-label" data-tooltip="Cap Space is your room under the salary cap. Negative means you are over the cap.">Cap Space ($M)</span>
+            <strong id="capSpaceValue">0.0</strong>
+            <span id="capSpaceTrend" class="meter-trend neutral">• 0.0</span>
+          </div>
+
+          <div class="meter-card" data-stat="team-rating">
+            <span class="meter-label" data-tooltip="Team Rating estimates how strong your roster is right now.">Team Rating</span>
+            <strong id="teamRatingValue">0</strong>
+            <span id="teamRatingTrend" class="meter-trend neutral">• 0.0</span>
+          </div>
+
+          <div class="meter-card" data-stat="franchise-value">
+            <span class="meter-label" data-tooltip="Franchise Value tracks business growth. Smart cap moves and winning raise it.">Franchise Value ($B)</span>
+            <strong id="franchiseValueValue">0.00</strong>
+            <span id="franchiseValueTrend" class="meter-trend neutral">• 0.00</span>
+          </div>
+
+          <div class="meter-card" data-stat="owner-patience">
+            <span class="meter-label" data-tooltip="Owner Patience is your job security. If it reaches zero, you are fired.">Owner Patience</span>
+            <strong id="ownerPatienceValue">0</strong>
+            <span id="ownerPatienceTrend" class="meter-trend neutral">• 0.0</span>
+          </div>
         </div>
-        <div class="meter-card">
-          <span class="meter-label" data-tooltip="Franchise Value tracks business growth. Smart cap moves and winning raise it.">Franchise Value ($B)</span>
-          <strong id="franchiseValueValue">0.00</strong>
+
+        <div class="scoreboard-tools">
+          <div class="meter-card subtle risk-mini" data-stat="risk-heat">
+            <span class="meter-label" data-tooltip="Risk Heat shows how aggressive your strategy has been. High risk unlocks upside and more danger.">Risk Heat</span>
+            <strong id="riskHeatValue">0</strong>
+            <span id="riskHeatTrend" class="meter-trend neutral">• 0.0</span>
+          </div>
+          <button id="settingsBtn" class="settings-btn" type="button" aria-label="Open settings">Settings</button>
         </div>
-        <div class="meter-card">
-          <span class="meter-label" data-tooltip="Owner Patience is your job security. If it reaches zero, you are fired.">Owner Patience</span>
-          <strong id="ownerPatienceValue">0</strong>
-        </div>
-        <div class="meter-card subtle">
-          <span class="meter-label" data-tooltip="Risk Heat shows how aggressive your strategy has been. High risk unlocks upside and more danger.">Risk Heat</span>
-          <strong id="riskHeatValue">0</strong>
-        </div>
-        <button id="settingsBtn" class="settings-btn" type="button" aria-label="Open settings">Settings</button>
       </header>
 
       <div id="tickerBar" class="ticker-bar">
+        <span class="ticker-pill">Ticker</span>
         <div id="tickerText">Welcome to BOW Sports Capital.</div>
       </div>
 
-      <main class="main-grid">
-        <section class="panel" id="broadcastPanel">
-          <div class="panel-title-row">
-            <h2>Broadcast Desk</h2>
-            <span id="weekBadge" class="badge">Week 1</span>
-          </div>
-          <div class="broadcast-stats">
-            <div>
-              <span class="label">Team</span>
-              <strong id="teamNameText">-</strong>
+      <main class="broadcast-layout">
+        <section class="center-column">
+          <section class="panel broadcast-panel" id="broadcastPanel">
+            <div class="panel-title-row">
+              <h2>Broadcast Desk</h2>
+              <span id="weekBadge" class="badge">Week 1</span>
+            </div>
+            <div class="broadcast-stats">
+              <div>
+                <span class="label">Team</span>
+                <strong id="teamNameText">-</strong>
+              </div>
+              <div>
+                <span class="label">Record Estimate</span>
+                <strong id="recordEstimateText">-</strong>
+              </div>
+              <div>
+                <span class="label">Momentum</span>
+                <strong id="momentumText">STABLE</strong>
+              </div>
+              <div>
+                <span class="label">Media Heat</span>
+                <strong id="mediaHeatText">0</strong>
+              </div>
+            </div>
+            <div class="headline-wrap">
+              <span class="live-chip">Live</span>
+              <p id="topHeadline" class="headline"></p>
+            </div>
+            <div id="capSheetQuick" class="cap-quick"></div>
+          </section>
+
+          <section class="panel event-stage" id="eventPanel">
+            <div class="panel-title-row">
+              <h2 id="eventTitle">Major Decision</h2>
+              <span id="eventCategory" class="badge alt">Contracts</span>
+            </div>
+            <p id="eventDescription" class="event-description"></p>
+            <div id="eventOptions" class="options"></div>
+          </section>
+
+          <section class="panel event-stage hidden" id="tradeDeadlinePanel">
+            <div class="panel-title-row">
+              <h2>Breaking News: Trade Deadline</h2>
+              <span class="badge alert">Week 7</span>
+            </div>
+            <p class="event-description">Choose one trade, counter an offer, or pass. Trade legality follows the simplified cap matching rule.</p>
+            <p class="rule-note" data-tooltip="If you are over the cap, incoming salary must be less than or equal to outgoing salary times 1.25 plus $2M. If under the cap, your new payroll must stay at or below the cap with a small $5M rookie exception.">Trade Machine Rule</p>
+            <div id="tradeOffers" class="trade-feed"></div>
+            <button id="passTradeBtn" class="secondary-btn" type="button">Pass Deadline</button>
+          </section>
+
+          <section class="panel event-stage hidden" id="minorPanel">
+            <h2 id="minorTitle">Minor Decision</h2>
+            <p id="minorDescription" class="event-description"></p>
+            <div id="minorOptions" class="options"></div>
+          </section>
+
+          <section class="panel event-stage hidden" id="draftPanel">
+            <div class="panel-title-row">
+              <h2>Draft Night (Week 12)</h2>
+              <span class="badge alert">Finale</span>
+            </div>
+            <p class="event-description">Pick your direction: ceiling, floor, or balance.</p>
+            <div id="draftChoices" class="options"></div>
+          </section>
+
+          <section class="panel event-stage hidden" id="offseasonPanel">
+            <h2>Offseason Commitment</h2>
+            <p class="event-description">One last strategic move sets your final story.</p>
+            <div id="offseasonChoices" class="options"></div>
+          </section>
+
+          <section class="panel recap-panel" id="recapPanel">
+            <div class="panel-title-row">
+              <h2>Analyst Recap</h2>
+              <span class="badge">Lower Third</span>
+            </div>
+            <div id="recapHeadlines" class="recap-headlines"></div>
+            <p id="analystBlurb" class="analyst-blurb"></p>
+            <div id="deltaPanel" class="delta-panel"></div>
+            <button id="continueWeekBtn" class="primary-btn hidden" type="button">Continue</button>
+          </section>
+        </section>
+
+        <aside class="status-column">
+          <section class="panel" id="ownerGoalsPanel">
+            <div class="panel-title-row">
+              <h2>Owner Objectives</h2>
+              <span id="goalPulse" class="pulse">On Track</span>
+            </div>
+            <div id="goalsList"></div>
+          </section>
+
+          <section class="panel" id="narrativePanel">
+            <h2>Narrative Board</h2>
+            <div class="narrative-row">
+              <span>Media Heat</span>
+              <div class="bar-shell"><div id="mediaHeatBar" class="bar-fill media"></div></div>
+            </div>
+            <div class="narrative-row">
+              <span>Risk Heat</span>
+              <div class="bar-shell"><div id="riskHeatBar" class="bar-fill risk"></div></div>
+            </div>
+            <div class="narrative-row">
+              <span>Momentum State</span>
+              <strong id="momentumBadge" class="momentum-badge">STABLE</strong>
             </div>
             <div>
-              <span class="label">Record Estimate</span>
-              <strong id="recordEstimateText">-</strong>
+              <h3>Tags</h3>
+              <div id="tagsWrap" class="tags-wrap"></div>
             </div>
-            <div>
-              <span class="label">Momentum</span>
-              <strong id="momentumText">STABLE</strong>
-            </div>
-            <div>
-              <span class="label">Media Heat</span>
-              <strong id="mediaHeatText">0</strong>
-            </div>
-          </div>
-          <p id="topHeadline" class="headline"></p>
-          <div id="capSheetQuick" class="cap-quick"></div>
-        </section>
-
-        <section class="panel" id="ownerGoalsPanel">
-          <div class="panel-title-row">
-            <h2>Owner Objectives</h2>
-            <span id="goalPulse" class="pulse">On Track</span>
-          </div>
-          <div id="goalsList"></div>
-        </section>
-
-        <section class="panel" id="narrativePanel">
-          <h2>Narrative Board</h2>
-          <div class="narrative-row">
-            <span>Media Heat</span>
-            <div class="bar-shell"><div id="mediaHeatBar" class="bar-fill media"></div></div>
-          </div>
-          <div class="narrative-row">
-            <span>Risk Heat</span>
-            <div class="bar-shell"><div id="riskHeatBar" class="bar-fill risk"></div></div>
-          </div>
-          <div class="narrative-row">
-            <span>Momentum State</span>
-            <strong id="momentumBadge" class="momentum-badge">STABLE</strong>
-          </div>
-          <div>
-            <h3>Tags</h3>
-            <div id="tagsWrap" class="tags-wrap"></div>
-          </div>
-        </section>
-
-        <section class="panel" id="eventPanel">
-          <div class="panel-title-row">
-            <h2 id="eventTitle">Major Decision</h2>
-            <span id="eventCategory" class="badge alt">Contracts</span>
-          </div>
-          <p id="eventDescription" class="event-description"></p>
-          <div id="eventOptions" class="options"></div>
-        </section>
-
-        <section class="panel hidden" id="tradeDeadlinePanel">
-          <div class="panel-title-row">
-            <h2>Breaking News: Trade Deadline</h2>
-            <span class="badge alert">Week 7</span>
-          </div>
-          <p class="event-description">Choose one trade, counter an offer, or pass. Trade legality follows the simplified cap matching rule.</p>
-          <p class="rule-note" data-tooltip="If you are over the cap, incoming salary must be less than or equal to outgoing salary times 1.25 plus $2M. If under the cap, your new payroll must stay at or below the cap with a small $5M rookie exception.">Trade Machine Rule</p>
-          <div id="tradeOffers" class="trade-feed"></div>
-          <button id="passTradeBtn" class="secondary-btn" type="button">Pass Deadline</button>
-        </section>
-
-        <section class="panel hidden" id="minorPanel">
-          <h2 id="minorTitle">Minor Decision</h2>
-          <p id="minorDescription" class="event-description"></p>
-          <div id="minorOptions" class="options"></div>
-        </section>
-
-        <section class="panel hidden" id="draftPanel">
-          <div class="panel-title-row">
-            <h2>Draft Night (Week 12)</h2>
-            <span class="badge alert">Finale</span>
-          </div>
-          <p class="event-description">Pick your direction: ceiling, floor, or balance.</p>
-          <div id="draftChoices" class="options"></div>
-        </section>
-
-        <section class="panel hidden" id="offseasonPanel">
-          <h2>Offseason Commitment</h2>
-          <p class="event-description">One last strategic move sets your final story.</p>
-          <div id="offseasonChoices" class="options"></div>
-        </section>
-
-        <section class="panel" id="recapPanel">
-          <h2>Week Recap</h2>
-          <div id="recapHeadlines" class="recap-headlines"></div>
-          <p id="analystBlurb" class="analyst-blurb"></p>
-          <div id="deltaPanel" class="delta-panel"></div>
-          <button id="continueWeekBtn" class="primary-btn hidden" type="button">Continue</button>
-        </section>
+          </section>
+        </aside>
       </main>
     </section>
 
     <section id="endScreen" class="screen hidden">
-      <div class="broadcast-shell">
+      <div class="broadcast-shell end-shell">
         <p class="kicker">FINAL REPORT</p>
         <h2 id="endTitle">Season Complete</h2>
+
         <div class="end-metrics">
           <div>
             <span>Dynasty Score</span>
