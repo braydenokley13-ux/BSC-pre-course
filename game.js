@@ -1180,14 +1180,34 @@ Polish Checklist
       const complete = goal.completeFn(state);
       const goalItem = document.createElement("div");
       goalItem.className = "goal-item";
-      goalItem.innerHTML = `
-        <div class="goal-top">
-          <span class="goal-title">${goal.title}</span>
-          <span class="goal-percent">${Math.round(progress)}%</span>
-        </div>
-        <div class="progress-shell"><div class="progress-fill" style="width:${progress}%;"></div></div>
-        <p class="goal-note">${complete ? "Completed" : goal.description}</p>
-      `;
+      const top = document.createElement("div");
+      top.className = "goal-top";
+
+      const title = document.createElement("span");
+      title.className = "goal-title";
+      title.textContent = goal.title;
+
+      const percent = document.createElement("span");
+      percent.className = "goal-percent";
+      percent.textContent = `${Math.round(progress)}%`;
+
+      top.appendChild(title);
+      top.appendChild(percent);
+
+      const progressShell = document.createElement("div");
+      progressShell.className = "progress-shell";
+      const progressFill = document.createElement("div");
+      progressFill.className = "progress-fill";
+      progressFill.style.width = `${progress}%`;
+      progressShell.appendChild(progressFill);
+
+      const note = document.createElement("p");
+      note.className = "goal-note";
+      note.textContent = complete ? "Completed" : goal.description;
+
+      goalItem.appendChild(top);
+      goalItem.appendChild(progressShell);
+      goalItem.appendChild(note);
       ui.goalsList.appendChild(goalItem);
     });
 
@@ -1300,7 +1320,7 @@ Polish Checklist
         return;
       }
       const card = document.createElement("article");
-      const tierClass = `option-${option.tier.toLowerCase().replace(/\\s+/g, "-")}`;
+      const tierClass = `option-${option.tier.toLowerCase().replace(/\s+/g, "-")}`;
       card.className = `option-card ${tierClass}`;
 
       const capDelta = -option.impacts.payrollM;
@@ -1482,19 +1502,46 @@ Polish Checklist
       const pkg = buildTradePackage(offer, false);
       const legal = isTradeLegal(pkg.outgoingSalaryM, pkg.incomingSalaryM);
 
-      card.innerHTML = `
-        <h3>${offer.title}</h3>
-        <p>${offer.description}</p>
-        <p><strong>Outgoing:</strong> ${pkg.outgoingNames.join(", ")}</p>
-        <p><strong>Incoming:</strong> ${pkg.incomingNames.join(", ")}</p>
-        <p class="trade-salary">Outgoing $${pkg.outgoingSalaryM.toFixed(1)}M | Incoming $${pkg.incomingSalaryM.toFixed(1)}M</p>
-        <span class="${legal ? "legal-ok" : "legal-bad"}">${legal ? "Trade Legal" : "Trade Not Legal"}</span>
-        <p class="risk-note">Fit impact: +${offer.fitImpact.offense} offense, +${offer.fitImpact.defense} defense, ${signed(offer.fitImpact.chemistry, 0)} chemistry</p>
-      `;
+      const title = document.createElement("h3");
+      title.textContent = offer.title;
+      const description = document.createElement("p");
+      description.textContent = offer.description;
+      const outgoingLine = document.createElement("p");
+      outgoingLine.className = "trade-outgoing";
+      const incomingLine = document.createElement("p");
+      incomingLine.className = "trade-incoming";
+      const salaryLine = document.createElement("p");
+      salaryLine.className = "trade-salary";
+      const legalBadge = document.createElement("span");
+      const fitLine = document.createElement("p");
+      fitLine.className = "risk-note";
+      fitLine.textContent = `Fit impact: +${offer.fitImpact.offense} offense, +${offer.fitImpact.defense} defense, ${signed(offer.fitImpact.chemistry, 0)} chemistry`;
+
+      card.appendChild(title);
+      card.appendChild(description);
+      card.appendChild(outgoingLine);
+      card.appendChild(incomingLine);
+      card.appendChild(salaryLine);
+      card.appendChild(legalBadge);
+      card.appendChild(fitLine);
+
+      const applyTradeCardPackage = (packageView, legalNow) => {
+        outgoingLine.innerHTML = `<strong>Outgoing:</strong> ${packageView.outgoingNames.join(", ")}`;
+        incomingLine.innerHTML = `<strong>Incoming:</strong> ${packageView.incomingNames.join(", ")}`;
+        salaryLine.textContent = `Outgoing $${packageView.outgoingSalaryM.toFixed(1)}M | Incoming $${packageView.incomingSalaryM.toFixed(1)}M`;
+        legalBadge.className = legalNow ? "legal-ok" : "legal-bad";
+        legalBadge.textContent = legalNow ? "Trade Legal" : "Trade Not Legal";
+      };
+
+      applyTradeCardPackage(pkg, legal);
 
       const counterRow = document.createElement("label");
       counterRow.className = "counter-row";
-      counterRow.innerHTML = `<input type="checkbox" data-offer-idx="${idx}" /> Counter offer (+risk, +upside)`;
+      const counterInput = document.createElement("input");
+      counterInput.type = "checkbox";
+      counterInput.dataset.offerIdx = String(idx);
+      counterRow.appendChild(counterInput);
+      counterRow.appendChild(document.createTextNode(" Counter offer (+risk, +upside)"));
       card.appendChild(counterRow);
 
       const btn = document.createElement("button");
@@ -1502,21 +1549,16 @@ Polish Checklist
       btn.textContent = "Accept Offer";
       btn.addEventListener("click", () => {
         if (state.locked) return;
-        const checked = counterRow.querySelector("input").checked;
+        const checked = counterInput.checked;
         acceptTradeOffer(offer, checked);
       });
       card.appendChild(btn);
 
-      counterRow.querySelector("input").addEventListener("change", () => {
-        const useCounter = counterRow.querySelector("input").checked;
+      counterInput.addEventListener("change", () => {
+        const useCounter = counterInput.checked;
         const packageView = buildTradePackage(offer, useCounter);
         const legalNow = isTradeLegal(packageView.outgoingSalaryM, packageView.incomingSalaryM);
-        card.querySelector("p:nth-of-type(2)").innerHTML = `<strong>Outgoing:</strong> ${packageView.outgoingNames.join(", ")}`;
-        card.querySelector("p:nth-of-type(3)").innerHTML = `<strong>Incoming:</strong> ${packageView.incomingNames.join(", ")}`;
-        card.querySelector(".trade-salary").textContent = `Outgoing $${packageView.outgoingSalaryM.toFixed(1)}M | Incoming $${packageView.incomingSalaryM.toFixed(1)}M`;
-        const legalNode = card.querySelector(".legal-ok, .legal-bad");
-        legalNode.className = legalNow ? "legal-ok" : "legal-bad";
-        legalNode.textContent = legalNow ? "Trade Legal" : "Trade Not Legal";
+        applyTradeCardPackage(packageView, legalNow);
       });
 
       ui.tradeOffers.appendChild(card);
