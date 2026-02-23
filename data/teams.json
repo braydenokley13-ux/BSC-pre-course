@@ -1,0 +1,242 @@
+[
+  {
+    "name": "Boston Celtics",
+    "marketSize": "large",
+    "ownerTemperament": "impatient",
+    "startingValueB": 5.2,
+    "startingPatience": 60,
+    "storyline": "A veteran contender with a huge payroll. Ownership wants banners, not excuses.",
+    "startingRoster": [
+      "Jayson Tatum",
+      "Jaylen Brown",
+      "Jrue Holiday",
+      "Kristaps Porzingis",
+      "Derrick White",
+      "Malik Freeman",
+      "Nolan Price",
+      "Elijah Boone",
+      "Carter Wynn",
+      "Darius Cole"
+    ]
+  },
+  {
+    "name": "Los Angeles Lakers",
+    "marketSize": "large",
+    "ownerTemperament": "impatient",
+    "startingValueB": 6.1,
+    "startingPatience": 58,
+    "storyline": "Global spotlight every night. A single losing week can dominate headlines.",
+    "startingRoster": [
+      "LeBron James",
+      "Anthony Davis",
+      "Austin Reaves",
+      "Rui Hachimura",
+      "D'Angelo Russell",
+      "Marcus Hale",
+      "Trey Lawson",
+      "Isaiah Knox",
+      "Devin Marsh",
+      "Caleb Stone"
+    ]
+  },
+  {
+    "name": "Golden State Warriors",
+    "marketSize": "large",
+    "ownerTemperament": "impatient",
+    "startingValueB": 5.8,
+    "startingPatience": 57,
+    "storyline": "An aging core with title expectations and a tax bill that keeps climbing.",
+    "startingRoster": [
+      "Stephen Curry",
+      "Draymond Green",
+      "Andrew Wiggins",
+      "Klay Thompson",
+      "Jonathan Kuminga",
+      "Jordan Bellamy",
+      "Keon Rivers",
+      "Miles Harper",
+      "Quentin Shaw",
+      "Bryce Nolan"
+    ]
+  },
+  {
+    "name": "Miami Heat",
+    "marketSize": "large",
+    "ownerTemperament": "neutral",
+    "startingValueB": 4.3,
+    "startingPatience": 63,
+    "storyline": "Culture and toughness are the brand. Smart cap moves can unlock a deep run.",
+    "startingRoster": [
+      "Jimmy Butler",
+      "Bam Adebayo",
+      "Tyler Herro",
+      "Terry Rozier",
+      "Jaime Jaquez Jr.",
+      "Andre Voss",
+      "Leo Santiago",
+      "Mason Reid",
+      "Tyrell Banks",
+      "Cameron Fox"
+    ]
+  },
+  {
+    "name": "New York Knicks",
+    "marketSize": "large",
+    "ownerTemperament": "impatient",
+    "startingValueB": 5,
+    "startingPatience": 59,
+    "storyline": "Big market pressure with a fan base hungry for relevance and discipline.",
+    "startingRoster": [
+      "Jalen Brunson",
+      "Julius Randle",
+      "OG Anunoby",
+      "Josh Hart",
+      "Mitchell Robinson",
+      "Zion Mercer",
+      "Noah Briggs",
+      "Caleb Vaughn",
+      "Dante Ellis",
+      "Mason Hart"
+    ]
+  },
+  {
+    "name": "Dallas Mavericks",
+    "marketSize": "large",
+    "ownerTemperament": "neutral",
+    "startingValueB": 4.6,
+    "startingPatience": 65,
+    "storyline": "Star offense, thin margins. One wrong contract could trap the roster.",
+    "startingRoster": [
+      "Luka Doncic",
+      "Kyrie Irving",
+      "PJ Washington",
+      "Dereck Lively II",
+      "Tim Hardaway Jr.",
+      "Kobe Whitman",
+      "Elias Turner",
+      "Jace Holloway",
+      "Ronan Cruz",
+      "Tyler Dean"
+    ]
+  },
+  {
+    "name": "Denver Nuggets",
+    "marketSize": "med",
+    "ownerTemperament": "neutral",
+    "startingValueB": 4.1,
+    "startingPatience": 66,
+    "storyline": "Championship-level top talent, but depth decisions decide the ceiling.",
+    "startingRoster": [
+      "Nikola Jokic",
+      "Jamal Murray",
+      "Michael Porter Jr.",
+      "Aaron Gordon",
+      "Kentavious Caldwell-Pope",
+      "Micah Sloan",
+      "Owen Drake",
+      "Blake Monroe",
+      "Jayce Grant",
+      "Xavier Flynn"
+    ]
+  },
+  {
+    "name": "Oklahoma City Thunder",
+    "marketSize": "small",
+    "ownerTemperament": "patient",
+    "startingValueB": 3.9,
+    "startingPatience": 74,
+    "storyline": "Young core on the rise. You can push now or preserve long-term flexibility.",
+    "startingRoster": [
+      "Shai Gilgeous-Alexander",
+      "Jalen Williams",
+      "Chet Holmgren",
+      "Lu Dort",
+      "Isaiah Joe",
+      "Aiden Rowe",
+      "Colby Lane",
+      "Tyson Webb",
+      "Evan Pike",
+      "Ryder Moss"
+    ]
+  },
+  {
+    "name": "San Antonio Spurs",
+    "marketSize": "small",
+    "ownerTemperament": "patient",
+    "startingValueB": 3.6,
+    "startingPatience": 76,
+    "storyline": "A future-star timeline. Patience helps, but progress still matters.",
+    "startingRoster": [
+      "Victor Wembanyama",
+      "Devin Vassell",
+      "Keldon Johnson",
+      "Jeremy Sochan",
+      "Tre Jones",
+      "Landon Kerr",
+      "Nico Dalton",
+      "Felix Navarro",
+      "Jamir Tate",
+      "Seth Bishop"
+    ]
+  },
+  {
+    "name": "Orlando Magic",
+    "marketSize": "med",
+    "ownerTemperament": "neutral",
+    "startingValueB": 3.4,
+    "startingPatience": 68,
+    "storyline": "Length and youth provide upside. Cap timing determines when to strike.",
+    "startingRoster": [
+      "Paolo Banchero",
+      "Franz Wagner",
+      "Jalen Suggs",
+      "Wendell Carter Jr.",
+      "Jonathan Isaac",
+      "Adrian Cole",
+      "Milo Benton",
+      "CJ Randall",
+      "Parker Tate",
+      "Damon Quinn"
+    ]
+  },
+  {
+    "name": "Toronto Raptors",
+    "marketSize": "med",
+    "ownerTemperament": "neutral",
+    "startingValueB": 3.8,
+    "startingPatience": 64,
+    "storyline": "A pivot roster balancing competitiveness and future asset control.",
+    "startingRoster": [
+      "Scottie Barnes",
+      "RJ Barrett",
+      "Immanuel Quickley",
+      "Jakob Poeltl",
+      "Gradey Dick",
+      "Malik Osei",
+      "Roman Petrov",
+      "Jaylin Cross",
+      "Connor Wells",
+      "Tariq Lowe"
+    ]
+  },
+  {
+    "name": "Portland Trail Blazers",
+    "marketSize": "small",
+    "ownerTemperament": "patient",
+    "startingValueB": 3.2,
+    "startingPatience": 72,
+    "storyline": "Development years with flashes of star scoring. Every dollar matters.",
+    "startingRoster": [
+      "Anfernee Simons",
+      "Jerami Grant",
+      "Deandre Ayton",
+      "Scoot Henderson",
+      "Shaedon Sharpe",
+      "Brandon York",
+      "Ellis Boone",
+      "Kian Douglas",
+      "Harper James",
+      "Omar Fields"
+    ]
+  }
+]
