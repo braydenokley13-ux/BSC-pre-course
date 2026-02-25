@@ -10,6 +10,8 @@ build/
 
 # Prisma
 prisma/migrations/
+prisma/dev.db
+prisma/dev.db-journal
 
 # Environment
 .env
