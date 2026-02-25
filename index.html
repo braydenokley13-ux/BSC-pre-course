@@ -68,6 +68,11 @@
             <strong id="riskHeatValue">0</strong>
             <span id="riskHeatTrend" class="meter-trend neutral">• 0.0</span>
           </div>
+          <div class="meter-card subtle" data-stat="confidence">
+            <span class="meter-label" data-tooltip="Team Confidence reflects locker room buy-in. High confidence improves decision outcomes. Low confidence creates volatility.">Confidence</span>
+            <strong id="confidenceValue">60</strong>
+            <span id="confidenceTrend" class="meter-trend neutral">• 0</span>
+          </div>
           <button id="settingsBtn" class="settings-btn" type="button" aria-label="Open settings">Settings</button>
         </div>
       </header>
@@ -140,8 +145,8 @@
               <h2>Draft Night (Week 12)</h2>
               <span class="badge alert">Finale</span>
             </div>
-            <p class="event-description">Pick your direction: ceiling, floor, or balance.</p>
-            <div id="draftChoices" class="options"></div>
+            <p class="event-description">Five prospects. One pick. Your legacy starts here — ceiling, floor, or calculated value?</p>
+            <div id="draftChoices" class="options draft-options"></div>
           </section>
 
           <section class="panel event-stage hidden" id="offseasonPanel">
@@ -171,6 +176,16 @@
             <div id="goalsList"></div>
           </section>
 
+          <section class="panel" id="rosterPanel">
+            <div class="panel-title-row">
+              <h2>Money in Motion</h2>
+              <span id="rosterCapBadge" class="badge alt">Cap Sheet</span>
+            </div>
+            <div id="capZoneBar" class="cap-zone-bar"></div>
+            <div id="rosterList" class="roster-list"></div>
+            <div id="deadCapLine" class="dead-cap-line"></div>
+          </section>
+
           <section class="panel" id="narrativePanel">
             <h2>Narrative Board</h2>
             <div class="narrative-row">
@@ -180,6 +195,10 @@
             <div class="narrative-row">
               <span>Risk Heat</span>
               <div class="bar-shell"><div id="riskHeatBar" class="bar-fill risk"></div></div>
+            </div>
+            <div class="narrative-row">
+              <span>Confidence</span>
+              <div class="bar-shell"><div id="confidenceBar" class="bar-fill confidence"></div></div>
             </div>
             <div class="narrative-row">
               <span>Momentum State</span>
@@ -213,8 +232,16 @@
             <strong id="archetypeText">-</strong>
           </div>
           <div>
+            <span>Cap Efficiency Grade</span>
+            <strong id="capGradeText">-</strong>
+          </div>
+          <div>
             <span>Best Value (Saved)</span>
             <strong id="bestValueText">$0.00B</strong>
+          </div>
+          <div>
+            <span>Final Record Est.</span>
+            <strong id="finalRecordText">-</strong>
           </div>
         </div>
 
@@ -235,6 +262,15 @@
             <h3>Payroll vs Cap Lines</h3>
             <canvas id="payrollChart" width="500" height="230"></canvas>
           </div>
+          <div class="chart-card">
+            <h3>Team Confidence Trend</h3>
+            <canvas id="confidenceChart" width="500" height="230"></canvas>
+          </div>
+        </div>
+
+        <div id="rosterGradePanel" class="panel roster-grade-end">
+          <h3>Final Roster Contract Grades</h3>
+          <div id="rosterGradeList" class="roster-grade-list"></div>
         </div>
 
         <div class="summary-grid">

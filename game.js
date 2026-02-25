@@ -15,7 +15,9 @@ Polish Checklist
     luxuryTaxLine: 171,
     apronLine: 178,
     underCapExceptionM: 5,
-    hiddenGoalRevealWeek: 6
+    hiddenGoalRevealWeek: 6,
+    supermaxOverallThreshold: 92,
+    draftProspectCount: 5
   };
 
   const STORAGE = {
@@ -261,7 +263,11 @@ Polish Checklist
       ["Young Core Deal Timing", "A young starter is entering a breakout phase and seeks a new contract."],
       ["Two-Year Bridge Offer", "Agent proposes a shorter bridge deal with upside incentives."],
       ["Veteran Discount Debate", "A respected veteran offers a cheaper extension if guaranteed years are added."],
-      ["Cap-Friendly Bonus Structure", "Your cap team suggests creative bonuses to keep flexibility." ]
+      ["Cap-Friendly Bonus Structure", "Your cap team suggests creative bonuses to keep flexibility."],
+      ["Star Extension Holdout Threat", "Your franchise player goes silent. Agent says talks are 'complicated.'"],
+      ["Supermax Qualifying Window", "Your elite scorer has hit qualifying thresholds. Max offer must come now or wait two years."],
+      ["Injury Recovery Extension Discount", "A recovering star is willing to sign short-term at a discount to prove health."],
+      ["Locker Room Leader Wants Loyalty", "A veteran who led the culture here asks for one more contract to finish his career."]
     ],
     option: [
       ["Player Option Looming", "A rotation player can opt out soon and wants to discuss role and money."],
@@ -271,7 +277,10 @@ Polish Checklist
       ["Mutual Option Proposal", "Agent offers a mutual path to keep both sides flexible."],
       ["Cap Relief Opportunity", "Declining an option could save money but weaken short-term depth."],
       ["Locker Room Promise", "A veteran says he accepted less before and now expects option respect."],
-      ["One-Year Decision", "You must decide whether to keep or clear an expiring option player."]
+      ["One-Year Decision", "You must decide whether to keep or clear an expiring option player."],
+      ["Opt-Out for Max Pressure", "A star threatens to opt out for a maximum offer elsewhere if you don't extend now."],
+      ["Team Option Power Move", "Your front office holds a team option on a high-value contract. Honor it or pivot?"],
+      ["Early Termination Clause", "A mid-level player wants to add a mutual ETC to his deal in exchange for a salary cut."]
     ],
     tax: [
       ["Owner Sees Tax Bill", "Finance report shows a steep luxury tax payment approaching."],
@@ -281,7 +290,11 @@ Polish Checklist
       ["Cap Department Mandate", "Ownership asks for at least one cost-control action this week."],
       ["Escalating Penalty Math", "A small payroll increase now could trigger larger tax multipliers."],
       ["Asset Protection Brief", "Front office says moving one contract now may prevent meltdown later."],
-      ["Sponsor Concern", "A sponsor asks whether your tax spending has a clear win-now path."]
+      ["Sponsor Concern", "A sponsor asks whether your tax spending has a clear win-now path."],
+      ["Owner Emergency Call", "The owner flies in to discuss the tax bill in person. This is not a drill."],
+      ["Second Apron Trap", "An incremental payroll move would push you past the second apron — hard cap territory with no exceptions."],
+      ["Championship Window vs Checkbook", "The team is close to a title. Push through the tax or protect the balance sheet?"],
+      ["Hard Cap Warning", "A trade under consideration would accidentally trigger a hard cap, locking your roster."]
     ],
     trade: [
       ["Two-Team Framework", "A rival GM calls with a balanced framework around starters."],
@@ -291,7 +304,11 @@ Polish Checklist
       ["Bench Consolidation", "Combine two role players into one higher-level contributor."],
       ["Buy-Low Star Opportunity", "A struggling star is available at a discount if you move quickly."],
       ["Expiring Contract Market", "You can rent help now or preserve cap room for next year."],
-      ["Chemistry Gamble", "A high-talent player could raise ceiling but challenge locker room fit."]
+      ["Chemistry Gamble", "A high-talent player could raise ceiling but challenge locker room fit."],
+      ["Trade Demand Leaked", "A disgruntled player's trade request leaked to the press. Handle it before it becomes a fire."],
+      ["Playoff Contender Call", "A title contender calls. They want your depth. They're offering a first-round pick."],
+      ["Fire Sale Pressure", "A rival team is blowing it up. Stars available at pennies on the dollar — but salary is complicated."],
+      ["Contract Dump Bait", "Another team wants you to absorb a bad contract. The sweetener: a lottery-protected first."]
     ],
     injury: [
       ["Medical Staff Caution", "Training load data shows increased soft-tissue risk."],
@@ -301,7 +318,10 @@ Polish Checklist
       ["Return Timeline Debate", "A recovering player can return now or wait one more week."],
       ["Practice Intensity Split", "Coaches and medical staff disagree on training load."],
       ["Depth Stress", "Bench injuries force tough minute management choices."],
-      ["Veteran Maintenance", "An older star needs extra rest, which could hurt short-term results."]
+      ["Veteran Maintenance", "An older star needs extra rest, which could hurt short-term results."],
+      ["Star Player Soft Tissue Scare", "Your franchise player tweaked his ankle in practice. The training staff is cautious — ownership is not."],
+      ["Rotation Roulette", "Three rotation players are questionable. Do you rest or push them?"],
+      ["Conditioning Crisis", "Analytics show your team's conditioning metrics are red-lined. A blowout risk if nothing changes."]
     ],
     pr: [
       ["Podcast Quote Sparks Debate", "A player quote trends online and raises media pressure."],
@@ -311,7 +331,11 @@ Polish Checklist
       ["TV Panel Criticism", "National analysts question your cap strategy live on air."],
       ["Locker Room Rumor", "An anonymous report suggests chemistry tension."],
       ["Contract Narrative", "Media argues your recent contracts are either brilliant or reckless."],
-      ["Public Patience Test", "A rough stretch has local press measuring job security."]
+      ["Public Patience Test", "A rough stretch has local press measuring job security."],
+      ["National Media Takeover", "Your front office decisions are the lead story on three national shows tonight. Control the narrative."],
+      ["Star Player Goes Rogue on Social", "Your best player posted a cryptic message that set the internet on fire. Press wants your response."],
+      ["Anonymous Front Office Source", "A report citing 'people close to the organization' paints a bleak internal picture. Time to manage up."],
+      ["Championship or Bust Pressure", "After a big win, pundits declare this your season. Owner is watching how you handle the expectations."]
     ],
     breakout: [
       ["Young Wing Breakout", "A young wing exploded in efficiency and now expects a larger role."],
@@ -321,7 +345,10 @@ Polish Checklist
       ["Prospect Momentum", "Your youngest prospect is forcing lineup conversations."],
       ["Development Staff Win", "Player development staff asks for more minutes for a breakout candidate."],
       ["All-Bench Spark", "Second unit chemistry created a surprise competitive edge."],
-      ["Contract Value Rising", "A breakout means future salary demands may increase soon."]
+      ["Contract Value Rising", "A breakout means future salary demands may increase soon."],
+      ["Sleeper Awakens", "A player no one expected to impact winning has emerged as a rotation anchor. Feature him or trade high?"],
+      ["G-League Call-Up Shines", "Your two-way contract player earned a spot on the main roster through play. Time to invest?"],
+      ["Breakout Player Wants Recognition", "Your hot hand demands a conversation about a new deal. Act now or risk losing momentum."]
     ],
     sponsor: [
       ["Arena Naming Add-On", "A sponsor proposes a bonus package tied to media momentum."],
@@ -331,7 +358,10 @@ Polish Checklist
       ["Premium Partner Push", "A new sponsor offers upside but wants a star-focused campaign."],
       ["Revenue Stability Offer", "A conservative deal guarantees cash with lower upside."],
       ["Brand Risk Clause", "A major sponsor adds penalties for PR spikes."],
-      ["Expansion Bid Support", "Sponsor backing could boost franchise value metrics this season."]
+      ["Expansion Bid Support", "Sponsor backing could boost franchise value metrics this season."],
+      ["Global Brand Partnership", "An international sponsor wants exclusive access for a world-tour media campaign this week."],
+      ["Technology Company Pitch", "A tech brand offers a deal tied to your analytics infrastructure and wearable usage data."],
+      ["Charity Foundation Opportunity", "A community-driven sponsor deal would boost goodwill but requires public player commitments."]
     ],
     philosophy: [
       ["Analytics vs Scouts", "Your departments disagree on who should shape next contracts."],
@@ -341,7 +371,11 @@ Polish Checklist
       ["Youth Timeline Conflict", "One camp wants patience, another wants immediate veteran upgrades."],
       ["Shot Creation Priority", "Decision needed: pay creators now or invest in two-way depth."],
       ["Cap Discipline Meeting", "Internal debate on whether strict cap control limits upside."],
-      ["Deadline Philosophy", "Push chips in now or guard future flexibility for a bigger strike."]
+      ["Deadline Philosophy", "Push chips in now or guard future flexibility for a bigger strike."],
+      ["Rebuild vs Win Now Crossroads", "Ownership wants a clear answer: are we building for now or building for later? This decision changes everything."],
+      ["Star-Ball vs Positionless", "Your coaching staff is split: run the offense through your star or go fully position-less?"],
+      ["Front Office Org Chart Fight", "A power struggle between analytics staff and traditional scouts has leaked to the press. Take a side."],
+      ["Championship or Consistency", "The data shows you can win with continuity. But ownership wants splash moves. Who do you listen to?"]
     ]
   };
 
@@ -590,29 +624,81 @@ Polish Checklist
         { label: "Approve upgrade", impacts: { franchiseValueB: -0.01, teamRating: 0.6, riskHeat: -2 }, note: "Small cost, health gain." },
         { label: "Delay upgrade", impacts: { ownerPatience: 1, riskHeat: 1 }, note: "Save cash now." }
       ]
+    },
+    {
+      title: "Cap Room Decision",
+      description: "You have a window to restructure a mid-level deal this week.",
+      options: [
+        { label: "Restructure to protect cap", impacts: { ownerPatience: 2, riskHeat: -3, mediaHeat: -1 }, note: "Owner appreciates cap discipline." },
+        { label: "Leave contracts as-is", impacts: { teamRating: 0.4, riskHeat: 1 }, note: "Keeps lineup stability." }
+      ]
+    },
+    {
+      title: "Scouting Trip Approval",
+      description: "Scouts want to attend a high-priority workout for a future draft target.",
+      options: [
+        { label: "Approve full scouting trip", impacts: { franchiseValueB: 0.03, teamRating: 0.3, riskHeat: -1 }, note: "Long-term asset building." },
+        { label: "Skip — focus on present", impacts: { ownerPatience: 1, teamRating: 0.5 }, note: "Win-now mentality." }
+      ]
+    },
+    {
+      title: "Star Player Rest Week",
+      description: "Your franchise player is asking for a scheduled rest day ahead of a back-to-back.",
+      options: [
+        { label: "Honor rest request", impacts: { teamRating: -0.6, riskHeat: -4, franchiseValueB: 0.01 }, note: "Player longevity protected." },
+        { label: "Push for full minutes", impacts: { teamRating: 1.0, riskHeat: 4, ownerPatience: 1 }, note: "Short-term wins, injury risk." }
+      ]
+    },
+    {
+      title: "Trade Rumor Denial",
+      description: "A trade rumor involving one of your players hit the wire this morning.",
+      options: [
+        { label: "Deny publicly, reassure player", impacts: { mediaHeat: -5, ownerPatience: 1, teamRating: 0.3 }, note: "Narrative cooling move." },
+        { label: "Stay quiet — let it linger", impacts: { mediaHeat: 4, riskHeat: 2, franchiseValueB: 0.02 }, note: "Keeps leverage for future talks." }
+      ]
+    },
+    {
+      title: "Luxury Box Revenue Play",
+      description: "Arena hospitality team proposes premium pricing for upcoming home games.",
+      options: [
+        { label: "Approve premium pricing", impacts: { franchiseValueB: 0.04, ownerPatience: 1, mediaHeat: 1 }, note: "Revenue up, some fan pushback." },
+        { label: "Keep prices stable", impacts: { franchiseValueB: 0.01, mediaHeat: -2, ownerPatience: 1 }, note: "Fan goodwill maintained." }
+      ]
     }
   ];
 
   const TUTORIAL_STEPS = [
     {
       title: "1) Cap Space",
-      body: "Cap Space means how much salary room you have under the cap line. If it is negative, you are over the cap and trades become harder."
+      body: "Cap Space means how much salary room you have under the $141M cap line. Negative cap space means you're over the cap — trades become harder and options shrink."
     },
     {
-      title: "2) Franchise Value",
-      body: "Franchise Value is your business score in billions. Winning, smart contracts, and good media moments push it up."
+      title: "2) Luxury Tax Line",
+      body: "If your payroll exceeds $171M, you pay a luxury tax multiplier. The more you repeat, the higher the penalty. Avoid it or have a championship-caliber reason."
     },
     {
-      title: "3) Owner Patience",
-      body: "Owner Patience is your job security. If it reaches 0, ownership fires you and your run ends."
+      title: "3) Franchise Value",
+      body: "Franchise Value is your business score in billions. Winning, smart cap moves, sponsorships, and positive media moments push it up. Bad contracts and meltdowns drag it down."
     },
     {
-      title: "4) Weekly Decisions",
-      body: "Each week you pick one major front-office move. Some weeks add a quick minor move. Every choice changes your cap and team direction."
+      title: "4) Owner Patience",
+      body: "Owner Patience is your job security (0–100). Wins, smart moves, and met objectives keep it up. Tax penalties, losing, and controversy drain it. Hit 0 and you're fired."
     },
     {
       title: "5) Trade Matching Rule",
-      body: "Simple trade rule: if over the cap, incoming salary must be less than or equal to outgoing x 1.25 + $2M. If under the cap, payroll must stay near the cap with a small rookie exception."
+      body: "Cap matching law: if over the cap, incoming salary must be ≤ outgoing × 1.25 + $2M. If under the cap, new payroll must stay near cap + $5M exception. Invalid trades are blocked."
+    },
+    {
+      title: "6) Contract Extensions",
+      body: "Lock up your stars before they hit free agency. Extensions add years and salary — but they protect your core. Wait too long and they leave or demand more. Act early to keep flexibility."
+    },
+    {
+      title: "7) Money in Motion Panel",
+      body: "The sidebar shows your live cap sheet with contract grades (A=steal, F=cap drain). Watch your dead cap — waived contracts still count against the cap as dead money."
+    },
+    {
+      title: "8) Draft Night",
+      body: "At Week 12, you'll pick from 5 prospects. High-ceiling picks are risky but can change your franchise. Safe floor picks protect stability. Second-round value picks offer cap flexibility."
     }
   ];
 
@@ -659,6 +745,9 @@ Polish Checklist
       ownerPatienceTrend: byId("ownerPatienceTrend"),
       riskHeatValue: byId("riskHeatValue"),
       riskHeatTrend: byId("riskHeatTrend"),
+      confidenceValue: byId("confidenceValue"),
+      confidenceTrend: byId("confidenceTrend"),
+      confidenceBar: byId("confidenceBar"),
       settingsBtn: byId("settingsBtn"),
       settingsOverlay: byId("settingsOverlay"),
       closeSettingsBtn: byId("closeSettingsBtn"),
@@ -691,6 +780,11 @@ Polish Checklist
       minorTitle: byId("minorTitle"),
       minorDescription: byId("minorDescription"),
       minorOptions: byId("minorOptions"),
+      rosterPanel: byId("rosterPanel"),
+      rosterList: byId("rosterList"),
+      rosterCapBadge: byId("rosterCapBadge"),
+      capZoneBar: byId("capZoneBar"),
+      deadCapLine: byId("deadCapLine"),
       draftPanel: byId("draftPanel"),
       draftChoices: byId("draftChoices"),
       offseasonPanel: byId("offseasonPanel"),
@@ -711,10 +805,14 @@ Polish Checklist
       finalValueText: byId("finalValueText"),
       archetypeText: byId("archetypeText"),
       bestValueText: byId("bestValueText"),
+      capGradeText: byId("capGradeText"),
+      finalRecordText: byId("finalRecordText"),
       valueChart: byId("valueChart"),
       ratingChart: byId("ratingChart"),
       patienceChart: byId("patienceChart"),
       payrollChart: byId("payrollChart"),
+      confidenceChart: byId("confidenceChart"),
+      rosterGradeList: byId("rosterGradeList"),
       decisionList: byId("decisionList"),
       lessonsList: byId("lessonsList"),
       nextRunList: byId("nextRunList"),
@@ -991,6 +1089,8 @@ Polish Checklist
     const payroll = calcPayroll(roster, 0);
     const baseRating = calcRosterRating(roster);
 
+    const startingConfidence = team.ownerTemperament === "patient" ? 68 : team.ownerTemperament === "impatient" ? 54 : 62;
+
     state = {
       team,
       roster,
@@ -1003,6 +1103,7 @@ Polish Checklist
       ownerPatience: team.startingPatience,
       riskHeat: 32,
       mediaHeat: 30,
+      confidence: startingConfidence,
       momentum: MOMENTUM.STABLE,
       tags: new Set(seedInitialTags(team, payroll, baseRating, roster)),
       tickerHeadlines: ["Season opens with front office pressure."],
@@ -1015,7 +1116,8 @@ Polish Checklist
         ownerPatience: [team.startingPatience],
         payroll: [payroll],
         capLine: [CONFIG.salaryCap],
-        taxLine: [CONFIG.luxuryTaxLine]
+        taxLine: [CONFIG.luxuryTaxLine],
+        confidence: [startingConfidence]
       },
       repeatTaxCount: 0,
       taxWeeks: 0,
@@ -1030,7 +1132,10 @@ Polish Checklist
       pendingMinor: false,
       locked: false,
       tutorialStep: 0,
-      goalHistory: []
+      goalHistory: [],
+      gamesWon: 0,
+      gamesPlayed: 0,
+      decisionGrades: []
     };
 
     scoreVisualState = null;
@@ -1069,6 +1174,7 @@ Polish Checklist
     renderBroadcastPanel();
     renderGoalsPanel();
     renderNarrativePanel();
+    renderRosterPanel();
     renderTicker();
     renderRecapPanel();
   }
@@ -1079,7 +1185,8 @@ Polish Checklist
       teamRating: state.teamRating,
       franchiseValue: state.franchiseValueB,
       ownerPatience: state.ownerPatience,
-      riskHeat: state.riskHeat
+      riskHeat: state.riskHeat,
+      confidence: state.confidence
     };
 
     const previous = scoreVisualState || { ...nextValues };
@@ -1089,12 +1196,14 @@ Polish Checklist
     animateScoreValue(ui.franchiseValueValue, previous.franchiseValue, nextValues.franchiseValue, (value) => value.toFixed(2));
     animateScoreValue(ui.ownerPatienceValue, previous.ownerPatience, nextValues.ownerPatience, (value) => Math.round(value).toString());
     animateScoreValue(ui.riskHeatValue, previous.riskHeat, nextValues.riskHeat, (value) => Math.round(value).toString());
+    animateScoreValue(ui.confidenceValue, previous.confidence, nextValues.confidence, (value) => Math.round(value).toString());
 
     setTrendState(ui.capSpaceTrend, ui.capSpaceValue.closest(".meter-card"), nextValues.capSpace - previous.capSpace, 1);
     setTrendState(ui.teamRatingTrend, ui.teamRatingValue.closest(".meter-card"), nextValues.teamRating - previous.teamRating, 1);
     setTrendState(ui.franchiseValueTrend, ui.franchiseValueValue.closest(".meter-card"), nextValues.franchiseValue - previous.franchiseValue, 2);
     setTrendState(ui.ownerPatienceTrend, ui.ownerPatienceValue.closest(".meter-card"), nextValues.ownerPatience - previous.ownerPatience, 1);
     setTrendState(ui.riskHeatTrend, ui.riskHeatValue.closest(".meter-card"), nextValues.riskHeat - previous.riskHeat, 1);
+    setTrendState(ui.confidenceTrend, ui.confidenceValue ? ui.confidenceValue.closest(".meter-card") : null, nextValues.confidence - previous.confidence, 0);
 
     scoreVisualState = { ...nextValues };
   }
@@ -1219,6 +1328,7 @@ Polish Checklist
   function renderNarrativePanel() {
     ui.mediaHeatBar.style.width = `${state.mediaHeat}%`;
     ui.riskHeatBar.style.width = `${state.riskHeat}%`;
+    if (ui.confidenceBar) ui.confidenceBar.style.width = `${state.confidence}%`;
     ui.momentumBadge.textContent = state.momentum;
     ui.tagsWrap.innerHTML = "";
     [...state.tags].slice(0, 8).forEach((tag) => {
@@ -1227,6 +1337,103 @@ Polish Checklist
       chip.textContent = tag;
       ui.tagsWrap.appendChild(chip);
     });
+  }
+
+  function calcMarketValue(overall, age) {
+    const base = Math.max(1.5, (overall - 63) * 1.85);
+    const ageFactor = age <= 24 ? 1.15 : age <= 27 ? 1.05 : age <= 30 ? 0.95 : age <= 33 ? 0.82 : 0.65;
+    return roundTo(base * ageFactor, 1);
+  }
+
+  function calcPlayerValueGrade(player) {
+    const market = calcMarketValue(player.overall, player.age);
+    const ratio = player.salaryM / Math.max(0.1, market);
+    if (ratio <= 0.72) return { grade: "A", label: "Elite Value", colorClass: "grade-a" };
+    if (ratio <= 0.97) return { grade: "B", label: "Good Value", colorClass: "grade-b" };
+    if (ratio <= 1.25) return { grade: "C", label: "Fair Deal", colorClass: "grade-c" };
+    if (ratio <= 1.65) return { grade: "D", label: "Overpaid", colorClass: "grade-d" };
+    return { grade: "F", label: "Cap Drain", colorClass: "grade-f" };
+  }
+
+  function getCapEfficiencyGrade() {
+    if (!state || !state.roster.length) return { grade: "C", text: "Average" };
+    const gradePoints = state.roster.map((p) => {
+      const g = calcPlayerValueGrade(p).grade;
+      return g === "A" ? 4 : g === "B" ? 3 : g === "C" ? 2 : g === "D" ? 1 : 0;
+    });
+    const taxPenalty = state.taxWeeks * 0.18;
+    const score = Math.max(0, avg(gradePoints) - taxPenalty);
+    if (score >= 3.4) return { grade: "A", text: "Elite Efficiency" };
+    if (score >= 2.7) return { grade: "B", text: "Good Cap Work" };
+    if (score >= 1.9) return { grade: "C", text: "Average Construction" };
+    if (score >= 1.1) return { grade: "D", text: "Cap Mismanagement" };
+    return { grade: "F", text: "Franchise in Crisis" };
+  }
+
+  function renderRosterPanel() {
+    if (!state || !ui.rosterList) return;
+
+    // Cap zone bar
+    if (ui.capZoneBar) {
+      const maxScale = CONFIG.apronLine + 18;
+      const payPct = clamp((state.payroll / maxScale) * 100, 0, 100);
+      const capPct = clamp((CONFIG.salaryCap / maxScale) * 100, 0, 100);
+      const taxPct = clamp((CONFIG.luxuryTaxLine / maxScale) * 100, 0, 100);
+      const apronPct = clamp((CONFIG.apronLine / maxScale) * 100, 0, 100);
+      const zoneClass = state.payroll > CONFIG.apronLine ? "czb-danger"
+        : state.payroll > CONFIG.luxuryTaxLine ? "czb-warning"
+        : state.payroll > CONFIG.salaryCap ? "czb-caution"
+        : "czb-ok";
+
+      ui.capZoneBar.innerHTML = `
+        <div class="czb-track">
+          <div class="czb-fill ${zoneClass}" style="width:${payPct}%"></div>
+          <div class="czb-marker czb-cap" style="left:${capPct}%" title="Salary Cap $${CONFIG.salaryCap}M"></div>
+          <div class="czb-marker czb-tax" style="left:${taxPct}%" title="Tax Line $${CONFIG.luxuryTaxLine}M"></div>
+          <div class="czb-marker czb-apron" style="left:${apronPct}%" title="Apron $${CONFIG.apronLine}M"></div>
+        </div>
+        <div class="czb-labels">
+          <span>$0</span><span>Cap</span><span>Tax</span><span>Apron</span>
+        </div>
+      `;
+    }
+
+    // Roster rows
+    ui.rosterList.innerHTML = "";
+    const sorted = [...state.roster].sort((a, b) => b.salaryM - a.salaryM).slice(0, 12);
+    sorted.forEach((player) => {
+      const { grade, label, colorClass } = calcPlayerValueGrade(player);
+      const lastName = player.name.split(" ").slice(-1)[0];
+      const optPip = player.optionType === "player" ? '<span class="opt-pip" title="Player Option">OPT</span>' : "";
+      const row = document.createElement("div");
+      row.className = "roster-row";
+      row.innerHTML = `
+        <span class="grade-badge ${colorClass}" title="${label}">${grade}</span>
+        <span class="roster-name" title="${player.name}">${lastName}</span>
+        <span class="roster-pos">${player.position}</span>
+        <span class="roster-sal">$${player.salaryM.toFixed(1)}M</span>
+        <span class="roster-yrs">×${player.yearsLeft}${optPip}</span>
+      `;
+      ui.rosterList.appendChild(row);
+    });
+
+    // Dead cap / totals footer
+    if (ui.deadCapLine) {
+      const overUnder = state.payroll - CONFIG.salaryCap;
+      const overClass = overUnder > CONFIG.luxuryTaxLine - CONFIG.salaryCap ? "val-danger"
+        : overUnder > 0 ? "val-warn" : "val-ok";
+      ui.deadCapLine.innerHTML = `
+        <div class="dc-row"><span>Dead Cap</span><span>$${state.deadCapM.toFixed(1)}M</span></div>
+        <div class="dc-row dc-total"><span>Payroll vs Cap</span><span class="${overClass}">$${state.payroll.toFixed(1)}M / $${CONFIG.salaryCap}M</span></div>
+      `;
+    }
+
+    // Badge update
+    if (ui.rosterCapBadge) {
+      const diff = roundTo(state.payroll - CONFIG.salaryCap, 1);
+      ui.rosterCapBadge.textContent = diff > 0 ? `+$${diff}M over` : `-$${Math.abs(diff)}M room`;
+      ui.rosterCapBadge.className = `badge ${state.payroll > CONFIG.luxuryTaxLine ? "alert" : diff > 0 ? "alt" : "ok-badge"}`;
+    }
   }
 
   function renderTicker() {
@@ -1392,8 +1599,9 @@ Polish Checklist
     const durabilityBoost = (averageDurability(state.roster) - 82) / 130;
     const mediaPenalty = state.mediaHeat / 600;
     const riskPenalty = state.riskHeat / 520;
+    const confidenceBoost = (state.confidence - 60) / 240; // ±0.17 range
 
-    const successChance = clamp(0.56 + marketBoost + momentumBoost + durabilityBoost - mediaPenalty - riskPenalty - option.volatility / 250, 0.18, 0.82);
+    const successChance = clamp(0.56 + marketBoost + momentumBoost + durabilityBoost + confidenceBoost - mediaPenalty - riskPenalty - option.volatility / 250, 0.18, 0.82);
 
     const success = Math.random() < successChance;
     const riskScale = 1 + state.riskHeat / 190;
@@ -1643,20 +1851,30 @@ Polish Checklist
     prospects.forEach((prospect) => {
       const card = document.createElement("article");
       let tierClass = "option-balanced";
-      if (prospect.archetype.includes("Ceiling")) tierClass = "option-risky";
-      if (prospect.archetype.includes("Floor")) tierClass = "option-safe";
-      card.className = `option-card ${tierClass}`;
+      if (prospect.archetype.includes("Star") || prospect.archetype.includes("Ceiling")) tierClass = "option-risky";
+      if (prospect.archetype.includes("Floor") || prospect.archetype.includes("Value")) tierClass = "option-safe";
+      card.className = `option-card ${tierClass} draft-card`;
+
+      const stars = "★".repeat(prospect.starRating || 3) + "☆".repeat(5 - (prospect.starRating || 3));
+      const bullets = (prospect.scoutingBullets || []).map((b) => `<li>${b}</li>`).join("");
+
       card.innerHTML = `
         <div class="option-head">
           <strong>${prospect.name} (${prospect.position})</strong>
           <span class="option-tier">${prospect.archetype}</span>
         </div>
+        <div class="draft-meta">
+          <span class="draft-slot-badge">${prospect.draftSlot || "First Round"}</span>
+          <span class="draft-stars" title="Prospect ceiling rating">${stars}</span>
+        </div>
         <div class="risk-meter" aria-hidden="true"><span></span></div>
-        <p>${prospect.summary}</p>
+        <p class="draft-summary">${prospect.summary}</p>
+        <ul class="scouting-bullets">${bullets}</ul>
         <div class="option-impact">
           <span>Cap ${signed(-prospect.impacts.payrollM, 1)}M</span>
           <span>Rating ${signed(prospect.impacts.teamRating, 1)}</span>
           <span>Value ${signed(prospect.impacts.franchiseValueB, 2)}B</span>
+          <span>Patience ${signed(prospect.impacts.ownerPatience, 1)}</span>
         </div>
       `;
       const btn = document.createElement("button");
@@ -1833,8 +2051,9 @@ Polish Checklist
     const marketBoost = state.team.marketSize === "large" ? 0.02 : state.team.marketSize === "small" ? -0.005 : 0.01;
     const momentumBoost = state.momentum === MOMENTUM.HOT ? 0.03 : state.momentum === MOMENTUM.CRISIS ? -0.028 : 0.008;
     const mediaSponsor = state.mediaHeat >= 28 && state.mediaHeat <= 64 ? 0.018 : state.mediaHeat > 82 ? -0.025 : 0.003;
+    const confidenceValueBoost = (state.confidence - 60) / 800;
 
-    state.franchiseValueB += marketBoost + momentumBoost + mediaSponsor;
+    state.franchiseValueB += marketBoost + momentumBoost + mediaSponsor + confidenceValueBoost;
 
     const ratingDrift = state.momentum === MOMENTUM.HOT ? 0.6 : state.momentum === MOMENTUM.CRISIS ? -0.6 : 0.2;
     const durabilityDrift = (averageDurability(state.roster) - 84) / 18;
@@ -1842,6 +2061,14 @@ Polish Checklist
 
     const patienceDrift = state.momentum === MOMENTUM.HOT ? 1 : state.momentum === MOMENTUM.CRISIS ? -2 : 0;
     state.ownerPatience += patienceDrift;
+
+    // Confidence weekly decay toward center (mean-reversion)
+    const confidenceCenter = 60;
+    state.confidence += (confidenceCenter - state.confidence) * 0.08;
+    state.confidence = clamp(state.confidence, 0, 100);
+
+    // Weekly game results simulation
+    simulateWeekGames();
 
     const taxImpact = applyTaxPenalty();
     if (taxImpact.applied) {
@@ -1860,6 +2087,36 @@ Polish Checklist
 
     syncPayrollAndCap();
     updateMomentum();
+  }
+
+  function simulateWeekGames() {
+    // Simulate ~3 games per week based on team strength and momentum
+    const baseWinRate = clamp((state.teamRating - 60) / 55, 0.18, 0.82);
+    const momentumMod = state.momentum === MOMENTUM.HOT ? 0.08 : state.momentum === MOMENTUM.CRISIS ? -0.10 : 0;
+    const confidenceMod = (state.confidence - 60) / 300;
+    const winRate = clamp(baseWinRate + momentumMod + confidenceMod, 0.12, 0.90);
+
+    let weekWins = 0;
+    const gamesThisWeek = 3;
+    for (let g = 0; g < gamesThisWeek; g++) {
+      if (Math.random() < winRate) weekWins++;
+    }
+    const weekLosses = gamesThisWeek - weekWins;
+
+    state.gamesWon += weekWins;
+    state.gamesPlayed += gamesThisWeek;
+
+    const record = `${weekWins}-${weekLosses}`;
+    const phrase = weekWins === 3 ? "Sweep! Front office riding high." : weekWins === 2 ? `Solid week: ${record}. Confidence holds.` : weekWins === 1 ? `Tough week: ${record}. Pressure building.` : "0-3 week. Ownership is watching.";
+    addWeekHeadline(phrase);
+
+    // Confidence adjusts based on week record
+    const confidenceShift = (weekWins - 1.5) * 2.8;
+    state.confidence = clamp(state.confidence + confidenceShift, 0, 100);
+
+    // Patience micro-adjustment for win/loss
+    if (weekWins === 3) state.ownerPatience = clamp(state.ownerPatience + 1.5, 0, 100);
+    if (weekWins === 0) state.ownerPatience = clamp(state.ownerPatience - 2, 0, 100);
   }
 
   function applyTaxPenalty() {
@@ -1910,16 +2167,32 @@ Polish Checklist
     if (Math.random() < disasterChance) {
       const disasters = [
         {
-          headline: "Injury scare slows rotation confidence.",
+          headline: "BREAKING: Starter limps off — injury evaluation ongoing.",
           effects: { teamRating: -2.4, franchiseValueB: -0.05, ownerPatience: -3.2, mediaHeat: 7, riskHeat: 2 }
         },
         {
-          headline: "Cap shock: guaranteed money surprise appears.",
+          headline: "Cap shock: guaranteed money surprise appears on the books.",
           effects: { payrollM: 3.2, franchiseValueB: -0.06, ownerPatience: -4.1, mediaHeat: 5, riskHeat: 3 }
         },
         {
-          headline: "Locker room rumor heats up TV panels.",
+          headline: "Locker room fire: anonymous report sets off a media spiral.",
           effects: { teamRating: -1.4, franchiseValueB: -0.04, ownerPatience: -2.8, mediaHeat: 9, riskHeat: 2 }
+        },
+        {
+          headline: "Trade demand leaked. Front office scrambling to contain the narrative.",
+          effects: { teamRating: -1.8, franchiseValueB: -0.06, ownerPatience: -5, mediaHeat: 12, riskHeat: 4 }
+        },
+        {
+          headline: "Tax penalty notice arrives. Owner calls an emergency board review.",
+          effects: { franchiseValueB: -0.07, ownerPatience: -6, mediaHeat: 4, riskHeat: 1 }
+        },
+        {
+          headline: "Key player misses week with undisclosed illness. Depth tested.",
+          effects: { teamRating: -1.9, franchiseValueB: -0.03, ownerPatience: -2, mediaHeat: 5 }
+        },
+        {
+          headline: "Locker room chemistry cracking — two stars reportedly not on speaking terms.",
+          effects: { teamRating: -2.2, franchiseValueB: -0.04, ownerPatience: -4, mediaHeat: 10, riskHeat: 3 }
         }
       ];
       const incident = pickRandom(disasters);
@@ -1927,17 +2200,23 @@ Polish Checklist
       addWeekHeadline(incident.headline);
     }
 
-    const upsideChance = state.riskHeat >= 64 ? 0.16 : 0.05;
+    // Championship window event when very close
+    if (state.teamRating >= 90 && state.momentum === MOMENTUM.HOT && Math.random() < 0.25) {
+      applyImpacts({ teamRating: 0.8, franchiseValueB: 0.04, ownerPatience: 2, mediaHeat: 3, riskHeat: -1 }, "championship-window");
+      addWeekHeadline("CHAMPIONSHIP WINDOW: National media says this team is built to win now.");
+    }
+
+    const upsideChance = state.riskHeat >= 64 ? 0.18 : state.confidence >= 78 ? 0.10 : 0.05;
     if (Math.random() < upsideChance) {
-      const boom = {
-        teamRating: 1.7,
-        franchiseValueB: 0.06,
-        ownerPatience: 1.8,
-        mediaHeat: -1,
-        riskHeat: -1
-      };
-      applyImpacts(boom, "risk-boom");
-      addWeekHeadline("High-risk strategy hits: upside event boosts momentum.");
+      const booms = [
+        { headline: "High-risk strategy hits: upside event boosts momentum.", effects: { teamRating: 1.7, franchiseValueB: 0.06, ownerPatience: 1.8, mediaHeat: -1, riskHeat: -1 } },
+        { headline: "Locker room locked in. Chemistry spike turns into a winning streak.", effects: { teamRating: 2.1, franchiseValueB: 0.05, ownerPatience: 2.5, mediaHeat: -2 } },
+        { headline: "Front office praised nationally for roster construction discipline.", effects: { franchiseValueB: 0.08, ownerPatience: 3, mediaHeat: -3, riskHeat: -2 } },
+        { headline: "Young player emerges out of nowhere — this team has a new weapon.", effects: { teamRating: 1.5, franchiseValueB: 0.04, ownerPatience: 1, mediaHeat: -1 } }
+      ];
+      const boom = pickRandom(booms);
+      applyImpacts(boom.effects, "risk-boom");
+      addWeekHeadline(boom.headline);
     }
   }
 
@@ -2008,10 +2287,23 @@ Polish Checklist
     ui.archetypeText.textContent = payload.archetype;
     ui.bestValueText.textContent = `$${best.toFixed(2)}B`;
 
+    const effGrade = getCapEfficiencyGrade();
+    if (ui.capGradeText) ui.capGradeText.textContent = `${effGrade.grade} — ${effGrade.text}`;
+
+    if (ui.finalRecordText) {
+      const totalWins = state.gamesWon;
+      const totalLosses = state.gamesPlayed - state.gamesWon;
+      ui.finalRecordText.textContent = `${totalWins}-${totalLosses} (${state.gamesPlayed} played)`;
+    }
+
     drawSingleLineChart(ui.valueChart, state.weeklySnapshots.weeks, state.weeklySnapshots.franchiseValue, "#6ea8ff", "Franchise Value", (v) => `$${v.toFixed(2)}B`);
     drawSingleLineChart(ui.ratingChart, state.weeklySnapshots.weeks, state.weeklySnapshots.teamRating, "#c9b06f", "Team Rating", (v) => `${v.toFixed(0)}`);
     drawSingleLineChart(ui.patienceChart, state.weeklySnapshots.weeks, state.weeklySnapshots.ownerPatience, "#79d2a2", "Owner Patience", (v) => `${v.toFixed(0)}`);
     drawPayrollChart(ui.payrollChart, state.weeklySnapshots.weeks, state.weeklySnapshots.payroll, state.weeklySnapshots.capLine, state.weeklySnapshots.taxLine);
+
+    if (ui.confidenceChart && state.weeklySnapshots.confidence && state.weeklySnapshots.confidence.length > 1) {
+      drawSingleLineChart(ui.confidenceChart, state.weeklySnapshots.weeks, state.weeklySnapshots.confidence, "#8b5cf6", "Confidence", (v) => `${v.toFixed(0)}`);
+    }
 
     ui.decisionList.innerHTML = "";
     state.decisionLog.forEach((decision) => {
@@ -2033,6 +2325,26 @@ Polish Checklist
       li.textContent = tip;
       ui.nextRunList.appendChild(li);
     });
+
+    // Final roster grade panel
+    if (ui.rosterGradeList) {
+      ui.rosterGradeList.innerHTML = "";
+      const sorted = [...state.roster].sort((a, b) => b.salaryM - a.salaryM).slice(0, 10);
+      sorted.forEach((player) => {
+        const { grade, label, colorClass } = calcPlayerValueGrade(player);
+        const market = calcMarketValue(player.overall, player.age);
+        const li = document.createElement("div");
+        li.className = "roster-grade-row";
+        li.innerHTML = `
+          <span class="grade-badge ${colorClass}">${grade}</span>
+          <span class="rg-name">${player.name}</span>
+          <span class="rg-pos">${player.position}</span>
+          <span class="rg-sal">$${player.salaryM.toFixed(1)}M / $${market.toFixed(1)}M mkt</span>
+          <span class="rg-label">${label}</span>
+        `;
+        ui.rosterGradeList.appendChild(li);
+      });
+    }
   }
 
   function drawSingleLineChart(canvas, labels, values, color, label, formatter) {
@@ -2112,7 +2424,16 @@ Polish Checklist
     const capHealth = clamp(130 - state.taxWeeks * 9 - Math.max(0, -state.capSpace) * 1.1, 0, 160);
     const goalsDone = state.ownerGoals.filter((g) => g.completeFn(state)).length;
     const goalScore = goalsDone * 70;
-    return Math.round(valueScore + ratingScore + capHealth + goalScore);
+
+    // Cap efficiency bonus (max 80 points)
+    const effGrade = getCapEfficiencyGrade().grade;
+    const effBonus = effGrade === "A" ? 80 : effGrade === "B" ? 60 : effGrade === "C" ? 40 : effGrade === "D" ? 20 : 0;
+
+    // Win record bonus (max 40 points)
+    const winPct = state.gamesPlayed > 0 ? state.gamesWon / state.gamesPlayed : 0.5;
+    const winBonus = Math.round(clamp((winPct - 0.4) / 0.4, 0, 1) * 40);
+
+    return Math.round(valueScore + ratingScore + capHealth + goalScore + effBonus + winBonus);
   }
 
   function determineArchetype() {
@@ -2133,15 +2454,35 @@ Polish Checklist
 
   function buildLessons() {
     const lessons = [];
-    lessons.push("Cap space is flexibility. Even small savings open better legal trade paths later.");
-    lessons.push("Luxury tax is not just a number. Repeated tax weeks stack owner pressure and value loss.");
-    lessons.push("Trade matching matters: over-cap teams cannot absorb salary freely.");
-    lessons.push("Risk Heat can unlock huge upside, but it also raises disaster odds.");
-    lessons.push("Media Heat changes business outcomes, not just headlines.");
+    lessons.push("Cap space is flexibility — even $5M of room opens trade paths that closed rosters cannot access.");
+    lessons.push("Luxury tax multipliers compound fast. A second repeat tax year costs significantly more than year one.");
+    lessons.push("Trade matching is real: over-cap teams can only take on salary up to 125% + $2M of what they send out.");
+
     if (state.taxWeeks > 3) {
-      lessons.push("This run showed how fast tax penalties can snowball into a financial meltdown.");
+      lessons.push(`You paid the luxury tax ${state.taxWeeks} times this run. Each week shrank franchise value and drained owner patience.`);
+    } else {
+      lessons.push("Staying under the tax line keeps ownership happy and franchise value growing — a compounding advantage.");
     }
-    return lessons.slice(0, 6);
+
+    if (state.riskHeat > 70) {
+      lessons.push("High Risk Heat unlocked bigger swings — but also raised your disaster probability each week.");
+    } else {
+      lessons.push("Controlling Risk Heat kept your disaster odds low. Lower volatility = more predictable compounding.");
+    }
+
+    const effGrade = getCapEfficiencyGrade();
+    if (effGrade.grade === "A" || effGrade.grade === "B") {
+      lessons.push(`Your cap efficiency graded ${effGrade.grade}: ${effGrade.text}. Overpaying even one player cascades across the whole cap sheet.`);
+    } else {
+      lessons.push(`Your cap efficiency graded ${effGrade.grade}: ${effGrade.text}. Contracts above market value reduce trade flexibility and tax headroom.`);
+    }
+
+    const winPct = state.gamesPlayed > 0 ? Math.round((state.gamesWon / state.gamesPlayed) * 100) : 50;
+    lessons.push(`Your simulated win rate was ${winPct}%. Team rating and confidence translate directly into game outcomes in the real world.`);
+
+    lessons.push("Media Heat changes business outcomes — not just headlines. Sponsors pay more when narratives stay positive.");
+    lessons.push("Confidence reflects locker room buy-in. High-confidence teams convert close decisions into wins more often.");
+    return lessons.slice(0, 7);
   }
 
   function buildSuggestions(archetype) {
@@ -2398,31 +2739,89 @@ Polish Checklist
   }
 
   function generateDraftProspects() {
-    const names = shuffle(["Kieran Moss", "Ty Hale", "Jamal Rivers", "Noah Chen", "Devin Price", "Arlo Bennett", "Micah Stone", "Rafael Cruz", "Evan Ortega", "Dante Brooks"]).slice(0, 3);
+    const allNames = shuffle([
+      "Kieran Moss", "Ty Hale", "Jamal Rivers", "Noah Chen", "Devin Price",
+      "Arlo Bennett", "Micah Stone", "Rafael Cruz", "Evan Ortega", "Dante Brooks",
+      "Marcus Webb", "Cade Hollis", "Liam Forte", "Jaylen Doss", "Oscar Park"
+    ]);
+    const names = allNames.slice(0, 5);
+    const positions = shuffle(["SF", "C", "PG", "SG", "PF"]);
+
     return [
       {
         name: names[0],
-        position: "SF",
-        archetype: "High Ceiling / Low Floor",
-        summary: "Explosive tools and shot creation upside. Could become a star, could stay raw.",
-        baseOverall: 77,
-        impacts: { payrollM: 5.2, teamRating: 1.2, franchiseValueB: 0.07, ownerPatience: 0, riskHeat: 8, mediaHeat: 5 }
+        position: positions[0],
+        archetype: "Star Ceiling",
+        draftSlot: "Lottery Pick",
+        starRating: 5,
+        summary: "Elite athleticism and shot creation. Ceiling is a franchise cornerstone — floor is a boom-or-bust swing.",
+        scoutingBullets: [
+          "Explosive first step and gravity in pick-and-roll — defenses cannot ignore him",
+          "Decision-making still inconsistent under playoff pressure",
+          "Projects as top-5 upside within 3 years if development staff invests"
+        ],
+        baseOverall: 79,
+        impacts: { payrollM: 5.4, teamRating: 1.6, franchiseValueB: 0.10, ownerPatience: 0, riskHeat: 12, mediaHeat: 8 }
       },
       {
         name: names[1],
-        position: "C",
+        position: positions[1],
+        archetype: "High Ceiling / Low Floor",
+        draftSlot: "Late Lottery",
+        starRating: 4,
+        summary: "Raw tools and shot creation upside. Could become a star, could stay raw. High variance pick.",
+        scoutingBullets: [
+          "Elite burst and transition threat — makes plays others cannot",
+          "Three-point shot mechanical and inconsistent; needs a shooting coach",
+          "High ceiling; bust risk is real and scouts are split"
+        ],
+        baseOverall: 77,
+        impacts: { payrollM: 5.0, teamRating: 1.2, franchiseValueB: 0.07, ownerPatience: 0, riskHeat: 9, mediaHeat: 5 }
+      },
+      {
+        name: names[2],
+        position: positions[2],
+        archetype: "Balanced",
+        draftSlot: "Mid-First Round",
+        starRating: 3,
+        summary: "Versatile two-way player with steady upside. Fits multiple lineups and won't hurt your cap health.",
+        scoutingBullets: [
+          "Switchable defender with solid positional IQ across multiple positions",
+          "Needs to improve off-ball movement but instincts are there",
+          "Likely 12-14 PPG starter ceiling — dependable but rarely spectacular"
+        ],
+        baseOverall: 76,
+        impacts: { payrollM: 4.6, teamRating: 1.1, franchiseValueB: 0.05, ownerPatience: 1, riskHeat: 1, mediaHeat: 2 }
+      },
+      {
+        name: names[3],
+        position: positions[3],
         archetype: "High Floor / Role Fit",
-        summary: "Reliable rotation fit who helps immediately and keeps volatility low.",
+        draftSlot: "Late First Round",
+        starRating: 2,
+        summary: "Reliable rotation contributor who helps immediately. Low variance, safe cap bet, immediate impact.",
+        scoutingBullets: [
+          "Strong positional defender with defensive IQ above expected draft slot",
+          "Shooting mechanics clean; projects as 37%+ three-point shooter year one",
+          "High floor — likely starter-caliber within 2 seasons; low star upside"
+        ],
         baseOverall: 75,
         impacts: { payrollM: 4.1, teamRating: 1.0, franchiseValueB: 0.04, ownerPatience: 2, riskHeat: -3, mediaHeat: 1 }
       },
       {
-        name: names[2],
-        position: "PG",
-        archetype: "Balanced",
-        summary: "Steady upside with cleaner fit across multiple lineups.",
-        baseOverall: 76,
-        impacts: { payrollM: 4.6, teamRating: 1.1, franchiseValueB: 0.05, ownerPatience: 1, riskHeat: 1, mediaHeat: 2 }
+        name: names[4],
+        position: positions[4],
+        archetype: "Trade Chip / Value Pick",
+        draftSlot: "Second Round",
+        starRating: 1,
+        summary: "Low-cost second-round contract. Best used as depth insurance or a future trade chip. Real cap value.",
+        scoutingBullets: [
+          "High motor defensive specialist — effort cannot be taught",
+          "Offensive limitations cap his rotation upside significantly",
+          "Cheap two-way contract is a real asset: tradeable and flexible"
+        ],
+        baseOverall: 73,
+        impacts: { payrollM: 2.1, teamRating: 0.6, franchiseValueB: 0.03, ownerPatience: 1, riskHeat: -5, mediaHeat: 0 }
       }
     ];
   }
@@ -2482,6 +2881,12 @@ Polish Checklist
     state.ownerPatience += adjusted.ownerPatience || 0;
     state.riskHeat += adjusted.riskHeat || 0;
     state.mediaHeat += adjusted.mediaHeat || 0;
+
+    // Confidence: rises with positive team-building, falls with bad moves
+    const ratingDelta = adjusted.teamRating || 0;
+    const patienceDelta = adjusted.ownerPatience || 0;
+    const confidenceDrift = roundTo(ratingDelta * 0.8 + patienceDelta * 0.3, 1);
+    state.confidence = clamp(state.confidence + confidenceDrift, 0, 100);
 
     if (source.startsWith("major") && adjusted.payrollM) {
       // simulate contract shift by adjusting one roster salary so cap sheet reflects the move.
@@ -2630,6 +3035,9 @@ Polish Checklist
     state.weeklySnapshots.payroll.push(roundTo(state.payroll, 2));
     state.weeklySnapshots.capLine.push(CONFIG.salaryCap);
     state.weeklySnapshots.taxLine.push(CONFIG.luxuryTaxLine);
+    if (state.weeklySnapshots.confidence) {
+      state.weeklySnapshots.confidence.push(roundTo(state.confidence, 1));
+    }
   }
 
   function syncPayrollAndCap() {
