@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bsc-bg: #0a0c10;
+  --bsc-card: #10141c;
+  --bsc-border: #1e2435;
+  --bsc-muted: #6b7280;
+  --bsc-accent: #c9a84c;
+  --bsc-gold-light: #e8c56a;
+  --bsc-gold-dark: #a07830;
+  --bsc-green: #22c55e;
+  --bsc-red: #ef4444;
+  --bsc-blue: #3b82f6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background-color: var(--bsc-bg);
+  color: #e5e7eb;
+  font-family: ui-monospace, "JetBrains Mono", "Fira Code", monospace;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scoreboard scanline overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@layer components {
+  .bsc-card {
+    @apply bg-[#10141c] border border-[#1e2435] rounded-lg;
+  }
+
+  .bsc-btn {
+    @apply px-4 py-2 rounded font-mono text-sm font-semibold tracking-wider uppercase transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0c10];
+  }
+
+  .bsc-btn-gold {
+    @apply bsc-btn bg-[#c9a84c] text-black hover:bg-[#e8c56a] focus:ring-[#c9a84c] disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .bsc-btn-ghost {
+    @apply bsc-btn border border-[#1e2435] text-[#6b7280] hover:text-[#e5e7eb] hover:border-[#c9a84c] focus:ring-[#c9a84c];
+  }
+
+  .bsc-btn-green {
+    @apply bsc-btn bg-[#22c55e] text-black hover:bg-[#16a34a] focus:ring-[#22c55e] disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .bsc-input {
+    @apply w-full bg-[#10141c] border border-[#1e2435] rounded px-3 py-2 text-sm font-mono text-[#e5e7eb] placeholder-[#6b7280] focus:outline-none focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c] transition-colors;
+  }
+
+  .bsc-label {
+    @apply block text-xs font-mono tracking-widest uppercase text-[#6b7280] mb-1;
+  }
+
+  .bsc-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold;
+  }
+
+  .bsc-badge-gold {
+    @apply bsc-badge bg-[#c9a84c]/20 text-[#c9a84c] border border-[#c9a84c]/30;
+  }
+
+  .bsc-badge-green {
+    @apply bsc-badge bg-[#22c55e]/20 text-[#22c55e] border border-[#22c55e]/30;
+  }
+
+  .bsc-badge-red {
+    @apply bsc-badge bg-[#ef4444]/20 text-[#ef4444] border border-[#ef4444]/30;
+  }
+
+  .bsc-badge-muted {
+    @apply bsc-badge bg-[#1e2435] text-[#6b7280] border border-[#1e2435];
+  }
+
+  .bsc-section-title {
+    @apply text-xs font-mono tracking-widest uppercase text-[#c9a84c] mb-3;
+  }
+
+  .mission-option {
+    @apply bsc-card p-4 cursor-pointer border-2 border-[#1e2435] hover:border-[#c9a84c]/60 transition-all duration-150 select-none;
+  }
+
+  .mission-option.selected {
+    @apply border-[#c9a84c] bg-[#c9a84c]/5;
+  }
+
+  .mission-option.winning {
+    @apply border-[#22c55e] bg-[#22c55e]/5;
+  }
+
+  .mission-option.losing {
+    @apply border-[#1e2435] opacity-50;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bsc-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bsc-border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--bsc-muted); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(201, 168, 76, 0); }
+}
+
+.pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
