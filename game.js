@@ -24,7 +24,99 @@ Polish Checklist
     bestScore: "bestScore",
     lastRun: "lastRun",
     tutorialSeen: "tutorialSeen",
-    settings: "bscSettings"
+    settings: "bscSettings",
+    conceptsSeen: "bscConceptsSeen"
+  };
+
+  const GLOSSARY_TERMS = [
+    {
+      group: "Cap Rules",
+      terms: [
+        { term: "Salary Cap", def: "The league-set limit on total player salaries — currently $141M. It is a soft cap, meaning teams can exceed it using specific exceptions.", why: "Understanding the cap is the foundation of every roster decision." },
+        { term: "Soft Cap vs Hard Cap", def: "A soft cap can be exceeded using exceptions (Bird Rights, MLE). A hard cap cannot be exceeded for any reason — it is triggered by certain roster moves like the Second Apron or using a traded player exception.", why: "Hard caps eliminate flexibility. Hitting one unexpectedly can trap a roster." },
+        { term: "Luxury Tax Line", def: "The threshold above which teams pay a dollar-for-dollar (and escalating) penalty — currently $171M. The penalty increases with each dollar over the line.", why: "Teams over the tax pay real money back to the league — often 2–3× the overage amount." },
+        { term: "Second Apron", def: "A hard-cap line at $178M. Teams above it lose access to the MLE, cannot aggregate salaries in trades, and face severe roster restrictions.", why: "The second apron is designed to discourage runaway spending. Teams often restructure contracts to stay below it." },
+        { term: "Dead Cap / Dead Money", def: "Salary that counts against the cap even though the player is no longer on the roster — created when a player is waived with guaranteed money remaining.", why: "Dead cap reduces your spending room without giving you a player in return." },
+        { term: "Cap Hold", def: "A placeholder salary that counts against a team's cap space for a player who is a free agent but whose rights the team still holds.", why: "Cap holds can prevent teams from signing free agents even when they look like they have room." },
+        { term: "BRI (Basketball Related Income)", def: "The total revenue the NBA generates — ticket sales, TV deals, merchandise, digital rights, and more. Currently estimated at ~$10.5B/year.", why: "The salary cap is set at ~49–51% of BRI. When the league earns more, the cap rises the next year." },
+        { term: "Escrow", def: "Players forfeit a percentage of each paycheck (currently 10%) into an escrow account. At year-end, if total salaries exceeded the agreed BRI share, players return money.", why: "Escrow is a balancing mechanism between owners and players — it ensures neither side overpays relative to actual revenue." }
+      ]
+    },
+    {
+      group: "Contracts",
+      terms: [
+        { term: "Bird Rights", def: "The right to exceed the cap to re-sign your own player. Full Bird Rights require 3 years with the team. Early Bird requires 2 years. Non-Bird allows re-signing up to a set amount.", why: "Bird Rights are the most powerful tool for retaining your own players above the cap — essential for keeping stars." },
+        { term: "Mid-Level Exception (MLE)", def: "An exception allowing over-cap teams to sign one or more players for up to ~$12.4M/year. Teams above the tax line get a smaller version (~$8.5M).", why: "The MLE is how most teams add talent when over the cap — it is one of the most negotiated tools in free agency." },
+        { term: "Bi-Annual Exception (BAE)", def: "An exception worth ~$4.5M that can only be used every other year — and cannot be used if the team is in the tax.", why: "The BAE offers depth signing flexibility but disappears when you go over the tax line." },
+        { term: "Room Exception", def: "Teams that come in under the cap can sign players using their cap room OR a $7.7M Room Exception if they can't clear full room.", why: "Teams rebuilding under the cap gain access to cheaper exceptions that don't attract luxury tax penalties." },
+        { term: "Player Option", def: "The player can choose to opt out of the final year of their contract and enter free agency — or keep the existing deal.", why: "Player options give stars leverage. A player likely opts out when they believe they can earn more elsewhere." },
+        { term: "Team Option", def: "The team decides whether to exercise the final year of a player's contract — useful for retaining affordable depth or moving on from overpaid veterans.", why: "Teams love options on role players. Declining a team option adds to dead cap." },
+        { term: "Mutual Option", def: "Both the team AND player must agree to exercise the final year. If either declines, the player enters free agency.", why: "Mutual options create negotiation leverage for both sides — a useful middle ground in deal-making." },
+        { term: "Early Termination Clause (ETC)", def: "A clause in a multi-year contract allowing the player (or team) to end the deal early, typically after year 3 or 4.", why: "ETCs give flexibility — but also uncertainty. A star with an ETC is always one opt-out away from free agency." },
+        { term: "Contract Extension", def: "Adding years to an existing contract before it expires — typically at a salary bump. Extensions must follow league rules on timing and maximum annual increases.", why: "Extensions lock up players cheaper than open-market free agency. Waiting costs more." },
+        { term: "Qualifying Offer", def: "A one-year tender made to a restricted free agent — if the player signs it, the team retains his rights for one more year. If the player rejects it, he becomes an unrestricted free agent.", why: "QOs give teams the right to match any offer sheet — critical for retaining young talent." },
+        { term: "Supermax / Designated Player Extension", def: "The largest possible contract — up to 35% of the salary cap — reserved for players who meet specific criteria (All-NBA, All-Star, MVP, DPOY). Only the player's current team can offer it.", why: "The supermax is the ultimate retention tool — but it can lock a declining player into an unmovable contract." },
+        { term: "Rookie Scale Contract", def: "All first-round draft picks are signed to preset 4-year deals based on their draft slot. Teams hold two team options on years 3 and 4.", why: "Rookie scale contracts are the most cost-efficient in the league — the reason good drafting is the foundation of sustained winning." },
+        { term: "Two-Way Contract", def: "A special contract (worth ~$611K) for players who split time between the NBA roster and the G League. Teams can have up to two.", why: "Two-way deals allow teams to develop prospects without counting them against the standard 15-man roster limit." },
+        { term: "No-Trade Clause (NTC)", def: "A contract provision preventing the team from trading the player without his consent — full NTC means any destination, partial NTC means the player can block a list of specific teams.", why: "NTCs reduce team flexibility significantly. A player with an NTC controls his own destination." }
+      ]
+    },
+    {
+      group: "Trades",
+      terms: [
+        { term: "Trade Matching Rule", def: "Over-cap teams can only take on incoming salary up to 125% + $2M of the salary they send out. Under-cap teams can absorb salary up to the cap + $5M rookie exception.", why: "Matching rules prevent teams from circumventing the salary cap through trades — understanding them is essential to identifying which deals are possible." },
+        { term: "Salary Aggregation", def: "Combining multiple contracts on one side of a trade to match the salary of a single player on the other side. Teams above the Second Apron cannot aggregate salaries.", why: "Aggregation unlocks trades that would otherwise be financially impossible — but losing aggregation rights (via Second Apron) is a major penalty." },
+        { term: "Sign-and-Trade", def: "A player signs a new contract with his current team which is immediately traded to a new team. Allows the acquiring team to exceed the cap and the player to receive a larger deal.", why: "Sign-and-trades let teams get value when they would otherwise lose a player for nothing in free agency." },
+        { term: "Trade Kicker", def: "A contract clause that adds extra salary (up to 15% of remaining value) when a player is traded — making the player more expensive and harder to move.", why: "Trade kickers protect players financially but reduce trade market demand for them." }
+      ]
+    },
+    {
+      group: "Analytics",
+      terms: [
+        { term: "PER (Player Efficiency Rating)", def: "A per-minute efficiency metric that summarizes a player's statistical contributions into one number. League average is 15.", why: "PER gives a fast read on player productivity — though it over-rewards scoring and misses defense." },
+        { term: "True Shooting % (TS%)", def: "Shooting efficiency that accounts for the value of three-pointers and free throws. League average is ~57%.", why: "TS% is the most honest way to compare shooters — a 47% 2-point shooter and a 38% 3-point shooter have the same TS%." },
+        { term: "Win Shares (WS)", def: "An estimate of the number of wins a player contributed to the team. A player with 10 Win Shares helped his team win ~10 more games.", why: "Win Shares connects individual performance to actual outcomes — useful for contract value analysis." },
+        { term: "BPM (Box Plus/Minus)", def: "An estimate of a player's net impact per 100 possessions versus a league-average player, based only on box score data. +5 is All-Star level.", why: "BPM shows impact relative to replacement — essential for measuring stars vs. role players fairly." },
+        { term: "VORP (Value Over Replacement Player)", def: "The total value a player provides above what a replacement-level player would provide, scaled to a full season. Positive is above average.", why: "VORP is useful for comparing players with different playing time or role — it rewards both efficiency and availability." },
+        { term: "Net Rating / ORTG / DRTG", def: "Net Rating is the point differential per 100 possessions with a player on the court (positive = team outscores opponents). ORTG = offensive rating, DRTG = defensive rating.", why: "Net Rating captures what the scoreboard actually shows — a player with poor box stats but a +8 Net Rating is often undervalued." },
+        { term: "Usage Rate", def: "The percentage of team possessions a player uses while on the court. Stars often have 28–35% usage. Role players are typically 12–18%.", why: "High usage players carry more offensive responsibility — but high usage can also signal inefficiency if the efficiency metrics don't keep pace." },
+        { term: "$/Win Share", def: "How much a team is paying per Win Share of production — a contract analytics metric measuring cost efficiency.", why: "$/Win Share is how front offices grade contracts. An A-grade contract is a low $/WS. An F-grade is a high $/WS." },
+        { term: "Market Inefficiency", def: "A player whose market value (based on production metrics) significantly exceeds his salary — often because a stat or skill is undervalued league-wide.", why: "Moneyball logic: teams that identify and exploit market inefficiencies build rosters above their payroll tier." }
+      ]
+    }
+  ];
+
+  const CONCEPT_CALLOUTS = {
+    "extension": {
+      title: "Contract Extensions 101",
+      body: "An extension adds years to a player's existing deal before it expires — usually at a salary bump. The team benefits by locking in talent cheaper than the open market. The player gives up free agency upside for security. Key tradeoff: lock up early and save money, or wait and pay market value (or lose them entirely).",
+      note: "You'll model extension value vs. free agency cost in the course. For now: early = cheaper, late = more expensive or gone."
+    },
+    "option": {
+      title: "Player Options vs Team Options",
+      body: "A Player Option gives the player the right to opt out of the final contract year and enter free agency. If the player thinks he can earn more elsewhere, he opts out. A Team Option gives the team that right — useful for retaining affordable depth or releasing overpaid veterans. Mutual Options require both sides to agree.",
+      note: "You'll analyze option decisions using market rate models in the course. For now: options = leverage for whoever holds them."
+    },
+    "tax-first": {
+      title: "Luxury Tax: How the Math Works",
+      body: "Every dollar over the Luxury Tax Line ($171M) is taxed at an escalating multiplier. Year 1 over the line: roughly 1.5× penalty per dollar. Year 2 (repeat): higher. Year 3+: can exceed 3× the overage. The penalty goes to the league and is redistributed to non-tax teams. Teams above the Second Apron ($178M) face a hard cap and lose key exceptions.",
+      note: "You'll calculate exact tax bills in the course. For now: the repeater penalty compounds faster than most people expect."
+    },
+    "apron-first": {
+      title: "The Second Apron Hard Cap",
+      body: "The Second Apron is a hard salary limit at $178M. Unlike the regular cap (soft), you cannot exceed the Second Apron for any reason once you trigger it. Above it, you lose: the Mid-Level Exception, the ability to aggregate salaries in trades, and most flexibility tools. It was designed to prevent big-market teams from outspending everyone permanently.",
+      note: "In the course you'll map which teams operate near or above the Second Apron and what it costs them in flexibility."
+    },
+    "trade-deadline": {
+      title: "Trade Matching Rules Explained",
+      body: "Every trade must follow salary matching rules. If your team is over the cap, incoming salary can be at most 125% + $2M of the salary you send out. If you are under the cap, the new payroll just needs to stay within the cap + $5M rookie exception. Teams above the Second Apron lose the right to aggregate multiple contracts on one side — so they can only send equal contracts, not combine them.",
+      note: "You'll use a real trade machine in the course. For now: if a trade looks blocked, the math is probably wrong on the salary side."
+    },
+    "draft": {
+      title: "Rookie Scale & Draft Contracts",
+      body: "First-round draft picks are signed to preset 4-year rookie scale contracts — the salary is set by the league based on draft slot. Teams hold two team options (years 3 and 4), making the first 4 years cost-controlled and potentially very valuable if the player develops. Second-round picks are not guaranteed rookie scale slots — teams negotiate directly. Two-way contracts (split between NBA and G League) are another tool for developing late prospects.",
+      note: "In the course you'll value draft picks by projecting rookie scale cost vs. expected production. For now: first-round picks on rookie deals are the best contracts in the league."
+    }
   };
 
   const MOMENTUM = {
@@ -376,11 +468,36 @@ Polish Checklist
       ["Star-Ball vs Positionless", "Your coaching staff is split: run the offense through your star or go fully position-less?"],
       ["Front Office Org Chart Fight", "A power struggle between analytics staff and traditional scouts has leaked to the press. Take a side."],
       ["Championship or Consistency", "The data shows you can win with continuity. But ownership wants splash moves. Who do you listen to?"]
+    ],
+    business: [
+      ["National TV Deal Renewal", "The league is finalizing a new media rights package. BRI is expected to rise — and so is next year's salary cap."],
+      ["Arena Naming Rights Negotiation", "A corporate partner wants your arena naming rights. The revenue is significant, but requires player appearances and brand alignment."],
+      ["Revenue Sharing Redistribution Check", "As a smaller-market team this cycle, you receive a revenue share check. How you use it signals your franchise priorities."],
+      ["CBA Opt-Out Window Opens", "The players' union has flagged intentions to reopen collective bargaining two years early. Uncertainty about cap rules looms."],
+      ["International Streaming Deal", "A global streaming platform wants regional broadcast rights. This boosts BRI estimates — and your franchise value calculation."],
+      ["Franchise Sale Comparable", "A competitor franchise just sold at a record valuation. Analysts are re-rating all NBA assets including yours."],
+      ["Escrow Shortfall Warning", "League revenues came in below projections. Players will owe escrow repayments. Union pressure is building — front offices must navigate carefully."],
+      ["Ticket Revenue vs Payroll Ratio", "Your owner has run the numbers. He wants to see the cost-per-win math justify the current payroll."],
+      ["Arena Bond Financing", "A new venue financing deal would secure the franchise's future in this market but commits capital that affects operational flexibility."],
+      ["League Expansion Announcement", "The NBA announces two new franchises. Expansion fees inflate all franchise valuations — but also dilute talent across the league."]
+    ],
+    analytics: [
+      ["Shot Quality Audit", "Your analytics team ran a full shot quality report. The findings challenge how the offense is currently being run."],
+      ["Lineup Efficiency Breakthrough", "Five-man unit data reveals a bench lineup that dramatically outperforms expectations — but it requires changing rotations."],
+      ["Market Inefficiency Spotted", "Your models flagged a player whose Win Shares vastly outpace his salary. A window to acquire him is open — but narrow."],
+      ["Tracking Data Contract Dispute", "A player disputes a role reduction your analytics team recommended. He points to his counting stats. The model disagrees."],
+      ["Advanced Metrics Disagreement", "Your coaching staff wants to bench a high-BPM player over attitude. The numbers say he is too valuable to sit."],
+      ["Data Infrastructure Investment", "Your analytics department is requesting a budget upgrade — better tracking tools, a new hire, and access to proprietary models."],
+      ["VORP vs Salary Misalignment", "One of your highest-VORP players is entering the final year of his deal. If you don't extend now, his market value will far exceed what you can offer."],
+      ["Draft Model vs Scout Conflict", "Your draft model projects a prospect as a top-10 talent. Every scout who has seen him in person disagrees."],
+      ["Usage Rate Warning", "Your star's usage rate is at an unsustainable level. Efficiency metrics are declining. Do you intervene?"],
+      ["Net Rating Anomaly", "The team is dramatically better with a specific bench player on the floor. His Net Rating far exceeds his role — and his salary."]
     ]
   };
 
   const CATEGORY_PROFILES = {
     extension: {
+      conceptLabel: "Contract Extensions",
       prereq: (s) => s.roster.some((p) => p.overall >= 84 && p.yearsLeft <= 2),
       labels: ["Offer team-friendly extension", "Offer market-value extension", "Offer max-style extension", "Front-load and push chips in"],
       notes: [
@@ -399,6 +516,7 @@ Polish Checklist
       contractAction: ["extendSmall", "extendCore", "extendMax", "extendMax"]
     },
     option: {
+      conceptLabel: "Player & Team Options",
       prereq: (s) => s.roster.some((p) => p.optionType === "player" || p.yearsLeft <= 1),
       labels: ["Decline and clear room", "Renegotiate 1+1", "Keep full option rights", "Sign-and-trade leverage play"],
       notes: [
@@ -539,6 +657,44 @@ Polish Checklist
         { payrollM: 0.6, teamRating: 1.7, franchiseValueB: 0.06, ownerPatience: 1, riskHeat: 2, mediaHeat: 2, volatility: 24 },
         { payrollM: 3.4, teamRating: 3.2, franchiseValueB: 0.1, ownerPatience: -2, riskHeat: 10, mediaHeat: 6, volatility: 36 },
         { payrollM: 5.1, teamRating: 4.4, franchiseValueB: 0.14, ownerPatience: -4, riskHeat: 15, mediaHeat: 10, volatility: 46 }
+      ],
+      contractAction: ["none", "none", "none", "none"]
+    },
+    business: {
+      prereq: () => true,
+      conceptLabel: "League as a Business",
+      labels: ["Protect stability and existing revenue", "Negotiate balanced partnership terms", "Push for maximum revenue upside", "Blow up the deal for maximum leverage"],
+      notes: [
+        "Safe business move — franchise value grows steadily.",
+        "Balanced revenue with moderate exposure.",
+        "High revenue ceiling but media and ownership scrutiny rises.",
+        "Maximum franchise upside; risk of market overreaction."
+      ],
+      tags: [["Business Smart"], ["Business Smart", "Balanced Plan"], ["Market Push"], ["Market Push", "Chaos"]],
+      base: [
+        { payrollM: 0, teamRating: 0, franchiseValueB: 0.06, ownerPatience: 2, riskHeat: -2, mediaHeat: -1, volatility: 10 },
+        { payrollM: 0, teamRating: 0, franchiseValueB: 0.10, ownerPatience: 1, riskHeat: 1, mediaHeat: 2, volatility: 18 },
+        { payrollM: 0, teamRating: 0.4, franchiseValueB: 0.16, ownerPatience: -1, riskHeat: 5, mediaHeat: 6, volatility: 28 },
+        { payrollM: 0, teamRating: 0.8, franchiseValueB: 0.22, ownerPatience: -4, riskHeat: 11, mediaHeat: 11, volatility: 40 }
+      ],
+      contractAction: ["none", "none", "none", "none"]
+    },
+    analytics: {
+      prereq: () => true,
+      conceptLabel: "Analytics & Player Evaluation",
+      labels: ["Trust traditional scouting approach", "Blend data and scout consensus", "Go with the model's recommendation", "Full analytics-first overhaul"],
+      notes: [
+        "Safe and proven — scouts have strong track record here.",
+        "Balanced: data informs decisions without overriding judgment.",
+        "Model-driven upside with communication risk.",
+        "Highest ceiling if right; major locker room disruption if wrong."
+      ],
+      tags: [["Steady Hand"], ["Analytics Darling", "Balanced Plan"], ["Analytics Darling"], ["Analytics Darling", "Chaos"]],
+      base: [
+        { payrollM: 0, teamRating: 0.5, franchiseValueB: 0.02, ownerPatience: 1, riskHeat: -2, mediaHeat: -1, volatility: 12 },
+        { payrollM: 0, teamRating: 1.2, franchiseValueB: 0.04, ownerPatience: 1, riskHeat: 1, mediaHeat: 1, volatility: 20 },
+        { payrollM: 0, teamRating: 2.4, franchiseValueB: 0.07, ownerPatience: -1, riskHeat: 7, mediaHeat: 5, volatility: 30 },
+        { payrollM: 0, teamRating: 3.8, franchiseValueB: 0.10, ownerPatience: -3, riskHeat: 14, mediaHeat: 9, volatility: 42 }
       ],
       contractAction: ["none", "none", "none", "none"]
     }
