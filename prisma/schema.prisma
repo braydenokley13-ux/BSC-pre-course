@@ -35,6 +35,9 @@ model Team {
   name           String
   joinCode       String    @unique
   missionIndex   Int       @default(0)
+  currentNodeId  String    @default("m1_cap_crunch")
+  branchStateJson String   @default("{\"capFlex\":0,\"starPower\":0,\"dataTrust\":0,\"culture\":0,\"riskHeat\":0}")
+  runoffStateJson String?
   badges         String    @default("[]")
   score          Int       @default(0)
   claimCode      String?

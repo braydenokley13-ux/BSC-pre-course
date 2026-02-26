@@ -50,6 +50,15 @@ export async function POST(req: NextRequest) {
         create: selectedNames.map((name) => ({
           name,
           joinCode: generateJoinCode(name),
+          currentNodeId: "m1_cap_crunch",
+          branchStateJson: JSON.stringify({
+            capFlex: 0,
+            starPower: 0,
+            dataTrust: 0,
+            culture: 0,
+            riskHeat: 0,
+          }),
+          runoffStateJson: null,
         })),
       },
     },

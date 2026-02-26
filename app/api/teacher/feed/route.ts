@@ -2,7 +2,11 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkTeacherPassword } from "@/lib/auth";
-import { MISSIONS } from "@/lib/missions";
+import {
+  GAME_SITUATION_COUNT,
+  getDefaultNodeIdForStep,
+  getMissionNode,
+} from "@/lib/missions";
 
 export async function GET(req: NextRequest) {
   const password = req.headers.get("x-teacher-password");
@@ -49,7 +53,14 @@ export async function GET(req: NextRequest) {
       name: t.name,
       joinCode: t.joinCode,
       missionIndex: t.missionIndex,
-      missionTitle: MISSIONS[t.missionIndex]?.title ?? "Complete",
+      missionTitle:
+        t.missionIndex >= GAME_SITUATION_COUNT
+          ? "Complete"
+          : (
+              getMissionNode(
+                t.currentNodeId || getDefaultNodeIdForStep(Math.min(t.missionIndex + 1, GAME_SITUATION_COUNT))
+              ) ?? getMissionNode(getDefaultNodeIdForStep(Math.min(t.missionIndex + 1, GAME_SITUATION_COUNT)))
+            )?.title ?? "In Progress",
       score: t.score,
       badges,
       badgeCount: badges.length,

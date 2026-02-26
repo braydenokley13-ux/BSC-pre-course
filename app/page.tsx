@@ -9,7 +9,7 @@ export default function Home() {
   }, [router]);
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <p className="text-[#6b7280] font-mono text-sm">Loading…</p>
+      <p className="text-[#6b7280] font-mono text-sm">Loading...</p>
     </div>
   );
 }
