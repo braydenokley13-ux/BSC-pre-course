@@ -1,109 +1,63 @@
-# BOW Sports Capital: Pregame
+# BOW Sports Capital: Pre-Course
 
-Cap & Contracts front-office simulator built as a static browser game.
+Multiplayer front-office simulation built with Next.js + Prisma (SQLite by default).
 
-## Run Locally
-1. Download or clone this repository.
-2. Open `/index.html` directly in your browser.
-3. Pick a team and start a 12-week run.
+## What This App Is
+- Students join teams with a join code.
+- Teams vote through 8 situations.
+- Teams unlock concept cards and complete quick checks.
+- Teachers create sessions, monitor progress, and export CSV results.
 
-Notes:
-- No backend is required.
-- No build tools are required.
-- If your browser blocks local JSON fetches on `file://`, the game automatically falls back to embedded data so it still plays.
-
-## Deploy to GitHub Pages
-1. Create a GitHub repository and push these files.
-2. In GitHub, open **Settings > Pages**.
-3. Under **Build and deployment**, choose:
-   - **Source:** `Deploy from a branch`
-   - **Branch:** `main` (or your default branch), folder `/ (root)`
-4. Save.
-5. Wait for the Pages URL to appear, then open it.
-
-## File Structure
-- `/index.html`
-- `/styles.css`
-- `/game.js`
-- `/data/teams.json`
-- `/data/players.json`
-- `/data/content-pack.json` (optional external event-content pack)
-
-## How to Add Teams (`/data/teams.json`)
-Each team object should include:
-- `name`
-- `marketSize` (`small`, `med`, `large`)
-- `ownerTemperament` (`patient`, `neutral`, `impatient`)
-- `startingValueB`
-- `startingPatience`
-- `storyline`
-- `startingRoster` (array of player names)
-
-Example:
-```json
-{
-  "name": "Example Team",
-  "marketSize": "med",
-  "ownerTemperament": "neutral",
-  "startingValueB": 3.5,
-  "startingPatience": 65,
-  "storyline": "Short team background.",
-  "startingRoster": ["Player One", "Player Two"]
-}
+## Run Locally (Step by Step)
+1. Clone the repo:
+```bash
+git clone https://github.com/braydenokley13-ux/BSC-pre-course.git
+cd BSC-pre-course
 ```
 
-## How to Add Players (`/data/players.json`)
-Each player object should include:
-- `name`
-- `team` (must match a team name or `Free Agent`)
-- `position` (`PG`, `SG`, `SF`, `PF`, `C`)
-- `overall` (0–100)
-- `age`
-- `salaryM` (in millions)
-- `yearsLeft`
-- `optionType` (`none` or `player`)
-- `durability` (0–100)
-- `source` (`real` or `generated`)
-
-Example:
-```json
-{
-  "name": "Example Player",
-  "team": "Example Team",
-  "position": "SF",
-  "overall": 82,
-  "age": 25,
-  "salaryM": 14.5,
-  "yearsLeft": 2,
-  "optionType": "none",
-  "durability": 86,
-  "source": "generated"
-}
+2. Install dependencies:
+```bash
+npm install
 ```
 
-## How to Add/Update Event Content Pack (`/data/content-pack.json`)
-`game.js` now loads this file automatically when present and merges those event seeds with built-in defaults.
+3. Create `.env.local` and set `DATABASE_URL`:
+```bash
+DATABASE_URL="file:./prisma/dev.db"
+```
 
-Structure:
-- `name`
-- `version`
-- `description`
-- `eventSeeds` object by category:
-  - `extension`
-  - `option`
-  - `tax`
-  - `trade`
-  - `injury`
-  - `pr`
-  - `breakout`
-  - `sponsor`
-  - `philosophy`
+4. Push Prisma schema to local DB:
+```bash
+npm run db:push
+```
 
-Each seed can be either:
-- object: `{ \"title\": \"...\", \"description\": \"...\" }`
-- array: `[\"title\", \"description\"]`
+5. Start the app:
+```bash
+npm run dev
+```
 
-## Data + Gameplay Notes
-- Player salaries/ratings are **game approximations**, not exact real-world values.
-- Real teams and player names are text-only references.
-- No logos, official marks, or copyrighted images are used.
+6. Open:
+- `http://localhost:3000/join` for students
+- `http://localhost:3000/teacher` for instructors
+
+If port 3000 is busy, Next.js will use another port (for example `3001`).
+
+## Build / Quality Checks
+- Production build:
+```bash
+npm run build
+```
+
+- Content checks:
+```bash
+npm run check:content
+```
+
+## Project Structure
+- `app/` Next.js app routes and API handlers
+- `lib/` missions, concepts, auth/session helpers
+- `prisma/` schema and local DB files
+- `styles/` global styles
+- `data/` legacy static content files
+
+## Legacy Static Files
+`index.html`, `game.js`, and `styles.css` remain in the repo for earlier static-game history, but the active product flow is the Next.js app under `app/`.
