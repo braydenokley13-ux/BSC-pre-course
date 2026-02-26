@@ -1204,18 +1204,39 @@ const revenueMix: Mission = {
           label: "Approach the secondary sponsors",
           description: "Two brands reached out — both cleaner culture fits at $15–18M/5yr. Start those conversations now.",
           tags: ["pursue-alternative", "balanced"],
+          mutations: [
+            {
+              ifStatus: "cap-space-limited",
+              labelSuffix: " ⚠ CAP CRITICAL",
+              descriptionPrefix: "Your cap is already strained — the revenue gap from walking will directly constrain luxury tax decisions this summer. Speed matters here. ",
+            },
+          ],
         },
         {
           id: "renegotiate-original",
           label: "Re-open talks with the original sponsor",
           description: "Signal willingness to return — but demand the social media and brand approval clauses be removed. You have some leverage from walking.",
           tags: ["renegotiate-original", "negotiate"],
+          mutations: [
+            {
+              ifStatus: "high-morale",
+              labelSuffix: " ★ LEVERAGE POINT",
+              descriptionPrefix: "The locker room unity you've built is externally visible — NovaTech knows you have something worth preserving. That cultural credibility is real negotiating leverage. ",
+            },
+          ],
         },
         {
           id: "operate-without",
           label: "No deal — operate without a naming rights partner this season",
           description: "Use in-house branding. Take the revenue hit, build the brand identity, and return to market with leverage next summer.",
           tags: ["operate-without", "culture-first"],
+          mutations: [
+            {
+              ifStatus: "cap-space-limited",
+              labelSuffix: " ⚠ HIGH FINANCIAL RISK",
+              descriptionPrefix: "WARNING: Your cap is already strained. Absorbing a full naming rights revenue shortfall may force you under the luxury tax line mid-season and constrain free agency. ",
+            },
+          ],
         },
       ],
     },
@@ -1659,18 +1680,44 @@ const expensePressure: Mission = {
           label: "Attach an unprotected 2026 first",
           description: "Maximum sweetener. Atlanta accepts immediately. You're betting the lottery ticket.",
           tags: ["unprotected-first", "asset-cost"],
+          mutations: [
+            {
+              ifStatus: "rebuild-mode",
+              labelSuffix: " ⚠ REBUILD CONFLICT",
+              descriptionPrefix: "You're rebuilding — your lottery odds are elevated. Handing Atlanta an unprotected first could gift them a top-5 pick in a draft you need for yourself. ",
+            },
+            {
+              ifStatus: "over-luxury-tax",
+              labelSuffix: " ⚠ DOUBLE EXPOSURE",
+              descriptionPrefix: "WARNING: You're already over the luxury tax. Taking on Reeves' salary AND surrendering an unprotected first is maximum financial and asset risk simultaneously. ",
+            },
+          ],
         },
         {
           id: "top-10-protected",
           label: "Top-10 protected 2026 first",
           description: "If you miss the playoffs, the pick conveys protected — you keep it. If healthy, Atlanta gets it.",
           tags: ["top-10-protected", "risk-managed"],
+          mutations: [
+            {
+              ifStatus: "star-retained",
+              labelSuffix: " ★ WINDOW-AWARE",
+              descriptionPrefix: "With your star under contract, staying competitive means this pick likely conveys — top-10 protection is realistic insurance for a contending team, not a free pass. ",
+            },
+          ],
         },
         {
           id: "two-seconds",
           label: "Offer two unprotected 2nd-round picks instead",
           description: "No first. Atlanta gets volume, not premium. They'll negotiate.",
           tags: ["two-seconds", "asset-light"],
+          mutations: [
+            {
+              ifStatus: "trade-assets-rich",
+              labelSuffix: " ★ DEPTH AVAILABLE",
+              descriptionPrefix: "Your pick vault has room. Two seconds costs you less than it would a pick-thin team — the supply makes this offer more credible than it sounds. ",
+            },
+          ],
         },
       ],
     },
@@ -1686,18 +1733,44 @@ const expensePressure: Mission = {
           label: "Target the buyout market",
           description: "Veterans on playoff teams often get bought out. Cheaper alternative to a full trade. Monitor the market this week.",
           tags: ["buyout-market", "cap-discipline"],
+          mutations: [
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ★ MODEL-IDENTIFIED",
+              descriptionPrefix: "Your analytics team has already flagged three buyout candidates worth monitoring and ranked them by fit. The data infrastructure is working for you here. ",
+            },
+          ],
         },
         {
           id: "revisit-atlanta",
           label: "Re-open trade talks on new terms",
           description: "Call Atlanta back. You have leverage now — the deadline is gone and they still need to move the contract.",
           tags: ["revisit-atlanta", "negotiate"],
+          mutations: [
+            {
+              ifStatus: "over-luxury-tax",
+              labelSuffix: " ⚠ CAP WATCH",
+              descriptionPrefix: "Any new deal still risks Second Apron exposure — the deadline pressure is gone, but the cap math hasn't changed. Know your ceiling before you call. ",
+            },
+          ],
         },
         {
           id: "flip-own-vet",
           label: "Trade your veteran depth piece for picks",
           description: "Convert your own roster into future assets. Accept a weaker bench now to build for next season.",
           tags: ["flip-own-vet", "rebuild-assets"],
+          mutations: [
+            {
+              ifStatus: "rebuild-mode",
+              labelSuffix: " ★ REBUILD PATH",
+              descriptionPrefix: "This is the rebuild playbook — convert present talent into future capital. The strategy is already in motion. ",
+            },
+            {
+              ifStatus: "star-retained",
+              labelSuffix: " ⚠ ROSTER GAP",
+              descriptionPrefix: "With your star as the cornerstone, gutting bench depth for picks leaves them exposed this season. The asset math may not justify the on-court cost. ",
+            },
+          ],
         },
       ],
     },
@@ -2196,18 +2269,44 @@ const statsLineup: Mission = {
           label: "Schedule a joint coaching + analytics debrief",
           description: "Bring both sides to the table. Present the data again in a low-pressure setting. No mandates — just conversation.",
           tags: ["joint-debrief", "collaborative"],
+          mutations: [
+            {
+              ifStatus: "coach-conflict",
+              labelSuffix: " ⚠ STRAINED RELATIONSHIP",
+              descriptionPrefix: "Your coaching relationship is already under strain from prior friction. A joint session risks surfacing unresolved tension rather than producing alignment — go in with a clear facilitation plan. ",
+            },
+            {
+              ifStatus: "high-morale",
+              labelSuffix: " ★ TRUST CAPITAL",
+              descriptionPrefix: "The goodwill you've built organization-wide gives this session a better chance of landing constructively — both sides are more likely to engage in good faith right now. ",
+            },
+          ],
         },
         {
           id: "formalize-pipeline",
           label: "Formalize the analytics-to-coaching feedback pipeline",
           description: "Create a standing weekly process: analytics sends a one-page brief, coaching has right of response. Structural solution, not a confrontation.",
           tags: ["formalize-pipeline", "systemic"],
+          mutations: [
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ★ INFRASTRUCTURE READY",
+              descriptionPrefix: "Your analytics infrastructure is already built. Formalizing the pipeline is a natural extension of the culture you've invested in — not a new ask, just a new structure. ",
+            },
+          ],
         },
         {
           id: "full-deference",
           label: "Fully hands-off — let the season play out",
           description: "You trusted Coach Hill. Honor that. The season will tell you everything you need to know. Don't second-guess mid-stream.",
           tags: ["full-deference", "coach-deference"],
+          mutations: [
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ⚠ DATA COST",
+              descriptionPrefix: "You've built an analytics culture here. Fully deferring on lineup decisions mid-season contradicts the infrastructure and credibility you've invested in building. ",
+            },
+          ],
         },
       ],
     },
@@ -2651,18 +2750,39 @@ const matchupAdjust: Mission = {
           label: "Formally enforce — 34 minutes is the ceiling, not a target",
           description: "Send a written memo. Cc the medical staff. This is not a suggestion.",
           tags: ["enforce-ceiling", "health-first"],
+          mutations: [
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ★ DATA-BACKED",
+              descriptionPrefix: "Your medical models projected exactly this pattern. The data gives the memo institutional weight — it's not front-office opinion, it's organizational science. ",
+            },
+          ],
         },
         {
           id: "trust-game-read",
           label: "Trust the coach's in-game judgment",
           description: "You hired Coach Morris to make real-time decisions. Two games over the mark isn't a pattern — yet.",
           tags: ["trust-game-read", "coach-deference"],
+          mutations: [
+            {
+              ifStatus: "coach-conflict",
+              labelSuffix: " ⚠ HIGH RISK",
+              descriptionPrefix: "Your coaching relationship is already strained. Deferring again after existing friction may read as front-office inconsistency rather than trust — and give the coach cover to keep pushing limits. ",
+            },
+          ],
         },
         {
           id: "revise-upward",
           label: "Revise the plan — 36-minute cap with mandatory rest on back-to-backs",
           description: "Meet pragmatically in the middle. Give the coach more room on single games, protect the back-to-backs.",
           tags: ["revise-upward", "compromise"],
+          mutations: [
+            {
+              ifStatus: "star-retained",
+              labelSuffix: " ★ FRANCHISE PRIORITY",
+              descriptionPrefix: "Your star is the franchise cornerstone — a workable ceiling that keeps him healthy and on the floor is the right call given the long-term value at stake. ",
+            },
+          ],
         },
       ],
     },
@@ -2678,18 +2798,49 @@ const matchupAdjust: Mission = {
           label: "Private 1-on-1 with Morris — explain the data",
           description: "Show him the medical numbers personally. Give him agency in structuring his own return timeline.",
           tags: ["private-meeting", "player-relations"],
+          mutations: [
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ★ DATA CREDIBILITY",
+              descriptionPrefix: "Your analytics culture gives these injury models institutional credibility — Morris's agent will recognize that the numbers reflect organizational practice, not front-office spin. ",
+            },
+          ],
         },
         {
           id: "early-return",
           label: "Reinstate him 1 week early — 28-minute limit",
           description: "Acknowledge the softer playoff path. Bring him back carefully. Show you're listening.",
           tags: ["early-return", "compromise"],
+          mutations: [
+            {
+              ifStatus: "coach-conflict",
+              labelSuffix: " ⚠ MIXED SIGNAL",
+              descriptionPrefix: "With an already strained coaching relationship, reversing the rest plan mid-stream will be read by the bench staff as front-office indecision — and they'll remember it next time you need them to follow a directive. ",
+            },
+            {
+              ifStatus: "over-luxury-tax",
+              labelSuffix: " ★ CAP AWARE",
+              descriptionPrefix: "Bringing him back avoids crossing the 20-game load management threshold in his contract — staying under that line means the $3M bonus clause never triggers. ",
+            },
+          ],
         },
         {
           id: "hold-plan",
           label: "Hold firm — the rest plan stays",
           description: "Media noise is temporary. Your job is his long-term health. The plan is the plan.",
           tags: ["hold-plan", "health-first"],
+          mutations: [
+            {
+              ifStatus: "high-morale",
+              labelSuffix: " ★ TRUST CAPITAL",
+              descriptionPrefix: "The goodwill you've built in the locker room gives you political cover over Morris's public frustration — the team understands the process, even if the media doesn't. ",
+            },
+            {
+              ifStatus: "star-retained",
+              labelSuffix: " ★ LONG-TERM ASSET",
+              descriptionPrefix: "Morris is your franchise cornerstone. A healthy playoff run protects an asset your entire three-year plan depends on — short-term narrative costs are acceptable. ",
+            },
+          ],
         },
       ],
     },
@@ -3162,18 +3313,44 @@ const draftTable: Mission = {
           label: "Build a formal defensive development plan",
           description: "Work with the assistant coaches now: weekly film sessions, defensive drill protocols targeting his specific lateral weakness.",
           tags: ["dev-plan", "analytics-informed"],
+          mutations: [
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ★ SYSTEM BUILT",
+              descriptionPrefix: "Your analytics infrastructure already tracks the exact metrics this plan targets. The drill protocols and film sessions can be data-driven from day one — the infrastructure is ready. ",
+            },
+          ],
         },
         {
           id: "hide-weakness",
           label: "Adjust your system to minimize his defensive exposure",
           description: "Design the scheme so Silva rarely guards the opponent's best perimeter player. Build around his strengths.",
           tags: ["hide-weakness", "systemic"],
+          mutations: [
+            {
+              ifStatus: "coach-conflict",
+              labelSuffix: " ⚠ COACHING BUY-IN REQUIRED",
+              descriptionPrefix: "Scheme-level adjustments require full coaching staff buy-in. With existing friction in that relationship, there's no guarantee the bench executes the coverage assignments correctly or consistently. ",
+            },
+          ],
         },
         {
           id: "let-develop",
           label: "Let him develop naturally — it's Year 1",
           description: "Every rookie has holes. Don't over-coach him. Let the process work and reassess at the All-Star break.",
           tags: ["let-develop", "patient"],
+          mutations: [
+            {
+              ifStatus: "scout-trusted",
+              labelSuffix: " ★ SCOUTS CONFIDENT",
+              descriptionPrefix: "Your scouting staff watched him develop through two Euroleague seasons. Their read: the defensive tools are there and the translation just needs time — they've seen this before. ",
+            },
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ⚠ DATA SAYS OTHERWISE",
+              descriptionPrefix: "Your analytics model flags this as high-risk — defensive translation gaps at this percentile typically widen without structured intervention in Year 1. ",
+            },
+          ],
         },
       ],
     },
@@ -3189,18 +3366,48 @@ const draftTable: Mission = {
           label: "Offer #6 + unprotected 2027 first",
           description: "Top offer. Secures the trade. You're betting your next draft capital on Cole being the right player.",
           tags: ["offer-unprotected", "aggressive-move"],
+          mutations: [
+            {
+              ifStatus: "rebuild-mode",
+              labelSuffix: " ⚠ REBUILD CONFLICT",
+              descriptionPrefix: "You're in rebuild mode — your 2027 lottery odds will be elevated. Betting an unprotected first on a single prospect directly contradicts the patient capital strategy you've committed to. ",
+            },
+            {
+              ifStatus: "trade-assets-rich",
+              labelSuffix: " ★ ASSETS TO SPEND",
+              descriptionPrefix: "Your pick vault is stocked for exactly this kind of move. Spending one unprotected first to secure a top-3 prospect is the highest-value deployment of your accumulated capital. ",
+            },
+          ],
         },
         {
           id: "offer-protected",
           label: "Offer #6 + top-8 protected 2027 first",
           description: "If you miss the playoffs, you keep it. Team 3 will negotiate — but it's workable.",
           tags: ["offer-protected", "risk-managed"],
+          mutations: [
+            {
+              ifStatus: "star-retained",
+              labelSuffix: " ★ WINDOW OPEN",
+              descriptionPrefix: "With your star as the foundation, Cole at #3 creates a two-man core to build around — and if the window stays open, this pick likely conveys anyway. The protection is realistic insurance, not a free pass. ",
+            },
+          ],
         },
         {
           id: "walk-price",
           label: "Walk away — the price is too high",
           description: "Two firsts for one player is almost never worth it. Fall back, take Silva at #6 or whoever remains.",
           tags: ["walk-price", "asset-discipline"],
+          mutations: [
+            {
+              ifStatus: "rebuild-mode",
+              labelSuffix: " ★ ASSET DISCIPLINE",
+              descriptionPrefix: "The rebuild philosophy is clear: never mortgage future capital for a single prospect. Silva at #6 with your picks intact is the correct rebuild move. ",
+            },
+            {
+              ifStatus: "analytics-forward",
+              descriptionPrefix: "Your model ranked Silva #2 in this class — staying at #6 is not a fallback. The data says this is still the right pick. ",
+            },
+          ],
         },
       ],
     },
