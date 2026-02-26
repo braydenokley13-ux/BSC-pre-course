@@ -123,6 +123,7 @@ export async function GET(req: NextRequest) {
       completedAt: team.completedAt,
       completedMissions,
       teamStatus,
+      teamStateVersion: team.teamStateVersion,
     },
     me: {
       id: student.id,

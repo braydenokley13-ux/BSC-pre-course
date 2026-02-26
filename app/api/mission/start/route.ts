@@ -2,8 +2,11 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStudentFromRequest } from "@/lib/getStudent";
-import { getMissionById, isLegacyMission, Mission, MissionRound, RoundOption } from "@/lib/missions";
+import { getMissionById, isLegacyMission, Mission } from "@/lib/missions";
 import { getUnlockedMissions } from "@/lib/missionGraph";
+import { applyRoundOptionMutations } from "@/lib/missionRound";
+import { parseJson } from "@/lib/json";
+import { recordTeamEvent } from "@/lib/teamEvents";
 
 interface MissionRoundState {
   missionId: string;
@@ -91,6 +94,7 @@ export async function POST(req: NextRequest) {
       roleAssignments: JSON.stringify(roleAssignments),
       missionRoundState: JSON.stringify(roundState),
       lastProgressAt: new Date(),
+      teamStateVersion: { increment: 1 },
     },
   });
 
@@ -100,7 +104,7 @@ export async function POST(req: NextRequest) {
     : null;
 
   // ── Apply status-driven mutations and scenario injections ────────────────
-  const teamStatus: string[] = JSON.parse(team.teamStatus ?? "[]");
+  const teamStatus = parseJson<string[]>(team.teamStatus, []);
 
   // 1. Scenario injections — prepend matching context to the scenario
   let scenario = richMission.scenario;
@@ -114,25 +118,18 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Option mutations — patch labels/descriptions based on active statuses
-  function applyMutations(round: MissionRound): MissionRound {
-    const patchedOptions: RoundOption[] = round.options
-      .map((opt) => {
-        if (!opt.mutations) return opt;
-        let patched = { ...opt };
-        for (const mut of opt.mutations) {
-          if (teamStatus.includes(mut.ifStatus)) {
-            if (mut.blocksThis) return null; // will be filtered
-            if (mut.labelSuffix) patched = { ...patched, label: patched.label + mut.labelSuffix };
-            if (mut.descriptionPrefix) patched = { ...patched, description: mut.descriptionPrefix + patched.description };
-          }
-        }
-        return patched;
-      })
-      .filter(Boolean) as RoundOption[];
-    return { ...round, options: patchedOptions };
-  }
+  const patchedFirstRound = applyRoundOptionMutations(firstRound, teamStatus);
 
-  const patchedFirstRound = applyMutations(firstRound);
+  await recordTeamEvent({
+    sessionId: student.sessionId,
+    teamId: team.id,
+    eventType: "mission_started",
+    payload: {
+      missionId,
+      roundId: firstRound.id,
+      activeStudents: activeStudents.length,
+    },
+  });
 
   return NextResponse.json({
     ok: true,

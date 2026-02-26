@@ -26,6 +26,9 @@ model Session {
   missionProgress  MissionProgress[]
   catalogAttempts  CatalogAttempt[]
   finalSubmissions FinalSubmission[]
+  adminActionLogs  AdminActionLog[]
+  teacherSessions  TeacherSession[]
+  teamEvents       TeamEvent[]
 }
 
 model Team {
@@ -35,7 +38,7 @@ model Team {
   name           String
   joinCode       String    @unique
   missionIndex   Int       @default(0)
-  currentNodeId  String    @default("m1_cap_crunch")
+  currentNodeId  String    @default("cap-crunch")
   branchStateJson String   @default("{\"capFlex\":0,\"starPower\":0,\"dataTrust\":0,\"culture\":0,\"riskHeat\":0}")
   runoffStateJson String?
   badges         String    @default("[]")
@@ -43,6 +46,7 @@ model Team {
   claimCode      String?
   completedAt    DateTime?
   lastProgressAt DateTime  @default(now())
+  teamStateVersion Int     @default(0)
 
   completedMissions  String  @default("[]")
   teamStatus         String  @default("[]")
@@ -54,6 +58,8 @@ model Team {
   missionProgress  MissionProgress[]
   catalogAttempts  CatalogAttempt[]
   finalSubmissions FinalSubmission[]
+  adminActionLogs  AdminActionLog[]
+  teamEvents       TeamEvent[]
 }
 
 model Student {
@@ -64,6 +70,8 @@ model Student {
   team       Team     @relation(fields: [teamId], references: [id])
   nickname   String
   token      String   @unique
+  recoveryCodeHash String?
+  recoveryCodeUpdatedAt DateTime?
   joinedAt   DateTime @default(now())
   lastSeenAt DateTime @default(now())
 
@@ -131,4 +139,47 @@ model FinalSubmission {
   claimCode   String
   validated   Boolean  @default(false)
   submittedAt DateTime @default(now())
+}
+
+model AdminActionLog {
+  id             String   @id @default(cuid())
+  sessionId      String
+  session        Session  @relation(fields: [sessionId], references: [id])
+  teamId         String
+  team           Team     @relation(fields: [teamId], references: [id])
+  teacherIdOrKey String
+  actionType     String
+  payloadJson    String
+  createdAt      DateTime @default(now())
+  resultJson     String
+
+  @@index([sessionId, createdAt])
+  @@index([teamId, createdAt])
+}
+
+model TeacherSession {
+  id        String   @id @default(cuid())
+  sessionId String?
+  session   Session? @relation(fields: [sessionId], references: [id])
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  @@index([expiresAt])
+}
+
+model TeamEvent {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id])
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+  eventType   String
+  payloadJson String
+  createdAt   DateTime @default(now())
+
+  @@index([sessionId, createdAt])
+  @@index([teamId, createdAt])
+  @@index([eventType, createdAt])
 }

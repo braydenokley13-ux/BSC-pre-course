@@ -7,6 +7,7 @@ import {
   getDefaultNodeIdForStep,
   getMissionNode,
 } from "@/lib/missions";
+import { recordTeamEvent } from "@/lib/teamEvents";
 
 type RunoffState = {
   optionIndexes: number[];
@@ -82,6 +83,27 @@ export async function POST(req: NextRequest) {
       missionId: mission.id,
       roundId: "final",
       optionIndex,
+    },
+  });
+
+  await prisma.team.update({
+    where: { id: team.id },
+    data: {
+      lastProgressAt: new Date(),
+      teamStateVersion: { increment: 1 },
+    },
+  });
+
+  await recordTeamEvent({
+    sessionId: student.sessionId,
+    teamId: team.id,
+    eventType: "vote_cast",
+    payload: {
+      missionId: mission.id,
+      roundId: "final",
+      optionIndex,
+      studentId: student.id,
+      legacy: true,
     },
   });
 

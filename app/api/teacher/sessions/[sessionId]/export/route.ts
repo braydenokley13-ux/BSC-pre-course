@@ -1,35 +1,31 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { requireTeacher } from "@/lib/teacherAuth";
 import { errorResponse } from "@/lib/apiErrors";
 import { buildSessionExport } from "@/lib/teacherData";
+
+interface Params {
+  params: {
+    sessionId: string;
+  };
+}
 
 function parseFormat(value: string | null): "summary" | "detail" {
   return value === "detail" ? "detail" : "summary";
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest, { params }: Params) {
   const auth = await requireTeacher(req, { allowLegacyHeader: true });
   if (!auth) {
     return errorResponse("Unauthorized", "UNAUTHORIZED", 401);
   }
 
-  const format = parseFormat(req.nextUrl.searchParams.get("format"));
-  const requestedSessionId = req.nextUrl.searchParams.get("sessionId");
-  const sessionId =
-    requestedSessionId ??
-    (
-      await prisma.session.findFirst({
-        where: { status: "active" },
-        select: { id: true },
-      })
-    )?.id;
-
+  const sessionId = params.sessionId?.trim();
   if (!sessionId) {
-    return errorResponse("No active session", "NOT_FOUND", 404);
+    return errorResponse("sessionId is required", "BAD_REQUEST", 400);
   }
 
+  const format = parseFormat(req.nextUrl.searchParams.get("format"));
   const csv = await buildSessionExport(sessionId, format);
   if (csv == null) {
     return errorResponse("Session not found", "NOT_FOUND", 404);

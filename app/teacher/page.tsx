@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TeacherLoginPage() {
@@ -7,24 +7,41 @@ export default function TeacherLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    async function checkExisting() {
+      try {
+        const res = await fetch("/api/teacher/me");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.teacher) {
+          router.replace(data.activeSession ? "/teacher/dashboard" : "/teacher/setup");
+        }
+      } finally {
+        setChecking(false);
+      }
+    }
+    checkExisting();
+  }, [router]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      // Verify by checking the feed endpoint
-      const res = await fetch("/api/teacher/feed", {
-        headers: { "x-teacher-password": password },
+      const loginRes = await fetch("/api/teacher/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
       });
-      if (!res.ok) {
+      if (!loginRes.ok) {
         setError("Invalid password");
         return;
       }
-      const data = await res.json();
-      // Store password in sessionStorage for subsequent API calls
-      sessionStorage.setItem("teacherPassword", password);
-      if (data.session) {
+      const meRes = await fetch("/api/teacher/me");
+      const me = await meRes.json();
+      if (me?.activeSession) {
         router.push("/teacher/dashboard");
       } else {
         router.push("/teacher/setup");
@@ -34,6 +51,16 @@ export default function TeacherLoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checking) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+        <div className="bsc-broadcast-shell p-5 md:p-6">
+          <p className="text-[#6b7280] font-mono text-sm text-center">Checking teacher session...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

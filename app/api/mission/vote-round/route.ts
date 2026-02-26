@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStudentFromRequest } from "@/lib/getStudent";
 import { getMissionById, isLegacyMission, Mission } from "@/lib/missions";
+import { recordTeamEvent } from "@/lib/teamEvents";
 
 export async function POST(req: NextRequest) {
   const student = await getStudentFromRequest(req);
@@ -55,6 +56,26 @@ export async function POST(req: NextRequest) {
       missionId,
       roundId,
       optionIndex,
+    },
+  });
+
+  await prisma.team.update({
+    where: { id: team.id },
+    data: {
+      lastProgressAt: new Date(),
+      teamStateVersion: { increment: 1 },
+    },
+  });
+
+  await recordTeamEvent({
+    sessionId: student.sessionId,
+    teamId: team.id,
+    eventType: "vote_cast",
+    payload: {
+      missionId,
+      roundId,
+      optionIndex,
+      studentId: student.id,
     },
   });
 

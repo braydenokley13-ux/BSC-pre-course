@@ -11,6 +11,7 @@ import {
   getNextNodeId,
 } from "@/lib/missions";
 import { generateTeamClaimCode } from "@/lib/claimCode";
+import { recordTeamEvent } from "@/lib/teamEvents";
 
 type RunoffState = {
   optionIndexes: number[];
@@ -229,6 +230,7 @@ export async function POST(req: NextRequest) {
           score: newScore,
           badges: JSON.stringify(badges),
           lastProgressAt: new Date(),
+          teamStateVersion: { increment: 1 },
           ...(isComplete && {
             completedAt: new Date(),
             claimCode: teamClaimCode,
@@ -260,6 +262,17 @@ export async function POST(req: NextRequest) {
     }
     throw error;
   }
+
+  await recordTeamEvent({
+    sessionId: student.sessionId,
+    teamId: team.id,
+    eventType: "mission_completed",
+    payload: {
+      missionId: mission.id,
+      roundId: "final",
+      legacy: true,
+    },
+  });
 
   return NextResponse.json({
     outcome,

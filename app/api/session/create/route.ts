@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkTeacherPassword } from "@/lib/auth";
-import { nanoid } from "nanoid";
+import { requireTeacher, validateTeacherPassword } from "@/lib/teacherAuth";
+import { errorResponse } from "@/lib/apiErrors";
 
 const NBA_TEAM_NAMES = [
   "Hawks", "Celtics", "Nets", "Hornets", "Bulls",
@@ -20,16 +20,25 @@ function generateJoinCode(teamName: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { title, password, teamCount = 6 } = body as {
-    title: string;
-    password: string;
+  const body = (await req.json()) as {
+    title?: string;
+    password?: string;
     teamCount?: number;
   };
+  const title = body.title?.trim() || "BSC Pre-Course Game";
+  const password = body.password?.trim();
+  const teamCount =
+    typeof body.teamCount === "number" && Number.isFinite(body.teamCount)
+      ? Math.max(1, Math.min(Math.floor(body.teamCount), 8))
+      : 6;
 
-  const authed = await checkTeacherPassword(password);
-  if (!authed) {
-    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  const auth = await requireTeacher(req, { allowLegacyHeader: true });
+  let authedByPassword = false;
+  if (!auth && password) {
+    authedByPassword = await validateTeacherPassword(password);
+  }
+  if (!auth && !authedByPassword) {
+    return errorResponse("Unauthorized", "UNAUTHORIZED", 401);
   }
 
   // Archive any existing active session
@@ -44,8 +53,8 @@ export async function POST(req: NextRequest) {
 
   const session = await prisma.session.create({
     data: {
-      title: title || "BSC Pre-Course Game",
-      teacherKeyHash: password,
+      title,
+      teacherKeyHash: auth?.teacher.id ?? "legacy-password",
       teams: {
         create: selectedNames.map((name) => ({
           name,

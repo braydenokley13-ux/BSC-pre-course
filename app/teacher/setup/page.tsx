@@ -6,17 +6,26 @@ interface TeamInfo { id: string; name: string; joinCode: string }
 
 export default function TeacherSetupPage() {
   const router = useRouter();
-  const [password, setPassword] = useState("");
   const [title, setTitle] = useState("BSC Pre-Course Game");
   const [teamCount, setTeamCount] = useState(6);
   const [teams, setTeams] = useState<TeamInfo[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const pw = sessionStorage.getItem("teacherPassword");
-    if (!pw) { router.replace("/teacher"); return; }
-    setPassword(pw);
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/teacher/me");
+        if (!res.ok) {
+          router.replace("/teacher");
+          return;
+        }
+      } finally {
+        setChecking(false);
+      }
+    }
+    checkAuth();
   }, [router]);
 
   async function handleCreate(e: React.FormEvent) {
@@ -27,7 +36,7 @@ export default function TeacherSetupPage() {
       const res = await fetch("/api/session/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, password, teamCount }),
+        body: JSON.stringify({ title, teamCount }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -40,6 +49,16 @@ export default function TeacherSetupPage() {
     } finally {
       setCreating(false);
     }
+  }
+
+  if (checking) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+        <div className="bsc-broadcast-shell p-5 md:p-6">
+          <p className="text-[#6b7280] font-mono text-sm text-center">Checking teacher session...</p>
+        </div>
+      </div>
+    );
   }
 
   if (teams) {
