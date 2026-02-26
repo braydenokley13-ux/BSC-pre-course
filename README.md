@@ -1,63 +1,113 @@
 # BOW Sports Capital: Pre-Course
 
-Multiplayer front-office simulation built with Next.js + Prisma (SQLite by default).
+Multiplayer front-office simulation built with Next.js + Prisma.
 
-## What This App Is
-- Students join teams with a join code.
-- Teams vote through 8 situations.
-- Teams unlock concept cards and complete quick checks.
-- Teachers create sessions, monitor progress, and export CSV results.
+This project is now configured for **PostgreSQL** so it can be deployed in production safely.
 
-## Run Locally (Step by Step)
-1. Clone the repo:
+## 1) Local Setup (Step by Step)
+
+1. Open Terminal.
+2. Go to the project:
 ```bash
-git clone https://github.com/braydenokley13-ux/BSC-pre-course.git
-cd BSC-pre-course
+cd /Users/braydenwhite/Documents/BSC-pre-course
 ```
-
-2. Install dependencies:
+3. Install packages:
 ```bash
 npm install
 ```
-
-3. Create `.env.local` and set `DATABASE_URL`:
+4. Copy env template:
 ```bash
-DATABASE_URL="file:./prisma/dev.db"
+cp .env.example .env.local
 ```
-
-4. Push Prisma schema to local DB:
+5. Put real values into `.env.local`:
+- `DATABASE_URL` -> your Postgres URL
+- `TEACHER_PASSWORD` -> bcrypt hash (or plain text for temporary local testing)
+- `RECOVERY_CODE_PEPPER` -> long random secret string
+6. If you need a password hash:
+```bash
+npm run teacher:hash -- "your-password-here"
+```
+7. Push Prisma schema to your DB:
 ```bash
 npm run db:push
 ```
-
-5. Start the app:
+8. Seed adaptive questions:
+```bash
+npm run db:seed:adaptive
+```
+9. Start app:
 ```bash
 npm run dev
 ```
+10. Open:
+- `http://localhost:3000/join`
+- `http://localhost:3000/teacher`
 
-6. Open:
-- `http://localhost:3000/join` for students
-- `http://localhost:3000/teacher` for instructors
+## 2) Production Preflight (Required)
 
-If port 3000 is busy, Next.js will use another port (for example `3001`).
+Run this before deploy:
+```bash
+npm run check:prod
+```
 
-## Build / Quality Checks
-- Production build:
+This checks:
+- required env vars exist
+- DB URL is PostgreSQL (not sqlite file path)
+- password/pepper are not weak
+
+## 3) Exact Deploy Steps (Vercel + Neon)
+
+1. Create a Neon Postgres database.
+2. Copy Neon connection string.
+3. In GitHub, make sure your latest commit is pushed:
+```bash
+git add .
+git commit -m "ready for deploy"
+git push origin main
+```
+4. In Vercel:
+- Click **New Project**
+- Import `braydenokley13-ux/BSC-pre-course`
+- Framework: Next.js (auto-detected)
+5. In Vercel Project Settings -> Environment Variables, add:
+- `DATABASE_URL` = Neon connection string
+- `TEACHER_PASSWORD` = bcrypt hash
+- `RECOVERY_CODE_PEPPER` = long random secret
+- Optional feature flags from `.env.example`
+6. In Vercel Project Settings -> Build & Development Settings:
+- Build Command:
+```bash
+prisma generate && prisma db push && next build
+```
+7. Click **Deploy**.
+8. After deploy finishes, open:
+- `https://<your-project>.vercel.app/api/health`
+9. Confirm response has `"ok": true`.
+10. Open app and test:
+- teacher login
+- create session
+- student join
+- one adaptive check
+
+## 4) Useful Commands
+
+- Build:
 ```bash
 npm run build
 ```
-
-- Content checks:
+- Content + adaptive checks:
 ```bash
 npm run check:content
 ```
+- Adaptive checks only:
+```bash
+npm run check:adaptive
+```
 
-## Project Structure
-- `app/` Next.js app routes and API handlers
-- `lib/` missions, concepts, auth/session helpers
-- `prisma/` schema and local DB files
-- `styles/` global styles
-- `data/` legacy static content files
+## 5) Project Structure
 
-## Legacy Static Files
-`index.html`, `game.js`, and `styles.css` remain in the repo for earlier static-game history, but the active product flow is the Next.js app under `app/`.
+- `app/` routes and API handlers
+- `lib/` game logic, auth, analytics
+- `prisma/` schema
+- `scripts/` validation, seed, preflight helpers
+- `data/` adaptive bank sources

@@ -9,6 +9,8 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed:adaptive": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/seed-adaptive-bank.ts --outDir .tmp/bsc-adaptive-tools && node .tmp/bsc-adaptive-tools/scripts/seed-adaptive-bank.js",
+    "teacher:hash": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/hash-teacher-password.ts --outDir .tmp/bsc-adaptive-tools && node .tmp/bsc-adaptive-tools/hash-teacher-password.js",
+    "check:prod": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/preflight-production.ts --outDir .tmp/bsc-adaptive-tools && node .tmp/bsc-adaptive-tools/preflight-production.js",
     "check:glossary": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-glossary-coverage.ts --outDir /tmp/bsc-content-checks && node /tmp/bsc-content-checks/check-glossary-coverage.js",
     "check:readability": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-reading-level.ts --outDir /tmp/bsc-content-checks && node /tmp/bsc-content-checks/check-reading-level.js",
     "check:adaptive:coverage": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-adaptive-bank-coverage.ts --outDir /tmp/bsc-adaptive-tools && node /tmp/bsc-adaptive-tools/scripts/check-adaptive-bank-coverage.js",

@@ -12,6 +12,8 @@ build/
 prisma/migrations/
 prisma/dev.db
 prisma/dev.db-journal
+prisma/prisma/dev.db
+prisma/prisma/dev.db-journal
 
 # Environment
 .env
@@ -25,6 +27,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .codex-checks/
+.tmp/
 
 # Vercel
 .vercel
