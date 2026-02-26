@@ -32,8 +32,8 @@ export default function LobbyPage() {
         router.replace("/complete");
         return;
       }
-      if (data.team?.missionIndex > 0) {
-        router.replace("/play");
+      if (data.team?.missionIndex > 0 || (data.completedMissions?.length ?? 0) > 0) {
+        router.replace("/hq");
         return;
       }
       setState(data);
@@ -121,9 +121,9 @@ export default function LobbyPage() {
         {canStart ? (
           <button
             className="bsc-btn-gold w-full py-3"
-            onClick={() => router.push("/play")}
+            onClick={() => router.push("/hq")}
           >
-            Start the Game →
+            Enter Front Office HQ →
           </button>
         ) : (
           <button className="bsc-btn-ghost w-full py-3 cursor-not-allowed" disabled>
