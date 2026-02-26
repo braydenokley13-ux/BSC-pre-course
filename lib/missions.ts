@@ -1633,80 +1633,709 @@ const expensePressure: Mission = {
   },
 };
 
-const statsLineup: LegacyMission = {
+const statsLineup: Mission = {
   id: "stats-lineup",
   missionNumber: 5,
   title: "Stats Lineup",
   department: "ANALYTICS LAB",
   tagline: "The model says bench the starters.",
   scenario:
-    "Your analytics team flags a five-man bench lineup with a +12 net rating over 200 possessions — far outperforming your starting five. The data is clear: this lineup creates mismatches and makes your opponents' defensive schemes irrelevant. But your head coach doesn't trust it. He calls advanced metrics 'box score fiction' and refuses to adjust rotations. You have to decide whose authority holds.",
+    "Your analytics team has identified a five-man bench lineup with a +12.4 net rating over 214 possessions this season — the third-best lineup combination in the entire league by this measure. Your starting five's net rating over the same period: +3.1. The gap is not noise. But your head coach, Marcus Hill — a 22-year veteran with two championship rings — calls advanced metrics 'box score fiction invented by people who never laced up.' He has the locker room's trust. You control the front office. Someone has to give.",
   conceptId: "analytics",
-  legacy: true,
-  options: [
+
+  infoCards: [
     {
-      label: "Trust the coach — keep traditional rotations",
-      note: "Preserve staff relationship, ignore the data",
-      tags: ["culture", "coach-deference"],
-      outcome: { scoreΔ: 4, narrative: "You backed the coach. The team finished 3 games below .500. Post-season review showed the lineup data was accurate." },
+      title: "LINEUP DATA — ANALYTICS DEPT",
+      content:
+        "Bench lineup: Watts / Torres / Bell / Reyes / Crawford. Net rating: +12.4 per 100 possessions over 214 possessions. Offensive rating: 119.8 (league rank: 2nd). Defensive rating: 107.4 (league rank: 8th). Starting lineup net rating same period: +3.1. Model confidence: 94%. Sample size is statistically significant — this is not a small-sample anomaly.",
+      revealDelay: 0,
     },
     {
-      label: "Show the coach the data — let him decide",
-      note: "Present analytics transparently, empower the coaching staff",
-      tags: ["data-transparency", "coach-collaboration"],
-      outcome: { scoreΔ: 8, narrative: "The coach studied the data over two weeks. He piloted the lineup for 5 minutes per game. By February, it was a core rotation. Best of both worlds." },
+      title: "COACH HILL'S POSITION",
+      content:
+        "Coach Hill in today's film session: 'I've been watching basketball for 30 years. I know what a good lineup looks like and I know what wins playoff games. This is a regular season lineup against bad defensive teams. Run it in the finals and see what happens.' He's not budging on his own. He needs a different kind of conversation.",
+      revealDelay: 12,
     },
     {
-      label: "Override the coach — mandate lineup changes from the front office",
-      note: "Front office dictates rotations directly",
-      tags: ["analytics-first", "friction"],
-      outcome: { scoreΔ: 5, narrative: "The lineup worked — win rate improved. But the coach felt undermined in front of his staff. He resigned mid-season." },
+      title: "PLAYER PERSPECTIVE",
+      content:
+        "Post-practice interview (two players, anonymized): Starting PG — 'If the numbers say that, the coaches should look at it. I want to win.' Starting SF — 'If I'm getting benched because of a computer I'm going to have a serious conversation with the front office.' The locker room is split.",
+      revealDelay: 20,
     },
     {
-      label: "All-in analytics overhaul — rebuild systems around the model",
-      note: "Build full analytics infrastructure around data-driven rotation logic",
-      tags: ["systemic-change", "analytics-investment"],
-      outcome: { scoreΔ: 9, narrative: "Hired a data-forward coach, built an analytics integration team. Two years later: the most efficient offense in the league." },
+      title: "ADVANCED BREAKDOWN — RESTRICTED",
+      content:
+        "Why the lineup works (model explanation): the bench unit creates 34% more corner-3 opportunities through off-ball movement. Opponents are forced to hedge on the pick-and-roll, opening driving lanes. The starting lineup's weakness: two non-shooters on the floor simultaneously collapses spacing. This is a structural roster issue, not a talent issue. The fix is rotation design, not player acquisition.",
+      revealDelay: 24,
+      roleOnly: "analytics",
     },
   ],
+
+  roles: [
+    {
+      id: "analytics",
+      title: "ANALYTICS LEAD",
+      description: "You built the model. You know exactly why this lineup works.",
+      privateInfo:
+        "The +12.4 is real but here's what the report didn't fully explain: the bench lineup's advantage is almost entirely against teams ranked 20th or worse defensively. Against top-10 defenses, the net rating drops to +4.1 — still positive, but not dominant. If we're making a playoff argument for this lineup, we need to be honest: the edge compresses against elite defenses. I haven't told Coach Hill this yet because it complicates the pitch.",
+    },
+    {
+      id: "gm",
+      title: "GENERAL MANAGER",
+      description: "You're the front office decision-maker. The coach works for you — technically.",
+      privateInfo:
+        "Coach Hill has 2 years left on his contract at $8M/year. If you override him and he resigns, you owe him $16M. If you fire him without cause, same $16M. The relationship with this coach is also a free agent selling point — two veterans signed here specifically because Hill was the coach. The analytics decision is also a personnel decision.",
+    },
+    {
+      id: "president",
+      title: "TEAM PRESIDENT",
+      description: "You manage the owner relationship and organizational culture.",
+      privateInfo:
+        "The owner called me last week. He read an article about analytics-forward franchises and asked: 'Are we falling behind?' He's not asking you to fire Coach Hill — he's asking whether the organization is modern. This is also a branding opportunity: 'data-driven front office' is a free agent pitch. How you handle this publicly matters as much as the decision itself.",
+    },
+    {
+      id: "scout",
+      title: "HEAD SCOUT",
+      description: "You evaluate talent and know how the locker room actually thinks.",
+      privateInfo:
+        "I've been in locker rooms for 18 years. When the front office overrides the coaching staff on rotations, players don't see it as analytics-forward — they see it as chaos. Three veterans have told me privately they'd put 'organizational stability' on a list of reasons to stay or leave in free agency. Coach Hill's credibility with the roster is a real asset. If you undermine him on something as visible as rotations, you're trading his authority for a lineup edge.",
+    },
+  ],
+
+  rounds: [
+    {
+      id: "direction",
+      prompt: "The analytics team's report is on Coach Hill's desk. He's ignored it for two weeks. What do you do?",
+      options: [
+        {
+          id: "trust-coach",
+          label: "Trust the coach — keep current rotations",
+          description: "The coach has rings. Back him publicly. Let the season play out.",
+          tags: ["trust-coach", "culture-first"],
+        },
+        {
+          id: "share-data",
+          label: "Meet with Coach Hill — present the data, let him decide",
+          description: "Sit down together, walk through the model, answer his questions. Empower him with information.",
+          tags: ["share-data", "collaborative"],
+        },
+        {
+          id: "mandate-changes",
+          label: "Mandate the lineup change from the front office",
+          description: "The data is clear. Issue a directive. The coach implements or he resigns.",
+          tags: ["mandate-changes", "analytics-first"],
+        },
+        {
+          id: "hire-bridge",
+          label: "Hire an analytics translator — bring in a data-literate assistant coach",
+          description: "Build a bridge between the analytics department and coaching staff without creating a power conflict.",
+          tags: ["hire-bridge", "systemic"],
+        },
+      ],
+    },
+    {
+      id: "terms-share",
+      prompt: "Coach Hill sat through the presentation. His response: 'The numbers are interesting. But I'm not changing my rotation based on a regular season sample. Show me this works against a top-5 defense and then we'll talk.'",
+      context: "The coach is engaging with the data but not convinced. He wants playoff-caliber evidence.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "share-data",
+      options: [
+        {
+          id: "pilot-program",
+          label: "Propose a pilot — run the lineup 8 minutes per game for 2 weeks",
+          description: "Give the coach a structured test. Live data against real opponents.",
+          tags: ["pilot-program", "evidence-based"],
+        },
+        {
+          id: "deeper-analysis",
+          label: "Pull the playoff-defense split data — show him the top-10 defense numbers",
+          description: "Be transparent about the full picture, including where the edge shrinks. Build real trust.",
+          tags: ["deeper-analysis", "transparent"],
+        },
+        {
+          id: "push-harder",
+          label: "Push harder — the regular season sample is sufficient",
+          description: "The evidence is there. The coach is stalling. You need him to act now.",
+          tags: ["push-harder", "analytics-first"],
+        },
+      ],
+    },
+    {
+      id: "terms-mandate",
+      prompt: "Coach Hill hears the directive. He calls a player meeting without telling you. Three starters emerge from the meeting and ask for a conversation with the front office.",
+      context: "The mandate triggered a locker room response. The players want to be heard.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "mandate-changes",
+      options: [
+        {
+          id: "meet-players",
+          label: "Meet with the players — explain the data and the reasoning",
+          description: "Transparency over authority. Show them the numbers. Earn their buy-in.",
+          tags: ["meet-players", "transparent"],
+        },
+        {
+          id: "hold-directive",
+          label: "Hold the directive — Coach Hill implements or he's reassigned",
+          description: "The front office decision stands. No negotiation with the roster over rotations.",
+          tags: ["hold-directive", "authority"],
+        },
+        {
+          id: "pull-back-mandate",
+          label: "Pull back the mandate — revert to collaborative approach",
+          description: "The blowback is too significant. Walk it back and restart the conversation with Coach Hill.",
+          tags: ["pull-back-mandate", "de-escalate"],
+        },
+      ],
+    },
+    {
+      id: "terms-bridge",
+      prompt: "You've hired Dr. Keisha Morgan, a data scientist with 8 years of coaching experience. She meets with Coach Hill. He accepts her — but wants her role limited to 'consultation only, no rotation authority.'",
+      context: "The bridge hire is in place. Now define the authority structure.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "hire-bridge",
+      options: [
+        {
+          id: "consultation-only",
+          label: "Accept consultation-only — let the relationship build organically",
+          description: "Trust that good data presented well will earn influence over time.",
+          tags: ["consultation-only", "patient"],
+        },
+        {
+          id: "joint-authority",
+          label: "Define joint authority — Morgan + Hill sign off on lineup decisions",
+          description: "Formalize the structure. Both voices required. More friction, more accountability.",
+          tags: ["joint-authority", "systemic"],
+        },
+      ],
+    },
+  ],
+
+  rivalCounter: {
+    triggerTags: ["mandate-changes", "hire-bridge"],
+    message:
+      "LEAGUE NEWS: Golden State just published a report crediting their new 'analytics-first rotation system' for their 12-game win streak. The story is everywhere. Your owner texts you: 'This is exactly what we should be doing. Are we this advanced?' Coach Hill sees the story and calls it 'a publicity stunt.' The national media starts asking your players: 'Does your front office use analytics in rotations?'",
+    responseRound: {
+      id: "rival-response",
+      prompt: "The media narrative is now about analytics adoption. How does your organization respond publicly?",
+      options: [
+        {
+          id: "own-the-narrative",
+          label: "Lean in — position the franchise as analytics-forward in media",
+          description: "Use the moment. Announce your analytics investment publicly.",
+          tags: ["own-the-narrative", "brand"],
+        },
+        {
+          id: "stay-quiet",
+          label: "Stay quiet — don't create pressure on the coach mid-season",
+          description: "Internal decisions stay internal. Media narratives are distractions.",
+          tags: ["stay-quiet", "culture-first"],
+        },
+        {
+          id: "coach-leads-response",
+          label: "Let Coach Hill respond publicly — his voice builds trust",
+          description: "If he defends the analytical approach, it lands with more credibility than you saying it.",
+          tags: ["coach-leads-response", "collaborative"],
+        },
+      ],
+    },
+  },
+
+  outcomes: [
+    {
+      roundTagCombo: ["trust-coach"],
+      variants: [
+        {
+          probability: 0.40,
+          label: "Coach Right — Team Wins",
+          scoreΔ: 6,
+          narrative:
+            "Coach Hill's instincts held. The team finished .500 and made the play-in. Post-season review: the lineup data was accurate but the timing and integration mattered. The coach wasn't wrong to need time. Relationship preserved.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.60,
+          label: "Data Was Right — Opportunity Missed",
+          scoreΔ: 3,
+          narrative:
+            "Finished 3 games below .500. The analytics team ran the counterfactual: the bench lineup, used properly, projects to 5-6 additional wins. That's the difference between a lottery pick and a playoff run. The data was right. You didn't act on it.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["share-data", "pilot-program"],
+      variants: [
+        {
+          probability: 0.75,
+          label: "Pilot Works — Coach Converts",
+          scoreΔ: 9,
+          narrative:
+            "Two weeks, 8 minutes per game. The bench lineup went +16 net rating in live action against 6 opponents. Coach Hill called a staff meeting. 'I've been coaching this wrong.' By February it was a core rotation. Best of both worlds — his buy-in made it sustainable.",
+          applyStatus: ["analytics-forward", "high-morale"],
+        },
+        {
+          probability: 0.25,
+          label: "Pilot Fails — Coach Entrenched",
+          scoreΔ: 5,
+          narrative:
+            "The pilot ran against three elite defenses. The net rating dropped to +2.1. Coach Hill called it immediately: 'I told you.' He's not wrong — the sample hit bad luck and tough opponents. The data is still right structurally, but you've lost the argument for now.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["share-data", "deeper-analysis"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Full Transparency — Earned Trust",
+          scoreΔ: 9,
+          narrative:
+            "You showed him everything — including where the edge compresses against elite defenses. Coach Hill respected the honesty. 'You're not trying to sell me something.' He integrated the lineup selectively: full deployment against weaker defenses, conditional against playoff teams. Season win rate improved 11%. Relationship intact.",
+          applyStatus: ["analytics-forward", "scout-trusted"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["share-data", "push-harder"],
+      variants: [
+        {
+          probability: 0.50,
+          label: "Coach Caves — Tension Remains",
+          scoreΔ: 6,
+          narrative:
+            "He implemented under pressure. The lineup worked. He never fully trusted it. At the end of the season he told reporters: 'I follow directions.' He didn't re-sign. You lost a championship-caliber coach because you pushed too hard too fast.",
+          applyStatus: ["coach-conflict"],
+        },
+        {
+          probability: 0.50,
+          label: "Coach Resigns Mid-Season",
+          scoreΔ: 2,
+          narrative:
+            "He walked out in February. The assistant coach finished the season. The locker room fractured. Three free agents cited 'organizational instability' as a reason to look elsewhere in the summer. The lineup numbers were right. The approach was wrong.",
+          applyStatus: ["coach-conflict", "rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["mandate-changes", "meet-players"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Players Understand — Culture Stabilizes",
+          scoreΔ: 7,
+          narrative:
+            "The data meeting with players went well. The starting SF said: 'I didn't know the numbers were that significant.' Rotations adjusted. Coach Hill implemented reluctantly but professionally. The lineup produced. The relationship with the coach is strained but functional.",
+          applyStatus: ["analytics-forward"],
+        },
+        {
+          probability: 0.40,
+          label: "Coach Resigns — Players Destabilized",
+          scoreΔ: 3,
+          narrative:
+            "Coach Hill resigned the week after the player meeting. He told the press: 'The front office doesn't trust its coaches.' Three veteran players requested trade conversations. You implemented the lineup without the coach who built the culture around it.",
+          applyStatus: ["coach-conflict", "rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["mandate-changes", "hold-directive"],
+      variants: [
+        {
+          probability: 0.35,
+          label: "Directive Holds — Coach Complies",
+          scoreΔ: 7,
+          narrative:
+            "Coach Hill implemented the rotation. Barely. The locker room saw the tension. Results were positive on the floor. Two veterans opted out of extensions citing 'front office interference in basketball decisions.' The lineup worked. The culture cost was real.",
+          applyStatus: ["analytics-forward", "coach-conflict"],
+        },
+        {
+          probability: 0.65,
+          label: "Coach Resigns — Organization Disrupted",
+          scoreΔ: 2,
+          narrative:
+            "He was gone within the week. The team went 6-14 under the interim coach while absorbing the roster disruption. The analytics were right. The execution destroyed the season.",
+          applyStatus: ["coach-conflict", "rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["hire-bridge", "consultation-only"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Bridge Hire — Slow Progress",
+          scoreΔ: 7,
+          narrative:
+            "Dr. Morgan spent three months earning Coach Hill's trust. By mid-season she was in every staff meeting. The bench lineup was deployed in 60% of games by February. Sustainable, collaborative, and nobody quit. Sometimes the slow path is the right path.",
+          applyStatus: ["analytics-forward"],
+        },
+        {
+          probability: 0.30,
+          label: "Bridge Hire — Limited Influence",
+          scoreΔ: 5,
+          narrative:
+            "Consultation only meant consultation ignored. Coach Hill appreciated Dr. Morgan personally but changed almost nothing. The bench lineup got 3 minutes per game. Good hire, wrong authority structure.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["hire-bridge", "joint-authority"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Joint Authority — New Organizational Model",
+          scoreΔ: 9,
+          narrative:
+            "Coach Hill balked at first — then saw it as distributed accountability, not surveillance. Dr. Morgan and Hill co-designed a rotation framework. The bench lineup ran 12 minutes per game in a structured deployment. Team finished 6th seed. Two free agents cited 'the most thoughtful coaching process I've ever been part of' as a reason to sign.",
+          applyStatus: ["analytics-forward", "high-morale"],
+        },
+      ],
+    },
+  ],
+
+  defaultOutcome: {
+    roundTagCombo: [],
+    variants: [
+      {
+        probability: 1.0,
+        label: "Decision Made",
+        scoreΔ: 5,
+        narrative: "The front office navigated the analytics-culture tension and moved forward.",
+        applyStatus: [],
+      },
+    ],
+  },
 };
 
-const matchupAdjust: LegacyMission = {
+const matchupAdjust: Mission = {
   id: "matchup-adjust",
   missionNumber: 6,
   title: "Matchup Adjust",
   department: "MEDICAL BAY",
   tagline: "Franchise player showing fatigue signs.",
   scenario:
-    "Your franchise player — 24 years old, averaging 31 points on 38 minutes per game — is showing early fatigue signs. He's shooting 4% below his season average in the fourth quarter over the last 10 games. The medical team flags 'soft tissue stress' but not injury. The fanbase wants him on the floor. Playoffs are 11 games away. How do you manage his load?",
+    "Your franchise player, DeShawn Morris — 24 years old, averaging 31.4 points on 38.2 minutes per game — is showing measurable fatigue signs. Fourth-quarter shooting: down 4.8% over the last 12 games. The medical team has flagged 'bilateral plantar fasciitis risk and soft tissue stress indicators' — not a confirmed injury, but a clear warning. Playoffs are 11 games away. The fanbase is selling out every game. The coach wants him on the floor. Morris himself says he's fine. What do you do?",
   conceptId: "roster-health",
-  legacy: true,
-  options: [
+
+  infoCards: [
     {
-      label: "Reduce to 32 minutes — protect the playoff body",
-      note: "Prioritize long-term health over short-term wins",
-      tags: ["load-management", "player-health"],
-      outcome: { scoreΔ: 9, narrative: "Smart call. He arrived in the playoffs at 97% health. Fresh legs in April matter more than 3 extra regular season wins." },
+      title: "MEDICAL TEAM ASSESSMENT",
+      content:
+        "Team physician Dr. Patel report: Morris is showing grade-1 plantar fasciitis indicators in both feet — common in high-minute players at this point in the season. Not a current injury. Estimated re-injury escalation risk if minutes remain at 38+: 34% probability of soft tissue strain before the end of the regular season. Recommended: reduce to 32-34 minutes per game immediately. Alternative: full rest for 4-5 games, then managed return.",
+      revealDelay: 0,
     },
     {
-      label: "Balanced plan — 34 minutes with strategic rest games",
-      note: "Sit out 2 road back-to-backs, play all home games",
-      tags: ["balanced", "win-now"],
-      outcome: { scoreΔ: 8, narrative: "The compromise worked. He entered the playoffs healthy and grateful for the communication." },
+      title: "PERFORMANCE METRICS — LAST 12 GAMES",
+      content:
+        "Q4 shooting: 43.1% (season avg: 47.9%). Vertical leap measurement (weekly tracking): down 3.1 inches vs. preseason baseline. First-step quickness (GPS tracking): down 7%. Points per shot attempt: down 0.8. None of these are injuries — but all of them are measurable degradation consistent with late-season fatigue in a high-minute player.",
+      revealDelay: 12,
     },
     {
-      label: "Push him — 38+ minutes, playoffs need him at full effort",
-      note: "Compete for seeding and ignore the fatigue data",
-      tags: ["high-risk", "win-now"],
-      outcome: { scoreΔ: 3, narrative: "He played through it — then strained a hamstring in Game 2 of the playoffs. Out for 3-4 weeks." },
+      title: "SEEDING STAKES",
+      content:
+        "Current standing: 4th seed, 1 game ahead of 5th. Remaining schedule: 6 home games, 5 road games (including 2 back-to-backs). The difference between 4th and 5th seed changes first-round opponent: 4th faces the 5-seed (easier), 5th faces the 4-seed (harder). Estimated win differential if Morris plays 32 vs. 38 minutes over remaining 11 games: -2.1 wins projected.",
+      revealDelay: 20,
     },
     {
-      label: "Aggressive rest protocol — sit him for 5 full games",
-      note: "Maximum protection, significant record risk",
-      tags: ["protective", "long-term"],
-      outcome: { scoreΔ: 6, narrative: "Five games off — the team went 2-3 without him, dropping two seeds in the standings. He entered the playoffs fully healthy." },
+      title: "PLAYER PERSPECTIVE — RESTRICTED",
+      content:
+        "Morris told team physician off the record: 'I can feel it in my left foot. It's not bad enough to worry about but it's there.' He told Coach Hill publicly: 'I feel great, give me the minutes.' He's protecting his image as an iron man. His agent has called three times this week asking about the medical situation. The contract language: if Morris misses 20+ regular season games due to non-injury-related load management, the team owes a $3M bonus payment.",
+      revealDelay: 24,
+      roleOnly: "president",
     },
   ],
+
+  roles: [
+    {
+      id: "physician",
+      title: "TEAM PHYSICIAN",
+      description: "You are responsible for player health and medical risk assessment.",
+      privateInfo:
+        "Plantar fasciitis that progresses from grade-1 to grade-2 during a playoff run is a career-altering injury, not a game-to-game issue. I've seen two franchise players miss entire playoff runs to this exact injury pathway. My recommendation is 32 minutes max and no back-to-backs. I cannot force this — but I can tell you the medical risk with complete clarity: at 38+ minutes per game, we are rolling the dice every night.",
+    },
+    {
+      id: "coach",
+      title: "HEAD COACH",
+      description: "You manage game strategy and make in-game minute decisions.",
+      privateInfo:
+        "I've had this conversation with DeShawn. He says he's fine. My read: he's competing through discomfort, which is what franchise players do. What I know is this — if I reduce his minutes and we drop 2 seeds, the fanbase will crucify me. If I play him and he gets hurt, they'll say I should have listened to the doctors. Either way, I need the front office to make this call officially so it doesn't land on me alone. I need air cover.",
+    },
+    {
+      id: "president",
+      title: "TEAM PRESIDENT",
+      description: "You balance organizational risk, player relations, and ownership expectations.",
+      privateInfo:
+        "The $3M load management bonus clause is real. Morris's agent called it out specifically — if we sit him for load management reasons (not injury) for more than 20 games total this season, we owe $3M. We're at 14 games already this season. Sitting him for 5 games this stretch triggers the clause. We'd owe the bonus. I haven't told the coach this yet.",
+    },
+    {
+      id: "analytics",
+      title: "ANALYTICS LEAD",
+      description: "You model win probability and playoff projections.",
+      privateInfo:
+        "I've run the numbers both ways. At 38 min/game: 71% playoff appearance probability, but 34% injury-before-playoffs probability. Expected playoff wins at full health: 2.8 rounds. Expected playoff wins accounting for injury risk: 1.4 rounds. At 32 min/game: 58% playoff appearance probability, 94% arrive-healthy probability. Expected playoff wins: 2.4 rounds. The math slightly favors load management — but it's close enough that it genuinely depends on values, not just probability.",
+    },
+  ],
+
+  rounds: [
+    {
+      id: "direction",
+      prompt: "The medical team's recommendation is on your desk. What is your approach to Morris's workload for the final 11 games?",
+      options: [
+        {
+          id: "hard-limit",
+          label: "Hard 32-minute limit — protect the playoff body",
+          description: "Formal directive: Morris plays no more than 32 minutes per game. Sit all back-to-backs. Doctor's recommendation followed exactly.",
+          tags: ["hard-limit", "health-first"],
+        },
+        {
+          id: "flexible-plan",
+          label: "Flexible plan — 34-minute target, coach manages game-to-game",
+          description: "Set a target, not a hard cap. Coach adjusts based on game situation and Morris's feel.",
+          tags: ["flexible-plan", "collaborative"],
+        },
+        {
+          id: "push-through",
+          label: "Play through it — Morris says he's fine, trust the player",
+          description: "Full minutes. Compete for seeding. Morris is a professional who knows his body.",
+          tags: ["push-through", "win-now"],
+        },
+        {
+          id: "full-rest",
+          label: "Full rest — sit Morris for 4-5 games, manage return",
+          description: "Maximum protection. Absorb the record hit now, arrive at playoffs completely healthy.",
+          tags: ["full-rest", "long-term"],
+        },
+      ],
+    },
+    {
+      id: "terms-hard-limit",
+      prompt: "Coach Hill pushes back: 'If I sit him and we drop a seed, that's on me publicly. I need you to make this official and stand behind it.' Morris's agent calls and raises the load management bonus clause.",
+      context: "The hard limit decision is creating downstream complications.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "hard-limit",
+      options: [
+        {
+          id: "public-announcement",
+          label: "Make it official — announce the load management protocol publicly",
+          description: "Take it off the coach's back. Front office owns the decision publicly.",
+          tags: ["public-announcement", "transparent"],
+        },
+        {
+          id: "pay-bonus",
+          label: "Pay the $3M bonus — player wellness over contract language",
+          description: "Honor the clause, protect the player, move forward without ambiguity.",
+          tags: ["pay-bonus", "player-first"],
+        },
+        {
+          id: "reclassify-rest",
+          label: "Classify rest days as minor injury management — avoid bonus trigger",
+          description: "Document the plantar fasciitis findings as the medical basis. Stays under the clause threshold.",
+          tags: ["reclassify-rest", "strategic"],
+        },
+      ],
+    },
+    {
+      id: "terms-push",
+      prompt: "Game 8 of the remaining 11: Morris comes off the floor after Q3 limping. Medical staff confirms grade-2 plantar fasciitis progression. He can play — it's not a rupture — but every game increases the rupture risk.",
+      context: "The injury path the medical team warned about is materializing.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "push-through",
+      options: [
+        {
+          id: "shut-down-now",
+          label: "Shut him down immediately — playoffs are all that matters",
+          description: "Stop here. Protect him for the postseason. Accept the regular season consequences.",
+          tags: ["shut-down-now", "health-first"],
+        },
+        {
+          id: "game-time-decisions",
+          label: "Game-time decisions — Morris and physician decide each night",
+          description: "No blanket shutdown. Evaluate each game individually.",
+          tags: ["game-time-decisions", "flexible"],
+        },
+        {
+          id: "push-to-end",
+          label: "Push through the last 3 games — playoffs start next week",
+          description: "Three games left. He knows the risk. Let the franchise player make the call.",
+          tags: ["push-to-end", "high-risk"],
+        },
+      ],
+    },
+  ],
+
+  rivalCounter: {
+    triggerTags: ["push-through", "flexible-plan"],
+    message:
+      "RIVAL MOVE: The Boston Celtics just announced a league-leading load management policy — their star plays 30 minutes max for the last 10 games of every regular season, regardless of seeding stakes. Sports media is praising it. Your local beat reporter asks you directly: 'Your player is showing fatigue signs. Why isn't he being managed like Boston's star?' The question is now public.",
+    responseRound: {
+      id: "rival-response",
+      prompt: "The load management question is now a public narrative. How do you respond?",
+      options: [
+        {
+          id: "address-directly",
+          label: "Address it directly — announce a modified plan publicly",
+          description: "Take control of the narrative. Announce a plan today.",
+          tags: ["address-directly", "transparent"],
+        },
+        {
+          id: "no-comment",
+          label: "No comment — player health decisions are private",
+          description: "Don't engage. The media will move on.",
+          tags: ["no-comment", "private"],
+        },
+        {
+          id: "coach-statement",
+          label: "Coach Hill makes a statement — 'DeShawn and I decide together'",
+          description: "Let the coach handle the public question. Takes pressure off the front office.",
+          tags: ["coach-statement", "delegated"],
+        },
+      ],
+    },
+  },
+
+  outcomes: [
+    {
+      roundTagCombo: ["hard-limit", "public-announcement"],
+      variants: [
+        {
+          probability: 0.75,
+          label: "Load Managed — Healthy Playoff Arrival",
+          scoreΔ: 9,
+          narrative:
+            "The announcement landed well. Fans respected the transparency. Morris dropped from 4th to 5th seed — faced a harder first-round opponent. He arrived in the playoffs at full health and averaged 34 points over 5 games. They won the series. The decision held.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.25,
+          label: "Load Managed — Seeding Cost Was Real",
+          scoreΔ: 6,
+          narrative:
+            "Dropped to the 5th seed. Drew the 4-seed in round 1 — a team with a dominant center. Morris was healthy, but they lost in 5. The counterfactual will haunt the off-season: would the 4th seed matchup have been easier? Probably.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["hard-limit", "reclassify-rest"],
+      variants: [
+        {
+          probability: 0.80,
+          label: "Medical Classification — Smooth Execution",
+          scoreΔ: 8,
+          narrative:
+            "The plantar fasciitis documentation was legitimate — it was a real medical finding. Classifying rest days under the medical framework was accurate and defensible. The bonus clause didn't trigger. Morris arrived healthy. No agent dispute.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.20,
+          label: "Agent Disputes Classification",
+          scoreΔ: 5,
+          narrative:
+            "Morris's agent reviewed the documentation and argued the classification was strategic, not purely medical. Filed a grievance. It resolved in the team's favor — the fasciitis was real — but the process created friction with Morris going into a contract year.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["flexible-plan"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Flexible Plan — Coach Executed Well",
+          scoreΔ: 8,
+          narrative:
+            "Coach Hill averaged Morris at 33.4 minutes over the last 11 games. Sat him both back-to-backs. Maintained the 4th seed. Morris entered the playoffs at 96% health by physician assessment. The flexibility gave the coach authority and produced the right outcome.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.40,
+          label: "Flexible Plan — Coach Played Him Too Much",
+          scoreΔ: 5,
+          narrative:
+            "The flexible target became a floor, not a ceiling. Morris averaged 36.1 minutes because the coach couldn't bring himself to bench the star in close games. Fasciitis worsened. He played in the playoffs but was clearly limited in rounds 1 and 2.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["push-through", "shut-down-now"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Course Corrected — Playoff Arrival Safe",
+          scoreΔ: 7,
+          narrative:
+            "The grade-2 diagnosis was the wake-up call. Three games rest before the playoffs. Morris arrived at 91% — not 100%, but stable. First-round win. The injury scare changed the organization's approach to load management permanently.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.30,
+          label: "Too Late — Grade-3 Risk in Round 1",
+          scoreΔ: 3,
+          narrative:
+            "Three games rest helped but wasn't enough. The grade-2 fasciitis progressed during Game 3 of the first round. He finished the game — but missed Game 4 and 5. Out in the first round.",
+          applyStatus: ["rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["push-through", "push-to-end"],
+      variants: [
+        {
+          probability: 0.30,
+          label: "Survived — Lucky",
+          scoreΔ: 5,
+          narrative:
+            "He played through it. Grade-2 held. Made it to the playoffs. Won the first round. The medial physician was right about the risk — you got lucky. Morris knows what he put his body through. This conversation will come up in every future contract negotiation.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.70,
+          label: "Grade-3 Rupture — Season Over",
+          scoreΔ: 1,
+          narrative:
+            "Game 9. Routine drive to the basket — he went down. Plantar fascia rupture. Season over. The medical team's risk assessment was accurate: 34% regular season injury probability given continued high minutes. You were in that 34%.",
+          applyStatus: ["rebuild-mode", "coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["full-rest"],
+      variants: [
+        {
+          probability: 0.80,
+          label: "Full Rest — Playoffs at 100%",
+          scoreΔ: 8,
+          narrative:
+            "Sat 5 games. Team went 2-3 without him — dropped to the 5th seed. Morris returned for the last 6, building rhythm. Entered the playoffs fully healthy. Averaged 36 points over 4 playoff games. The record cost was real; the playoff payoff was real too.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.20,
+          label: "Full Rest — Missed Playoffs",
+          scoreΔ: 3,
+          narrative:
+            "The 5-game absence cost more seeds than projected. Team finished 9th — out of the play-in. Morris was 100% healthy for a lottery finish. The medical decision was correct. The timing was catastrophic.",
+          applyStatus: [],
+        },
+      ],
+    },
+  ],
+
+  defaultOutcome: {
+    roundTagCombo: [],
+    variants: [
+      {
+        probability: 1.0,
+        label: "Decision Made",
+        scoreΔ: 5,
+        narrative: "The front office made a health management call. Results follow.",
+        applyStatus: [],
+      },
+    ],
+  },
 };
 
 const draftTable: LegacyMission = {
