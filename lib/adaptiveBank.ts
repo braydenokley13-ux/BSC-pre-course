@@ -173,40 +173,36 @@ function getConceptVoice(conceptId: string): ConceptVoice {
 function buildCorrectOption(
   objectiveFocus: string,
   termId: string,
-  difficulty: DifficultyLevel,
-  conceptId: string
+  difficulty: DifficultyLevel
 ): string {
   const term = toHumanTerm(termId);
-  const voice = getConceptVoice(conceptId);
   if (difficulty === 1) {
-    return `Start with the core ${term} rule, then use it with ${voice.decisionLens} to guide ${objectiveFocus}.`;
+    return `Use the ${term} rule first. Pick the option that best matches ${objectiveFocus}.`;
   }
   if (difficulty === 2) {
-    return `Compare options, then apply ${term} with ${voice.decisionLens} before committing to one plan.`;
+    return `Check team goals, cap room, and timing. Then use ${term} to choose the best option for ${objectiveFocus}.`;
   }
   if (difficulty === 3) {
-    return `Balance short-term gain and long-term flexibility, then apply ${term} using ${voice.decisionLens}.`;
+    return `Compare short-term wins and long-term cost. Use ${term} to pick the better balance for ${objectiveFocus}.`;
   }
-  return `Stress-test best and worst outcomes, then use ${term} and ${voice.decisionLens} to protect both timelines.`;
+  return `Plan for both best and worst cases. Use ${term} to choose the safest long-term decision for ${objectiveFocus}.`;
 }
 
 function buildDistractor(
   tag: string,
   termId: string,
   focus: string,
-  slot: number,
-  conceptId: string
+  slot: number
 ): string {
   const humanTerm = toHumanTerm(termId);
   const misconception = tag.replace(/-/g, " ");
-  const voice = getConceptVoice(conceptId);
   if (slot === 0) {
-    return `A common mistake is to treat ${humanTerm} as optional and assume ${misconception}, which weakens ${focus} and ignores ${voice.decisionLens}.`;
+    return `This choice confuses ${humanTerm}. It assumes ${misconception}, so the concept is used the wrong way.`;
   }
   if (slot === 1) {
-    return `A tempting shortcut is to trust one metric and assume ${misconception}, but that leaves out ${voice.decisionLens}.`;
+    return `This choice sounds smart at first, but it ignores how ${humanTerm} affects ${focus}.`;
   }
-  return `Under pressure, teams may chase a quick fix and assume ${misconception}, even when ${humanTerm} and ${voice.decisionLens} say to wait.`;
+  return `This choice chases a quick fix and skips ${humanTerm}. That usually leads to poor decisions about ${focus}.`;
 }
 
 function buildQuestionStem(
@@ -218,22 +214,22 @@ function buildQuestionStem(
   const voice = getConceptVoice(seed.conceptId);
   if (difficulty === 1) {
     return variant === 1
-      ? `In ${voice.quickScene}, the team asks what should guide ${objectiveFocus}. Which answer is best?`
-      : `During ${voice.quickScene}, your coach asks for a simple check on ${objectiveFocus}. Which statement is most accurate?`;
+      ? `In ${voice.quickScene}, the team asks: what does ${objectiveFocus} really mean? Which answer is best?`
+      : `During ${voice.quickScene}, which option shows the clearest understanding of ${objectiveFocus}?`;
   }
   if (difficulty === 2) {
     return variant === 1
-      ? `In ${voice.planningScene}, your front office is choosing a plan around ${objectiveFocus}. Which move is strongest?`
-      : `You are writing a memo after ${voice.planningScene}. Which recommendation on ${objectiveFocus} should the team follow?`;
+      ? `In ${voice.planningScene}, which move shows a solid understanding of ${objectiveFocus}?`
+      : `In ${voice.planningScene}, which recommendation uses ${objectiveFocus} the right way?`;
   }
   if (difficulty === 3) {
     return variant === 1
-      ? `In ${voice.tradeoffScene}, ownership wants fast results but next year still matters. For ${objectiveFocus}, which path best balances both?`
-      : `While reviewing ${voice.tradeoffScene}, which decision process for ${objectiveFocus} is most sound?`;
+      ? `In ${voice.tradeoffScene}, goals conflict. Which choice shows good understanding of ${objectiveFocus}?`
+      : `In ${voice.tradeoffScene}, which plan handles ${objectiveFocus} best across short and long term?`;
   }
   return variant === 1
-    ? `At ${voice.pressureScene}, pressure is high and options are tight. For ${objectiveFocus}, which decision protects now and later?`
-    : `In ${voice.pressureScene}, you must defend one strategy for ${objectiveFocus}. Which strategy is strongest under uncertainty?`;
+    ? `In ${voice.pressureScene}, which decision still shows true understanding of ${objectiveFocus} under pressure?`
+    : `In ${voice.pressureScene}, which strategy shows the strongest understanding of ${objectiveFocus} with limited time?`;
 }
 
 function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestionSeed[] {
@@ -245,11 +241,10 @@ function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestion
         const correctOption = buildCorrectOption(
           objective.focus,
           objective.termId,
-          difficulty,
-          seed.conceptId
+          difficulty
         );
         const distractors = objective.misconceptionTags.map((tag, slot) => ({
-          text: buildDistractor(tag, objective.termId, objective.focus, slot, seed.conceptId),
+          text: buildDistractor(tag, objective.termId, objective.focus, slot),
           tag,
         }));
         const correctIndex = ((objectiveIndex + difficulty + variant) % 4) as 0 | 1 | 2 | 3;
