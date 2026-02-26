@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
+import { CONCEPT_CARDS } from "@/lib/concepts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -208,23 +209,35 @@ function PlayInner() {
     if (!currentRound) return;
     setSelectedOptionIdx(optionIdx);
     setPhase("waiting");
-    await fetch("/api/mission/vote-round", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ missionId, roundId: currentRound.id, optionIndex: optionIdx }),
-      credentials: "include",
-    });
+    try {
+      const res = await fetch("/api/mission/vote-round", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId, roundId: currentRound.id, optionIndex: optionIdx }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Vote failed");
+    } catch {
+      setPhase("voting");
+      setSelectedOptionIdx(null);
+    }
   }
 
   async function handleRivalVote(optionIdx: number) {
     setSelectedOptionIdx(optionIdx);
     setPhase("rival-waiting");
-    await fetch("/api/mission/vote-round", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ missionId, roundId: "rival-response", optionIndex: optionIdx }),
-      credentials: "include",
-    });
+    try {
+      const res = await fetch("/api/mission/vote-round", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId, roundId: "rival-response", optionIndex: optionIdx }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Vote failed");
+    } catch {
+      setPhase("rival-voting");
+      setSelectedOptionIdx(null);
+    }
   }
 
   async function handleResolveRound(roundId: string) {
@@ -300,6 +313,8 @@ function PlayInner() {
   const myInfoCards = richMission.infoCards.filter(
     (c) => !c.roleOnly || c.roleOnly === me.role
   );
+  const conceptTitle =
+    CONCEPT_CARDS.find((c) => c.id === richMission.conceptId)?.title ?? richMission.conceptId;
 
   // ── Briefing ──────────────────────────────────────────────────────────────
 
@@ -365,8 +380,9 @@ function PlayInner() {
         <button
           className="bsc-btn-gold w-full py-3"
           onClick={() => { if (currentRound) setPhase("voting"); }}
+          disabled={!currentRound}
         >
-          I&apos;ve Read the Briefing — Begin Voting →
+          {currentRound ? "I've Read the Briefing — Begin Voting →" : "Preparing mission…"}
         </button>
       </div>
     );
@@ -573,7 +589,7 @@ function PlayInner() {
         </div>
 
         <button className="bsc-btn-gold w-full py-3 mb-2" onClick={handleContinue}>
-          {resolveResult.isGameComplete ? "Claim Your Score →" : `Unlock Concept — ${richMission.conceptId} →`}
+          {resolveResult.isGameComplete ? "Claim Your Score →" : `Unlock Concept — ${conceptTitle} →`}
         </button>
         <button className="bsc-btn-ghost w-full py-2 text-xs" onClick={() => router.push("/hq")}>
           Return to HQ

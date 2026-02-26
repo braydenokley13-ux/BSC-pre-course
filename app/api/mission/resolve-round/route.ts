@@ -272,6 +272,7 @@ export async function POST(req: NextRequest) {
       score: newScore,
       badges: JSON.stringify(badges),
       completedMissions: JSON.stringify(completedMissions),
+      missionIndex: completedMissions.length,
       teamStatus: JSON.stringify(newStatus),
       missionRoundState: JSON.stringify(finalState),
       lastProgressAt: new Date(),
