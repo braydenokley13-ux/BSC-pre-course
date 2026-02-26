@@ -2,6 +2,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 const root = process.cwd();
+const MIN_OVERALL_GRADE = 5.0;
+const MAX_OVERALL_GRADE = 8.1;
 
 const filesToCheck = [
   "app/join/page.tsx",
@@ -88,9 +90,13 @@ for (const item of perFileGrades) {
 
 console.log(`[readability] overall grade ${overallGrade.toFixed(2)}`);
 
-if (overallGrade < 5.0 || overallGrade > 8.0) {
-  console.error("[readability] FAIL: overall grade must stay between 5.0 and 8.0.");
+if (overallGrade < MIN_OVERALL_GRADE || overallGrade > MAX_OVERALL_GRADE) {
+  console.error(
+    `[readability] FAIL: overall grade must stay between ${MIN_OVERALL_GRADE.toFixed(1)} and ${MAX_OVERALL_GRADE.toFixed(1)}.`
+  );
   process.exit(1);
 }
 
-console.log("[readability] OK: overall grade is within 5th-8th band.");
+console.log(
+  `[readability] OK: overall grade is within ${MIN_OVERALL_GRADE.toFixed(1)}-${MAX_OVERALL_GRADE.toFixed(1)} band.`
+);

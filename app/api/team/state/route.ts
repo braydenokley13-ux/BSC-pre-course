@@ -4,14 +4,28 @@ import { prisma } from "@/lib/prisma";
 import { getStudentFromRequest } from "@/lib/getStudent";
 import {
   GAME_SITUATION_COUNT,
-  createBranchState,
   getDefaultNodeIdForStep,
   getMissionNode,
+  createBranchState,
 } from "@/lib/missions";
+import { getUnlockedMissions } from "@/lib/missionGraph";
 
 type RunoffState = {
   optionIndexes: number[];
   endsAt: string;
+};
+
+type MissionRoundState = {
+  missionId?: string;
+  currentRoundId?: string;
+  completedRounds?: Array<{
+    roundId: string;
+    winningOptionId: string;
+    winningTags: string[];
+  }>;
+  allTags?: string[];
+  rivalFired?: boolean;
+  isResolved?: boolean;
 };
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
@@ -36,20 +50,38 @@ export async function GET(req: NextRequest) {
     where: { id: student.teamId },
     include: {
       students: { select: { id: true, nickname: true, lastSeenAt: true } },
-      missionProgress: { orderBy: { completedAt: "asc" } },
     },
   });
 
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
+  const completedMissions = parseJson<string[]>(team.completedMissions, []);
+  const teamStatus = parseJson<string[]>(team.teamStatus, []);
+  const roleAssignments = parseJson<Record<string, string>>(team.roleAssignments, {});
+  const missionRoundState = parseJson<MissionRoundState>(team.missionRoundState, {});
+  const gameComplete = !!team.completedAt || completedMissions.includes("final-gm-call");
+  const unlockedMissions = getUnlockedMissions(completedMissions);
+
   const step = Math.min(team.missionIndex + 1, GAME_SITUATION_COUNT);
   const fallbackNodeId = getDefaultNodeIdForStep(step);
   const currentNodeId = team.currentNodeId || fallbackNodeId;
-  const currentMission = team.missionIndex >= GAME_SITUATION_COUNT ? null : getMissionNode(currentNodeId) ?? getMissionNode(fallbackNodeId) ?? null;
+  const currentMission =
+    team.missionIndex >= GAME_SITUATION_COUNT
+      ? null
+      : getMissionNode(currentNodeId) ?? getMissionNode(fallbackNodeId) ?? null;
 
-  const votes = currentMission
+  const activeMissionId =
+    missionRoundState.missionId && !missionRoundState.isResolved
+      ? missionRoundState.missionId
+      : currentMission?.id ?? null;
+  const activeRoundId =
+    missionRoundState.currentRoundId && !missionRoundState.isResolved
+      ? missionRoundState.currentRoundId
+      : "final";
+
+  const votes = activeMissionId
     ? await prisma.vote.findMany({
-        where: { teamId: team.id, missionId: currentMission.id },
+        where: { teamId: team.id, missionId: activeMissionId, roundId: activeRoundId },
         select: { studentId: true, optionIndex: true },
       })
     : [];
@@ -75,6 +107,7 @@ export async function GET(req: NextRequest) {
 
   const elapsedSeconds = Math.floor((now.getTime() - team.lastProgressAt.getTime()) / 1000);
   const badges = parseJson<string[]>(team.badges, []);
+  const myRole = roleAssignments[student.id] ?? null;
 
   return NextResponse.json({
     team: {
@@ -88,20 +121,32 @@ export async function GET(req: NextRequest) {
       score: team.score,
       claimCode: team.claimCode,
       completedAt: team.completedAt,
+      completedMissions,
+      teamStatus,
     },
     me: {
       id: student.id,
       nickname: student.nickname,
+      role: myRole,
     },
-    members: team.students.map((s) => ({
-      id: s.id,
-      nickname: s.nickname,
-      active: s.lastSeenAt >= activeCutoff,
-    })),
+    members: team.students.map((s) => {
+      const roleId = roleAssignments[s.id] ?? null;
+      return {
+        id: s.id,
+        nickname: s.nickname,
+        active: s.lastSeenAt >= activeCutoff,
+        role: roleId,
+      };
+    }),
     activeCount: activeMembers.length,
     currentMission,
     runoff: validRunoff,
     elapsedSeconds,
+    missionRoundState,
+    unlockedMissions,
+    completedMissions,
+    teamStatus,
+    gameComplete,
     votes: votes.map((v) => ({
       studentId: v.studentId,
       optionIndex: v.optionIndex,

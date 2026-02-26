@@ -4,9 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { checkTeacherPassword } from "@/lib/auth";
 import {
   GAME_SITUATION_COUNT,
+  getMissionById,
   getDefaultNodeIdForStep,
   getMissionNode,
 } from "@/lib/missions";
+
+function parseJson<T>(raw: string | null | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
 
 export async function GET(req: NextRequest) {
   const password = req.headers.get("x-teacher-password");
@@ -36,10 +46,15 @@ export async function GET(req: NextRequest) {
   const stuckCutoff = new Date(now.getTime() - 3 * 60 * 1000);
 
   const teams = session.teams.map((t) => {
-    const badges = JSON.parse(t.badges) as string[];
+    const badges = parseJson<string[]>(t.badges, []);
+    const roundState = parseJson<{ missionId?: string }>(t.missionRoundState, {});
     const activeMembers = t.students.filter((s) => s.lastSeenAt >= activeCutoff);
     const isStuck = !t.completedAt && t.lastProgressAt < stuckCutoff && activeMembers.length > 0;
     const elapsedSeconds = Math.floor((now.getTime() - t.lastProgressAt.getTime()) / 1000);
+    const fallbackMissionId = getDefaultNodeIdForStep(Math.min(t.missionIndex + 1, GAME_SITUATION_COUNT));
+    const missionIdForTitle = roundState.missionId || t.currentNodeId || fallbackMissionId;
+    const missionTitleFromRounds = getMissionById(missionIdForTitle)?.title;
+    const missionTitleFromCompat = getMissionNode(missionIdForTitle)?.title;
 
     const checkPassRate =
       t.catalogAttempts.length > 0
@@ -56,11 +71,7 @@ export async function GET(req: NextRequest) {
       missionTitle:
         t.missionIndex >= GAME_SITUATION_COUNT
           ? "Complete"
-          : (
-              getMissionNode(
-                t.currentNodeId || getDefaultNodeIdForStep(Math.min(t.missionIndex + 1, GAME_SITUATION_COUNT))
-              ) ?? getMissionNode(getDefaultNodeIdForStep(Math.min(t.missionIndex + 1, GAME_SITUATION_COUNT)))
-            )?.title ?? "In Progress",
+          : missionTitleFromRounds ?? missionTitleFromCompat ?? "In Progress",
       score: t.score,
       badges,
       badgeCount: badges.length,
@@ -80,6 +91,11 @@ export async function GET(req: NextRequest) {
   });
 
   return NextResponse.json({
+    session: {
+      id: session.id,
+      title: session.title,
+      createdAt: session.createdAt,
+    },
     sessionId: session.id,
     title: session.title,
     createdAt: session.createdAt,

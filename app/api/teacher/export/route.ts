@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkTeacherPassword } from "@/lib/auth";
-import { getMissionNode } from "@/lib/missions";
+import { getMissionById, getMissionNode, isLegacyMission } from "@/lib/missions";
 
 function toCSV(rows: Record<string, string | number | boolean | null>[]): string {
   if (rows.length === 0) return "";
@@ -88,14 +88,27 @@ export async function GET(req: NextRequest) {
   for (const team of session.teams) {
     for (const vote of team.votes) {
       const student = team.students.find((s) => s.id === vote.studentId);
-      const mission = getMissionNode(vote.missionId);
+      const compatMission = getMissionNode(vote.missionId);
+      const richMission = getMissionById(vote.missionId);
+      let optionLabel = "";
+
+      if (richMission && !isLegacyMission(richMission)) {
+        const round =
+          richMission.rounds.find((r) => r.id === vote.roundId) ??
+          (vote.roundId === "rival-response" ? richMission.rivalCounter?.responseRound : undefined);
+        optionLabel = round?.options[vote.optionIndex]?.label ?? "";
+      } else {
+        optionLabel = compatMission?.options[vote.optionIndex]?.label ?? "";
+      }
+
       rows.push({
         Team: team.name,
         Nickname: student?.nickname ?? "Unknown",
         MissionId: vote.missionId,
-        MissionTitle: mission?.title ?? "",
+        RoundId: vote.roundId,
+        MissionTitle: richMission?.title ?? compatMission?.title ?? "",
         OptionSelected: vote.optionIndex,
-        OptionLabel: mission?.options[vote.optionIndex]?.label ?? "",
+        OptionLabel: optionLabel,
         VotedAt: vote.createdAt.toISOString(),
       });
     }
