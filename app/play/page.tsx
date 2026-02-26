@@ -179,7 +179,8 @@ export default function PlayPage() {
              phase === "waiting" ? "Waiting for teammates to vote…" : ""}
           </p>
           <div className="grid grid-cols-1 gap-3">
-            {mission.options.map((opt, i) => {
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {((mission as any).options ?? []).map((opt: any, i: number) => {
               const isSelected = myVotedOption === i || selectedOption === i;
               const canVote = phase === "scenario" || (phase === "voting");
               return (
@@ -223,7 +224,8 @@ export default function PlayPage() {
         <div className="animate-fade-in">
           <p className="bsc-section-title mb-3">Vote Results</p>
           <div className="grid grid-cols-1 gap-3 mb-5">
-            {mission.options.map((opt, i) => {
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {((mission as any).options ?? []).map((opt: any, i: number) => {
               const isWinner = i === resolveResult.outcome;
               const voteCount = resolveResult.tally[i] ?? 0;
               const total = resolveResult.tally.reduce((a, b) => a + b, 0);

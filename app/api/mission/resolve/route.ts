@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
 
   // Break ties by lowest index (deterministic)
   const outcome = winners[0];
-  const selectedOption = mission.options[outcome];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectedOption = (mission as any).options[outcome];
 
   // Compute new score
   const newScore = team.score + selectedOption.outcome.scoreΔ;

@@ -22,10 +22,11 @@ export async function POST(req: NextRequest) {
   // Upsert vote (allow changing vote before reveal)
   await prisma.vote.upsert({
     where: {
-      teamId_missionId_studentId: {
+      teamId_missionId_studentId_roundId: {
         teamId: team.id,
         missionId: mission.id,
         studentId: student.id,
+        roundId: "final",
       },
     },
     update: { optionIndex },
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
       teamId: team.id,
       studentId: student.id,
       missionId: mission.id,
+      roundId: "final",
       optionIndex,
     },
   });

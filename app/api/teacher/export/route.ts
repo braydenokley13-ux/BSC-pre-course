@@ -95,7 +95,8 @@ export async function GET(req: NextRequest) {
         MissionId: vote.missionId,
         MissionTitle: mission?.title ?? "",
         OptionSelected: vote.optionIndex,
-        OptionLabel: mission?.options[vote.optionIndex]?.label ?? "",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        OptionLabel: (mission as any)?.options?.[vote.optionIndex]?.label ?? "",
         VotedAt: vote.createdAt.toISOString(),
       });
     }
