@@ -57,6 +57,73 @@ type AdaptiveQuestionStore = {
 const DIFFICULTY_LEVELS: DifficultyLevel[] = [1, 2, 3, 4];
 const QUESTION_VARIANTS = [1, 2] as const;
 
+type ConceptVoice = {
+  quickScene: string;
+  planningScene: string;
+  tradeoffScene: string;
+  pressureScene: string;
+  decisionLens: string;
+};
+
+const CONCEPT_VOICES: Record<string, ConceptVoice> = {
+  "luxury-tax": {
+    quickScene: "a cap-table check before free agency",
+    planningScene: "an ownership budget planning meeting",
+    tradeoffScene: "a debate about keeping a contender together",
+    pressureScene: "deadline calls while the team sits near the second apron",
+    decisionLens: "tax penalties, apron limits, and future flexibility",
+  },
+  "extensions-options": {
+    quickScene: "an agent call about extension language",
+    planningScene: "a contract strategy meeting before the offseason",
+    tradeoffScene: "a negotiation where player leverage and team control conflict",
+    pressureScene: "the final hour before a player option decision",
+    decisionLens: "player leverage, option structure, and control years",
+  },
+  "bri-revenue": {
+    quickScene: "a finance desk briefing on BRI trends",
+    planningScene: "a budget forecast meeting with ownership",
+    tradeoffScene: "a debate on spending now versus preserving future cap room",
+    pressureScene: "a midseason revenue drop update",
+    decisionLens: "revenue swings, cap forecasts, and spending risk",
+  },
+  "trade-matching": {
+    quickScene: "a trade machine salary check",
+    planningScene: "a two-team package design session",
+    tradeoffScene: "a negotiation balancing fit, salary, and pick value",
+    pressureScene: "deadline calls with matching rules closing options",
+    decisionLens: "matching math, aggregation limits, and asset timing",
+  },
+  analytics: {
+    quickScene: "a pregame stats huddle",
+    planningScene: "a film-plus-data scouting review",
+    tradeoffScene: "a debate over small-sample results versus larger trends",
+    pressureScene: "a late-night board meeting after a bad stretch",
+    decisionLens: "sample quality, context, and predictive value",
+  },
+  "roster-health": {
+    quickScene: "a training staff availability update",
+    planningScene: "a load management planning session",
+    tradeoffScene: "a debate over seeding urgency versus injury risk",
+    pressureScene: "a back-to-back game decision with key players sore",
+    decisionLens: "availability risk, workload limits, and recovery windows",
+  },
+  "rookie-scale": {
+    quickScene: "a draft room contract briefing",
+    planningScene: "a rookie development and cap planning meeting",
+    tradeoffScene: "a decision on immediate minutes versus long-term growth",
+    pressureScene: "the team option deadline on a young player",
+    decisionLens: "rookie value curve, control years, and development runway",
+  },
+  "front-office-philosophy": {
+    quickScene: "a staff alignment huddle on team identity",
+    planningScene: "an offseason strategy session on roster direction",
+    tradeoffScene: "a debate between talent maxing and culture fit",
+    pressureScene: "a high-stakes decision after public pressure spikes",
+    decisionLens: "identity coherence, culture fit, and long-term vision",
+  },
+};
+
 function countSyllables(word: string): number {
   const cleaned = word.toLowerCase().replace(/[^a-z]/g, "");
   if (!cleaned) return 0;
@@ -91,39 +158,55 @@ function conceptLabel(conceptId: string): string {
     .join(" ");
 }
 
+function getConceptVoice(conceptId: string): ConceptVoice {
+  const voice = CONCEPT_VOICES[conceptId];
+  if (voice) return voice;
+  return {
+    quickScene: `a quick ${conceptLabel(conceptId)} rules huddle`,
+    planningScene: `a ${conceptLabel(conceptId)} planning meeting`,
+    tradeoffScene: `a ${conceptLabel(conceptId)} tradeoff discussion`,
+    pressureScene: `a high-pressure ${conceptLabel(conceptId)} decision`,
+    decisionLens: `${conceptLabel(conceptId)} constraints and long-term team impact`,
+  };
+}
+
 function buildCorrectOption(
   objectiveFocus: string,
   termId: string,
-  difficulty: DifficultyLevel
+  difficulty: DifficultyLevel,
+  conceptId: string
 ): string {
   const term = toHumanTerm(termId);
+  const voice = getConceptVoice(conceptId);
   if (difficulty === 1) {
-    return `Start with the core ${term} rule, then use it to choose the move that best fits ${objectiveFocus}.`;
+    return `Start with the core ${term} rule, then use it with ${voice.decisionLens} to guide ${objectiveFocus}.`;
   }
   if (difficulty === 2) {
-    return `Compare the options, then apply ${term} with cap room and timeline context before you commit.`;
+    return `Compare options, then apply ${term} with ${voice.decisionLens} before committing to one plan.`;
   }
   if (difficulty === 3) {
-    return `Weigh the short-term gain against long-term flexibility, then apply ${term} to pick the better balance.`;
+    return `Balance short-term gain and long-term flexibility, then apply ${term} using ${voice.decisionLens}.`;
   }
-  return `Stress-test best and worst outcomes, then use ${term} to choose the plan with the strongest multi-year control.`;
+  return `Stress-test best and worst outcomes, then use ${term} and ${voice.decisionLens} to protect both timelines.`;
 }
 
 function buildDistractor(
   tag: string,
   termId: string,
   focus: string,
-  slot: number
+  slot: number,
+  conceptId: string
 ): string {
   const humanTerm = toHumanTerm(termId);
   const misconception = tag.replace(/-/g, " ");
+  const voice = getConceptVoice(conceptId);
   if (slot === 0) {
-    return `A common mistake is to treat ${humanTerm} as optional and assume ${misconception}, which weakens ${focus}.`;
+    return `A common mistake is to treat ${humanTerm} as optional and assume ${misconception}, which weakens ${focus} and ignores ${voice.decisionLens}.`;
   }
   if (slot === 1) {
-    return `A tempting shortcut is to use one metric and assume ${misconception}, but that leaves out full team context.`;
+    return `A tempting shortcut is to trust one metric and assume ${misconception}, but that leaves out ${voice.decisionLens}.`;
   }
-  return `Under pressure, teams may chase a quick fix and assume ${misconception}, even when ${humanTerm} says to wait.`;
+  return `Under pressure, teams may chase a quick fix and assume ${misconception}, even when ${humanTerm} and ${voice.decisionLens} say to wait.`;
 }
 
 function buildQuestionStem(
@@ -132,25 +215,25 @@ function buildQuestionStem(
   difficulty: DifficultyLevel,
   variant: number
 ): string {
-  const concept = conceptLabel(seed.conceptId);
+  const voice = getConceptVoice(seed.conceptId);
   if (difficulty === 1) {
     return variant === 1
-      ? `In a quick ${concept} rules huddle, the team asks what should guide ${objectiveFocus}. Which answer is best?`
-      : `Before a game, your coach asks for a simple check on ${objectiveFocus}. Which statement is most accurate?`;
+      ? `In ${voice.quickScene}, the team asks what should guide ${objectiveFocus}. Which answer is best?`
+      : `During ${voice.quickScene}, your coach asks for a simple check on ${objectiveFocus}. Which statement is most accurate?`;
   }
   if (difficulty === 2) {
     return variant === 1
-      ? `Your front office is choosing a plan around ${objectiveFocus}. Which move is the strongest next step?`
-      : `You are writing a planning memo on ${objectiveFocus}. Which recommendation should the team follow?`;
+      ? `In ${voice.planningScene}, your front office is choosing a plan around ${objectiveFocus}. Which move is strongest?`
+      : `You are writing a memo after ${voice.planningScene}. Which recommendation on ${objectiveFocus} should the team follow?`;
   }
   if (difficulty === 3) {
     return variant === 1
-      ? `Ownership wants fast results, but next year still matters. For ${objectiveFocus}, which path best balances both?`
-      : `You are reviewing a risky package tied to ${objectiveFocus}. Which decision process is most sound?`;
+      ? `In ${voice.tradeoffScene}, ownership wants fast results but next year still matters. For ${objectiveFocus}, which path best balances both?`
+      : `While reviewing ${voice.tradeoffScene}, which decision process for ${objectiveFocus} is most sound?`;
   }
   return variant === 1
-    ? `At deadline hour, pressure is high and options are tight. For ${objectiveFocus}, which decision protects now and later?`
-    : `In a high-stakes meeting, you must defend one strategy for ${objectiveFocus}. Which strategy is strongest under uncertainty?`;
+    ? `At ${voice.pressureScene}, pressure is high and options are tight. For ${objectiveFocus}, which decision protects now and later?`
+    : `In ${voice.pressureScene}, you must defend one strategy for ${objectiveFocus}. Which strategy is strongest under uncertainty?`;
 }
 
 function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestionSeed[] {
@@ -159,9 +242,14 @@ function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestion
     DIFFICULTY_LEVELS.forEach((difficulty) => {
       QUESTION_VARIANTS.forEach((variant) => {
         const stem = buildQuestionStem(seed, objective.focus, difficulty, variant);
-        const correctOption = buildCorrectOption(objective.focus, objective.termId, difficulty);
+        const correctOption = buildCorrectOption(
+          objective.focus,
+          objective.termId,
+          difficulty,
+          seed.conceptId
+        );
         const distractors = objective.misconceptionTags.map((tag, slot) => ({
-          text: buildDistractor(tag, objective.termId, objective.focus, slot),
+          text: buildDistractor(tag, objective.termId, objective.focus, slot, seed.conceptId),
           tag,
         }));
         const correctIndex = ((objectiveIndex + difficulty + variant) % 4) as 0 | 1 | 2 | 3;
