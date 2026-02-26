@@ -1065,3 +1065,73 @@ export function getNextNodeId(
 
   return null;
 }
+
+// Compatibility exports for legacy rich-mission API routes.
+export interface MissionRole {
+  id: string;
+  name: string;
+  privateBrief?: string;
+}
+
+export interface MissionInfoCard {
+  id: string;
+  title: string;
+  body: string;
+  roleIds?: string[];
+}
+
+export interface MissionRoundOption {
+  id: string;
+  label: string;
+  note: string;
+  tags: string[];
+}
+
+export interface MissionRound {
+  id: string;
+  prompt: string;
+  dependsOnRoundId?: string;
+  dependsOnTag?: string;
+  options: MissionRoundOption[];
+}
+
+export interface MissionRivalCounter {
+  triggerTags: string[];
+  message: string;
+  responseRound: MissionRound;
+}
+
+export interface OutcomeVariant {
+  label: string;
+  narrative: string;
+  scoreΔ: number;
+  probability: number;
+  applyStatus: string[];
+  removeStatus?: string[];
+}
+
+export interface FinalOutcome {
+  roundTagCombo: string[];
+  variants: OutcomeVariant[];
+}
+
+export interface Mission {
+  id: string;
+  conceptId: string;
+  roles: MissionRole[];
+  infoCards: MissionInfoCard[];
+  rounds: MissionRound[];
+  rivalCounter?: MissionRivalCounter;
+  outcomes: FinalOutcome[];
+  defaultOutcome: FinalOutcome;
+}
+
+const RICH_MISSIONS: Record<string, Mission> = {};
+
+export function getMissionById(id: string): Mission | MissionNode | undefined {
+  return RICH_MISSIONS[id] ?? MISSION_GRAPH[id];
+}
+
+export function isLegacyMission(mission: Mission | MissionNode): mission is MissionNode {
+  return !("rounds" in mission);
+}

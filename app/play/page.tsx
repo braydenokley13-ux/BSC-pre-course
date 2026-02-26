@@ -63,6 +63,15 @@ function isRunoffResult(input: ResolveResult): input is ResolveRunoffResult {
   return (input as ResolveRunoffResult).requiresRunoff === true;
 }
 
+function toMeterPercent(value: number): number {
+  const normalized = ((value + 8) / 16) * 100;
+  return Math.max(0, Math.min(100, normalized));
+}
+
+function formatSigned(value: number): string {
+  return `${value > 0 ? "+" : ""}${value}`;
+}
+
 export default function PlayPage() {
   const router = useRouter();
   const [state, setState] = useState<TeamState | null>(null);
@@ -248,43 +257,102 @@ export default function PlayPage() {
   const runoffRemaining = runoffActive ? Math.max(0, Math.ceil((new Date(state.runoff!.endsAt).getTime() - Date.now()) / 1000)) : 0;
   const runoffOptions = runoffActive ? state.runoff!.optionIndexes : null;
   const highlightedTerms =
-    selectedOption !== null
+    selectedOption !== null && mission.options[selectedOption]
       ? [...mission.termIds, ...mission.options[selectedOption].termIds]
       : mission.termIds;
+  const phaseLabel =
+    phase === "scenario"
+      ? "Voting"
+      : phase === "waiting"
+      ? "Waiting"
+      : phase === "runoff"
+      ? "Runoff"
+      : phase === "reveal"
+      ? "Reveal"
+      : "Done";
+  const phaseStatusClass =
+    phase === "runoff"
+      ? "bsc-status-warning"
+      : phase === "reveal"
+      ? "bsc-status-success"
+      : "bsc-status-normal";
+  const phaseTicker =
+    phase === "scenario"
+      ? `${mission.title}. Pick one option with your team before reveal.`
+      : phase === "waiting"
+      ? `Votes incoming: ${state.votes.length}/${state.activeCount} submitted. Waiting for teammates.`
+      : phase === "runoff"
+      ? `Runoff live for ${mission.title}. Choose between tied options only.`
+      : phase === "reveal"
+      ? `Outcome locked for ${mission.title}. Review the result and open the concept card.`
+      : "Round complete.";
+  const branchMetrics: Array<{ key: keyof BranchState; label: string }> = [
+    { key: "capFlex", label: "Cap Flex" },
+    { key: "starPower", label: "Star Power" },
+    { key: "dataTrust", label: "Data Trust" },
+    { key: "culture", label: "Culture" },
+    { key: "riskHeat", label: "Risk Heat" },
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
-      <div className="flex gap-6 flex-col lg:flex-row">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <span className="bsc-badge-gold">Situation {mission.step}/{GAME_SITUATION_COUNT}</span>
-              <span className="text-[#c9a84c] font-mono font-bold">{mission.title}</span>
-            </div>
-            <div className="flex items-center gap-4 text-[#6b7280] font-mono text-xs">
-              <span>Team: {state.team.name}</span>
-              <span>Time: {formatElapsed(state.elapsedSeconds)}</span>
-              <span>Score: {state.team.score}</span>
-            </div>
+    <div className="max-w-7xl mx-auto px-4 py-6 animate-fade-in">
+      <div className="bsc-broadcast-shell p-4 md:p-5">
+        <div className="bsc-score-grid mb-4">
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">Team</p>
+            <p className="bsc-score-value">{state.team.name}</p>
           </div>
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">Situation</p>
+            <p className="bsc-score-value">
+              {mission.step}/{GAME_SITUATION_COUNT}
+            </p>
+          </div>
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">Time</p>
+            <p className="bsc-score-value">{formatElapsed(state.elapsedSeconds)}</p>
+          </div>
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">Score</p>
+            <p className="bsc-score-value">{state.team.score}</p>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-2 mb-5 flex-wrap">
-            {state.members.map((m) => (
-              <span
-                key={m.id}
-                className={`font-mono text-xs px-2 py-0.5 rounded border ${
-                  m.id === state.me.id
-                    ? "border-[#c9a84c] text-[#c9a84c]"
-                    : m.active
-                    ? "border-[#22c55e]/40 text-[#22c55e]"
-                    : "border-[#1e2435] text-[#6b7280]"
-                }`}
-              >
-                {m.nickname}
-                {m.id === state.me.id && " ●"}
-              </span>
-            ))}
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <span className={phaseStatusClass}>{phaseLabel}</span>
+          <span className="text-[#c9a84c] font-mono text-xs md:text-sm font-semibold">
+            {mission.title}
+          </span>
+        </div>
+
+        <div className="bsc-live-ticker mb-5">
+          <span className="bsc-live-label">Live Desk</span>
+          <div className="min-w-0 overflow-hidden">
+            <span className="ticker-text bsc-live-track">{phaseTicker}</span>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5">
+          <div className="min-w-0">
+            <div className="bsc-card p-4 mb-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                {state.members.map((m) => (
+                  <span
+                    key={m.id}
+                    className={`font-mono text-xs px-2 py-0.5 rounded border ${
+                      m.id === state.me.id
+                        ? "border-[#c9a84c] text-[#c9a84c]"
+                        : m.active
+                        ? "border-[#22c55e]/40 text-[#22c55e]"
+                        : "border-[#1e2435] text-[#6b7280]"
+                    }`}
+                  >
+                    {m.nickname}
+                    {m.id === state.me.id && " *"}
+                  </span>
+                ))}
+              </div>
+            </div>
 
           {selectedGlossaryTermId && glossaryTermsById.get(selectedGlossaryTermId) && (
             <div className="bsc-card p-3 mb-4 border-[#c9a84c]/40">
@@ -304,7 +372,7 @@ export default function PlayPage() {
           </div>
 
           {phase !== "reveal" && (
-            <div>
+            <div className="bsc-card p-5">
               <p className="bsc-section-title mb-3">
                 {phase === "scenario" && "Pick one option. Votes stay hidden until reveal."}
                 {phase === "waiting" && "Waiting for teammates to finish voting..."}
@@ -375,7 +443,7 @@ export default function PlayPage() {
           )}
 
           {phase === "reveal" && resolveResult && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in bsc-card p-5">
               <p className="bsc-section-title mb-3">Vote Results</p>
               <div className="grid grid-cols-1 gap-3 mb-5">
                 {mission.options.map((opt, i) => {
@@ -430,16 +498,69 @@ export default function PlayPage() {
               </button>
             </div>
           )}
-        </div>
 
-        <div className="w-full lg:w-80 flex-shrink-0">
-          <div className="sticky top-6">
-            <GlossaryPanel
-              groups={GLOSSARY_TERMS}
-              highlightedTermIds={highlightedTerms}
-              title={undefined}
-              onTermSelect={(id) => setSelectedGlossaryTermId(id)}
-            />
+          </div>
+
+          <div className="space-y-4">
+            <div className="bsc-card p-4">
+              <p className="bsc-section-title">Decision Signals</p>
+              <div className="bsc-metric-list">
+                {branchMetrics.map((metric) => {
+                  const value = state.team.branchState[metric.key];
+                  const percent = toMeterPercent(value);
+                  return (
+                    <div key={metric.key} className="bsc-metric-row">
+                      <div className="bsc-metric-head">
+                        <span className="bsc-metric-name">{metric.label}</span>
+                        <span className="bsc-metric-value">{formatSigned(value)}</span>
+                      </div>
+                      <div className="bsc-metric-bar">
+                        <div className="bsc-metric-fill" style={{ width: `${percent}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="bsc-card p-4">
+              <p className="bsc-section-title">Team Pulse</p>
+              <div className="space-y-2 font-mono text-xs text-[#9ca3af]">
+                <div className="flex items-center justify-between">
+                  <span>Active Members</span>
+                  <span className="text-[#e5e7eb]">
+                    {state.activeCount}/{state.members.length}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Votes In</span>
+                  <span className="text-[#e5e7eb]">
+                    {state.votes.length}/{Math.max(state.activeCount, 1)}
+                  </span>
+                </div>
+                {runoffActive && (
+                  <div className="flex items-center justify-between">
+                    <span>Runoff Timer</span>
+                    <span className="text-[#c9a84c]">{runoffRemaining}s</span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <span className={state.activeCount > 0 ? "bsc-status-success" : "bsc-status-warning"}>
+                  Live Team
+                </span>
+                <span className="bsc-status-normal">Vote Sync 5s</span>
+              </div>
+            </div>
+
+            <div className="sticky top-6">
+              <GlossaryPanel
+                groups={GLOSSARY_TERMS}
+                highlightedTermIds={highlightedTerms}
+                title={undefined}
+                onTermSelect={(id) => setSelectedGlossaryTermId(id)}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -123,125 +123,132 @@ export default function TeacherDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-[#c9a84c] font-mono text-xl font-bold">{feed.title}</h1>
-          <p className="text-[#6b7280] font-mono text-xs mt-0.5">
-            {feed.completedTeams}/{feed.totalTeams} teams complete · Updates every 5s
-          </p>
+      <div className="bsc-broadcast-shell p-4 md:p-5">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div>
+            <h1 className="text-[#c9a84c] font-mono text-xl font-bold">{feed.title}</h1>
+            <p className="text-[#6b7280] font-mono text-xs mt-0.5">
+              {feed.completedTeams}/{feed.totalTeams} teams complete · Updates every 5s
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("summary")}>
+              Export Summary CSV
+            </button>
+            <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("detail")}>
+              Export Detail CSV
+            </button>
+            <button className="bsc-btn-ghost text-xs text-[#ef4444] border-[#ef4444]/40 hover:border-[#ef4444]" onClick={handleArchive} disabled={archiving}>
+              {archiving ? "Archiving..." : "Archive Session"}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("summary")}>
-            Export Summary CSV
-          </button>
-          <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("detail")}>
-            Export Detail CSV
-          </button>
-          <button className="bsc-btn-ghost text-xs text-[#ef4444] border-[#ef4444]/40 hover:border-[#ef4444]" onClick={handleArchive} disabled={archiving}>
-            {archiving ? "Archiving..." : "Archive Session"}
-          </button>
-        </div>
-      </div>
 
-      {/* Progress overview */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bsc-card p-4 text-center">
-          <p className="bsc-section-title">Teams</p>
-          <p className="text-[#e5e7eb] font-mono text-2xl font-bold">{feed.totalTeams}</p>
+        <div className="bsc-score-grid mb-4">
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">Teams</p>
+            <p className="bsc-score-value">{feed.totalTeams}</p>
+          </div>
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">Completed</p>
+            <p className="bsc-score-value text-[#22c55e]">{feed.completedTeams}</p>
+          </div>
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">In Progress</p>
+            <p className="bsc-score-value">
+              {feed.teams.filter((t) => !t.isComplete && t.activeMembers > 0).length}
+            </p>
+          </div>
+          <div className="bsc-score-tile">
+            <p className="bsc-score-label">Stuck</p>
+            <p className="bsc-score-value text-[#ef4444]">
+              {feed.teams.filter((t) => t.isStuck).length}
+            </p>
+          </div>
         </div>
-        <div className="bsc-card p-4 text-center">
-          <p className="bsc-section-title">Completed</p>
-          <p className="text-[#22c55e] font-mono text-2xl font-bold">{feed.completedTeams}</p>
-        </div>
-        <div className="bsc-card p-4 text-center">
-          <p className="bsc-section-title">In Progress</p>
-          <p className="text-[#c9a84c] font-mono text-2xl font-bold">
-            {feed.teams.filter((t) => !t.isComplete && t.activeMembers > 0).length}
-          </p>
-        </div>
-        <div className="bsc-card p-4 text-center">
-          <p className="bsc-section-title">Stuck</p>
-          <p className="text-[#ef4444] font-mono text-2xl font-bold">
-            {feed.teams.filter((t) => t.isStuck).length}
-          </p>
-        </div>
-      </div>
 
-      {/* Team cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {feed.teams.map((team) => (
-          <div
-            key={team.id}
-            className={`bsc-card p-5 border-2 transition-colors ${
-              team.isComplete
-                ? "border-[#22c55e]/40"
-                : team.isStuck
-                ? "border-[#ef4444]/60"
-                : "border-[#1e2435]"
-            }`}
-          >
-            {/* Team header */}
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <span className="text-[#e5e7eb] font-mono font-bold">{team.name}</span>
-                <span className="text-[#6b7280] font-mono text-xs ml-2">{team.joinCode}</span>
+        <div className="bsc-live-ticker mb-5">
+          <span className="bsc-live-label">Live Desk</span>
+          <div className="min-w-0 overflow-hidden">
+            <span className="ticker-text bsc-live-track">
+              Monitor team progress, watch stuck groups, and export class results.
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {feed.teams.map((team) => (
+            <div
+              key={team.id}
+              className={`bsc-card p-5 border-2 transition-colors ${
+                team.isComplete
+                  ? "border-[#22c55e]/40"
+                  : team.isStuck
+                  ? "border-[#ef4444]/60"
+                  : "border-[#1e2435]"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <span className="text-[#e5e7eb] font-mono font-bold">{team.name}</span>
+                  <span className="text-[#6b7280] font-mono text-xs ml-2">{team.joinCode}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {team.isComplete && <span className="bsc-status-success">Done</span>}
+                  {team.isStuck && <span className="bsc-status-stuck">Stuck</span>}
+                  {!team.isComplete && !team.isStuck && <span className="bsc-status-normal">Live</span>}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {team.isComplete && <span className="bsc-badge-green">Done</span>}
-                {team.isStuck && <span className="bsc-badge-red">Stuck</span>}
+
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-xs text-[#6b7280]">
+                    {team.isComplete ? "Complete" : `Situation ${team.missionIndex + 1}: ${team.missionTitle}`}
+                  </span>
+                  <span className="font-mono text-xs text-[#6b7280]">{formatElapsed(team.elapsedSeconds)}</span>
+                </div>
+                <MissionProgress index={team.missionIndex} total={GAME_SITUATION_COUNT} />
+              </div>
+
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-wrap gap-1">
+                  {team.badgeCount > 0 ? (
+                    Array.from({ length: team.badgeCount }).map((_, i) => (
+                      <span key={i} className="bsc-badge-gold text-xs">★</span>
+                    ))
+                  ) : (
+                    <span className="text-[#6b7280] font-mono text-xs">No badges yet</span>
+                  )}
+                </div>
                 <span className="text-[#6b7280] font-mono text-xs">{team.score}pts</span>
               </div>
-            </div>
 
-            {/* Mission progress bar */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-mono text-xs text-[#6b7280]">
-                  {team.isComplete ? "Complete" : `Situation ${team.missionIndex + 1}: ${team.missionTitle}`}
-                </span>
-                <span className="font-mono text-xs text-[#6b7280]">⏱ {formatElapsed(team.elapsedSeconds)}</span>
-              </div>
-              <MissionProgress index={team.missionIndex} total={GAME_SITUATION_COUNT} />
-            </div>
-
-            {/* Badges */}
-            <div className="flex flex-wrap gap-1 mb-3">
-              {team.badgeCount > 0 ? (
-                Array.from({ length: team.badgeCount }).map((_, i) => (
-                  <span key={i} className="bsc-badge-gold text-xs">★</span>
-                ))
-              ) : (
-                <span className="text-[#6b7280] font-mono text-xs">No badges yet</span>
-              )}
-            </div>
-
-            {/* Members */}
-            <div className="border-t border-[#1e2435] pt-3">
-              <div className="flex flex-wrap gap-1.5">
-                {team.members.map((m) => (
-                  <span
-                    key={m.id}
-                    className={`font-mono text-xs px-1.5 py-0.5 rounded border ${
-                      m.active
-                        ? "border-[#22c55e]/40 text-[#22c55e]"
-                        : "border-[#1e2435] text-[#6b7280]"
-                    }`}
-                  >
-                    {m.nickname}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 mt-2 font-mono text-xs text-[#6b7280]">
-                <span>{team.activeMembers}/{team.totalMembers} active</span>
-                {team.checkPassRate !== null && (
-                  <span>Check rate: {team.checkPassRate}%</span>
-                )}
-                <span>Codes in: {team.claimCodesSubmitted}</span>
+              <div className="border-t border-[#1e2435] pt-3">
+                <div className="flex flex-wrap gap-1.5">
+                  {team.members.map((m) => (
+                    <span
+                      key={m.id}
+                      className={`font-mono text-xs px-1.5 py-0.5 rounded border ${
+                        m.active
+                          ? "border-[#22c55e]/40 text-[#22c55e]"
+                          : "border-[#1e2435] text-[#6b7280]"
+                      }`}
+                    >
+                      {m.nickname}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-3 mt-2 font-mono text-xs text-[#6b7280] flex-wrap">
+                  <span>{team.activeMembers}/{team.totalMembers} active</span>
+                  {team.checkPassRate !== null && (
+                    <span>Check rate: {team.checkPassRate}%</span>
+                  )}
+                  <span>Codes in: {team.claimCodesSubmitted}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
