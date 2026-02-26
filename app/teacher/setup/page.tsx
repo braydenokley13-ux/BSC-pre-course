@@ -48,7 +48,7 @@ export default function TeacherSetupPage() {
         <div className="text-center mb-8">
           <div className="text-[#22c55e] font-mono text-2xl font-bold mb-1">Session Created ✓</div>
           <p className="text-[#6b7280] font-mono text-sm">
-            Share each team code with the corresponding breakout room via Zoom chat.
+            Share each team code with the matching breakout room.
           </p>
         </div>
 
@@ -69,7 +69,7 @@ export default function TeacherSetupPage() {
           <ol className="font-mono text-sm text-[#6b7280] space-y-1 list-decimal list-inside">
             <li>Go to <span className="text-[#c9a84c]">[your-domain]/join</span></li>
             <li>Enter your name and your team code</li>
-            <li>Play through 8 missions together as a team</li>
+            <li>Play through 8 situations together as a team</li>
             <li>Submit your claim code at the end</li>
           </ol>
         </div>
@@ -79,7 +79,7 @@ export default function TeacherSetupPage() {
             className="bsc-btn-gold flex-1 py-3"
             onClick={() => router.push("/teacher/dashboard")}
           >
-            Open Live Dashboard →
+            Open Live Dashboard
           </button>
           <button
             className="bsc-btn-ghost px-6"
@@ -108,7 +108,7 @@ export default function TeacherSetupPage() {
               className="bsc-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Section 001 – Spring 2025"
+              placeholder="e.g. Section 001 - Spring 2025"
             />
           </div>
 
@@ -125,7 +125,7 @@ export default function TeacherSetupPage() {
               ))}
             </select>
             <p className="text-[#6b7280] font-mono text-xs mt-1">
-              Ideal: 3–4 students per team. Each team plays at its own pace.
+              Ideal: 3-4 students per team. Each team plays at its own pace.
             </p>
           </div>
 
@@ -148,7 +148,7 @@ export default function TeacherSetupPage() {
             className="bsc-btn-gold w-full py-3"
             disabled={creating}
           >
-            {creating ? "Creating…" : "Create Session & Generate Team Codes →"}
+            {creating ? "Creating..." : "Create Session and Team Codes ->"}
           </button>
         </form>
       </div>

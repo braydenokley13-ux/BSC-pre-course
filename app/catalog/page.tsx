@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState, Suspense } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CONCEPT_CARDS, GLOSSARY_TERMS } from "@/lib/concepts";
+import { CONCEPT_CARDS, GLOSSARY_TERMS, getAllGlossaryTerms } from "@/lib/concepts";
 import { CONCEPT_CHECKS } from "@/lib/checks";
+import { GlossaryPanel } from "@/components/GlossaryPanel";
 
 type CheckPhase = "card" | "check" | "result";
 interface CheckResult { q1Correct: boolean; q2Correct: boolean; passed: boolean; attemptNum: number }
@@ -20,7 +21,11 @@ function CatalogContent() {
   const [q2, setQ2] = useState<number | null>(null);
   const [result, setResult] = useState<CheckResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
+
+  const glossaryTermsById = useMemo(() => {
+    return new Map(getAllGlossaryTerms().map((term) => [term.id, term]));
+  }, []);
 
   if (!card || !check) {
     return (
@@ -59,12 +64,51 @@ function CatalogContent() {
     router.push("/hq");
   }
 
+  function renderTermChips(termIds: string[]) {
+    if (!termIds.length) return null;
+    return (
+      <div className="mt-3 flex flex-wrap gap-2">
+        {termIds.map((termId) => {
+          const term = glossaryTermsById.get(termId);
+          if (!term) return null;
+          const selected = selectedTermId === termId;
+          return (
+            <button
+              key={termId}
+              type="button"
+              onClick={() => setSelectedTermId(termId)}
+              className={`px-2 py-1 rounded border font-mono text-[11px] transition-colors ${
+                selected
+                  ? "border-[#c9a84c] bg-[#c9a84c]/15 text-[#f3e6b0]"
+                  : "border-[#1e2435] text-[#9ca3af] hover:border-[#c9a84c]/40"
+              }`}
+              title={term.def}
+            >
+              {term.term}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  const highlightedTerms = [
+    ...card.termIds,
+    ...(check.questions[0].termIds ?? []),
+    ...(check.questions[1].termIds ?? []),
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 animate-fade-in">
-      <div className="flex gap-6">
-        {/* Main content */}
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      <div className="flex gap-6 flex-col lg:flex-row">
         <div className="flex-1 min-w-0">
-          {/* Concept Card */}
+          {selectedTermId && glossaryTermsById.get(selectedTermId) && (
+            <div className="bsc-card p-3 mb-4 border-[#c9a84c]/40">
+              <p className="font-mono text-xs text-[#c9a84c] font-bold mb-1">{glossaryTermsById.get(selectedTermId)?.term}</p>
+              <p className="font-mono text-xs text-[#e5e7eb]">{glossaryTermsById.get(selectedTermId)?.def}</p>
+            </div>
+          )}
+
           {(phase === "card" || phase === "check" || phase === "result") && (
             <div className="bsc-card p-6 mb-5 border-[#c9a84c]/40">
               <div className="flex items-center justify-between mb-3">
@@ -73,32 +117,31 @@ function CatalogContent() {
               </div>
               <h2 className="text-[#c9a84c] font-mono text-xl font-bold mb-3">{card.title}</h2>
               <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed mb-4">{card.body}</p>
-              <div className="border-t border-[#1e2435] pt-3">
+              {renderTermChips(card.termIds)}
+              <div className="border-t border-[#1e2435] pt-3 mt-4">
                 <p className="font-mono text-xs text-[#6b7280] italic">{card.note}</p>
               </div>
             </div>
           )}
 
-          {/* Check Phase */}
           {phase === "card" && (
             <div className="text-center">
               <p className="text-[#e5e7eb] font-mono text-sm mb-4">
-                Read the concept above, then take a quick 2-question check to earn your badge.
+                Read the concept, then do a quick 2-question check.
               </p>
               <button className="bsc-btn-gold px-8 py-3" onClick={() => setPhase("check")}>
-                Take the Check →
+                Start Check
               </button>
             </div>
           )}
 
           {phase === "check" && (
             <div className="bsc-card p-6">
-              <p className="bsc-section-title mb-4">Quick Check — 2 Questions</p>
+              <p className="bsc-section-title mb-4">Quick Check - 2 Questions</p>
               <p className="text-[#6b7280] font-mono text-xs mb-5">
-                Both questions must be correct to earn the badge. Unlimited retries.
+                Get both right to earn the badge. You can retry.
               </p>
 
-              {/* Q1 */}
               <div className="mb-6">
                 <p className="font-mono text-sm text-[#e5e7eb] mb-3">
                   <span className="text-[#c9a84c]">Q1.</span> {check.questions[0].question}
@@ -119,9 +162,9 @@ function CatalogContent() {
                     </button>
                   ))}
                 </div>
+                {renderTermChips(check.questions[0].termIds)}
               </div>
 
-              {/* Q2 */}
               <div className="mb-6">
                 <p className="font-mono text-sm text-[#e5e7eb] mb-3">
                   <span className="text-[#c9a84c]">Q2.</span> {check.questions[1].question}
@@ -142,6 +185,7 @@ function CatalogContent() {
                     </button>
                   ))}
                 </div>
+                {renderTermChips(check.questions[1].termIds)}
               </div>
 
               <button
@@ -149,7 +193,7 @@ function CatalogContent() {
                 onClick={handleSubmitCheck}
                 disabled={q1 === null || q2 === null || submitting}
               >
-                {submitting ? "Checking…" : "Submit Answers"}
+                {submitting ? "Checking..." : "Submit Answers"}
               </button>
             </div>
           )}
@@ -160,7 +204,7 @@ function CatalogContent() {
                 {result.passed ? (
                   <>
                     <div className="text-[#22c55e] font-mono text-4xl mb-2">✓</div>
-                    <h3 className="text-[#22c55e] font-mono font-bold text-lg">Badge Earned!</h3>
+                    <h3 className="text-[#22c55e] font-mono font-bold text-lg">Badge Earned</h3>
                     <p className="text-[#6b7280] font-mono text-xs mt-1">
                       {card.title} · Attempt {result.attemptNum}
                     </p>
@@ -168,9 +212,9 @@ function CatalogContent() {
                 ) : (
                   <>
                     <div className="text-[#ef4444] font-mono text-4xl mb-2">✗</div>
-                    <h3 className="text-[#ef4444] font-mono font-bold text-lg">Not quite</h3>
+                    <h3 className="text-[#ef4444] font-mono font-bold text-lg">Try again</h3>
                     <p className="text-[#6b7280] font-mono text-xs mt-1">
-                      Re-read the concept card above and try again.
+                      Re-read the concept and retry.
                     </p>
                   </>
                 )}
@@ -189,45 +233,24 @@ function CatalogContent() {
 
               {result.passed ? (
                 <button className="bsc-btn-gold w-full py-3" onClick={handleContinue}>
-                  Next Mission →
+                  Next Situation
                 </button>
               ) : (
                 <button className="bsc-btn-ghost w-full py-3" onClick={handleRetry}>
-                  Try Again
+                  Retry Check
                 </button>
               )}
             </div>
           )}
         </div>
 
-        {/* Glossary sidebar */}
-        <div className="w-64 flex-shrink-0 hidden lg:block">
-          <div className="bsc-card p-4 sticky top-6 max-h-[80vh] overflow-y-auto">
-            <button
-              className="flex items-center justify-between w-full mb-3"
-              onClick={() => setGlossaryOpen(!glossaryOpen)}
-            >
-              <span className="bsc-section-title mb-0">Cap Glossary (30)</span>
-              <span className="text-[#6b7280] text-xs">{glossaryOpen ? "▲" : "▼"}</span>
-            </button>
-            {glossaryOpen &&
-              GLOSSARY_TERMS.map((group) => (
-                <div key={group.group} className="mb-4">
-                  <p className="text-[#c9a84c] font-mono text-xs font-bold mb-2">{group.group}</p>
-                  {group.terms.map((t) => (
-                    <div key={t.term} className="mb-2">
-                      <p className="font-mono text-xs text-[#e5e7eb] font-semibold">{t.term}</p>
-                      <p className="font-mono text-xs text-[#6b7280] leading-relaxed">{t.def}</p>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            {!glossaryOpen && (
-              <p className="text-[#6b7280] font-mono text-xs">
-                30 terms across Cap Rules, Contracts, Trades, and Analytics.
-                Click to expand.
-              </p>
-            )}
+        <div className="w-full lg:w-80 flex-shrink-0">
+          <div className="sticky top-6">
+            <GlossaryPanel
+              groups={GLOSSARY_TERMS}
+              highlightedTermIds={highlightedTerms}
+              onTermSelect={(id) => setSelectedTermId(id)}
+            />
           </div>
         </div>
       </div>
@@ -237,7 +260,7 @@ function CatalogContent() {
 
 export default function CatalogPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm">Loading concept…</p></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm">Loading concept...</p></div>}>
       <CatalogContent />
     </Suspense>
   );

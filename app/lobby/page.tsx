@@ -9,11 +9,17 @@ interface Member {
 }
 
 interface TeamState {
-  team: { id: string; name: string; joinCode: string; missionIndex: number; completedAt: string | null };
+  team: {
+    id: string;
+    name: string;
+    joinCode: string;
+    missionIndex: number;
+    currentNodeId?: string;
+    completedAt: string | null;
+  };
   me: { id: string; nickname: string };
   members: Member[];
   activeCount: number;
-  completedMissions?: string[];
 }
 
 export default function LobbyPage() {
@@ -33,8 +39,8 @@ export default function LobbyPage() {
         router.replace("/complete");
         return;
       }
-      if (data.team?.missionIndex > 0 || (data.completedMissions?.length ?? 0) > 0) {
-        router.replace("/hq");
+      if (data.team?.missionIndex > 0 || data.team?.currentNodeId !== "m1_cap_crunch") {
+        router.replace("/play");
         return;
       }
       setState(data);
@@ -60,7 +66,7 @@ export default function LobbyPage() {
   if (!state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Connecting to team…</p>
+        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Connecting to team...</p>
       </div>
     );
   }
@@ -82,7 +88,7 @@ export default function LobbyPage() {
           </span>
         </div>
         <p className="text-[#6b7280] font-mono text-xs mt-2">
-          Share this code with your teammates in Zoom chat
+          Share this code with your teammates in chat.
         </p>
       </div>
 
@@ -109,7 +115,7 @@ export default function LobbyPage() {
         </div>
         {state.members.length < 2 && (
           <p className="text-[#6b7280] font-mono text-xs mt-3">
-            Waiting for teammates to join…
+            Waiting for teammates to join...
           </p>
         )}
       </div>
@@ -117,22 +123,22 @@ export default function LobbyPage() {
       {/* Start */}
       <div className="bsc-card p-6 text-center">
         <p className="text-[#e5e7eb] font-mono text-sm mb-4">
-          8 missions. 8 concepts. One front office philosophy.
+          8 situations. 8 key concepts. Build your team identity.
         </p>
         {canStart ? (
           <button
             className="bsc-btn-gold w-full py-3"
-            onClick={() => router.push("/hq")}
+            onClick={() => router.push("/play")}
           >
-            Enter Front Office HQ →
+            Start the Game
           </button>
         ) : (
           <button className="bsc-btn-ghost w-full py-3 cursor-not-allowed" disabled>
-            Waiting for teammates to join…
+            Waiting for teammates to join...
           </button>
         )}
         <p className="text-[#6b7280] font-mono text-xs mt-3">
-          {state.activeCount} active now · Auto-refreshes every 5s
+          {state.activeCount} active now · Updates every 5s
         </p>
       </div>
     </div>

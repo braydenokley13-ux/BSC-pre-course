@@ -8,6 +8,9 @@
     "start": "next start",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
+    "check:glossary": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-glossary-coverage.ts --outDir /tmp/bsc-content-checks && node /tmp/bsc-content-checks/check-glossary-coverage.js",
+    "check:readability": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-reading-level.ts --outDir /tmp/bsc-content-checks && node /tmp/bsc-content-checks/check-reading-level.js",
+    "check:content": "npm run check:glossary && npm run check:readability",
     "postinstall": "prisma generate"
   },
   "dependencies": {

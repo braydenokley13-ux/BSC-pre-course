@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CONCEPT_CARDS } from "@/lib/concepts";
+import { GAME_SITUATION_COUNT } from "@/lib/missions";
 
 interface TeamState {
-  team: { name: string; badges: string[]; score: number; missionIndex: number; completedMissions?: string[] };
+  team: { name: string; badges: string[]; score: number; missionIndex: number };
   me: { nickname: string };
-  gameComplete?: boolean;
 }
 
 export default function CompletePage() {
@@ -22,8 +22,8 @@ export default function CompletePage() {
       const res = await fetch("/api/team/state", { credentials: "include" });
       if (res.status === 401) { router.replace("/join"); return; }
       const data = await res.json();
-      if (!data.team?.completedAt && !data.gameComplete) {
-        router.replace("/hq");
+      if (!data.team?.completedAt && data.team?.missionIndex < GAME_SITUATION_COUNT) {
+        router.replace("/play");
         return;
       }
       setState(data);
@@ -55,7 +55,7 @@ export default function CompletePage() {
   }
 
   if (!state) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading…</p></div>;
+    return <div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading...</p></div>;
   }
 
   const badges = state.team.badges;
@@ -69,7 +69,7 @@ export default function CompletePage() {
           {state.me.nickname} · Team {state.team.name}
         </p>
         <p className="text-[#6b7280] font-mono text-sm mt-1">
-          {(state.team.completedMissions ?? []).length} missions completed · {badges.length} concepts unlocked · {state.team.score} pts
+          8 situations complete · {badges.length} concepts unlocked · {state.team.score} pts
         </p>
       </div>
 
@@ -100,20 +100,20 @@ export default function CompletePage() {
       <div className="bsc-card p-6 text-center">
         <p className="bsc-section-title">Claim Code</p>
         <p className="text-[#6b7280] font-mono text-xs mb-4">
-          Submit this code to your instructor to verify your participation.
+          Share this code with your instructor to verify participation.
         </p>
 
         {!submitted ? (
           <>
             <p className="text-[#e5e7eb] font-mono text-sm mb-4">
-              Generate your unique claim code below. Each student gets their own code.
+              Generate your personal claim code below.
             </p>
             <button
               className="bsc-btn-gold px-8 py-3"
               onClick={handleSubmit}
               disabled={submitting}
             >
-              {submitting ? "Generating…" : "Generate My Claim Code"}
+              {submitting ? "Generating..." : "Generate My Claim Code"}
             </button>
           </>
         ) : (
@@ -129,7 +129,7 @@ export default function CompletePage() {
             <div className="border border-[#22c55e]/40 bg-[#22c55e]/10 rounded px-4 py-3">
               <p className="text-[#22c55e] font-mono text-sm font-bold">Code received ✓</p>
               <p className="text-[#6b7280] font-mono text-xs mt-1">
-                Paste this code in your LMS, Zoom chat, or wherever your instructor requests it.
+                Paste this code in your LMS, class chat, or wherever your instructor asks.
               </p>
             </div>
           </>
@@ -137,8 +137,8 @@ export default function CompletePage() {
       </div>
 
       <p className="text-center text-[#6b7280] font-mono text-xs mt-6">
-        You'll go deeper on all 8 concepts in the course. The cap math, analytics models, and
-        trade mechanics will click much faster now that you've made the decisions yourself.
+        You will go deeper on all 8 concepts in the course. The cap rules, analytics ideas, and trade logic
+        will make more sense now that you made these choices yourself.
       </p>
     </div>
   );

@@ -2,14 +2,31 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStudentFromRequest } from "@/lib/getStudent";
-import { MISSIONS } from "@/lib/missions";
-import { getUnlockedMissions, isGameComplete } from "@/lib/missionGraph";
+import {
+  GAME_SITUATION_COUNT,
+  createBranchState,
+  getDefaultNodeIdForStep,
+  getMissionNode,
+} from "@/lib/missions";
+
+type RunoffState = {
+  optionIndexes: number[];
+  endsAt: string;
+};
+
+function parseJson<T>(raw: string | null | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
 
 export async function GET(req: NextRequest) {
   const student = await getStudentFromRequest(req);
   if (!student) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-  // Update lastSeen
   await prisma.student.update({
     where: { id: student.id },
     data: { lastSeenAt: new Date() },
@@ -25,36 +42,39 @@ export async function GET(req: NextRequest) {
 
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
+  const step = Math.min(team.missionIndex + 1, GAME_SITUATION_COUNT);
+  const fallbackNodeId = getDefaultNodeIdForStep(step);
+  const currentNodeId = team.currentNodeId || fallbackNodeId;
+  const currentMission = team.missionIndex >= GAME_SITUATION_COUNT ? null : getMissionNode(currentNodeId) ?? getMissionNode(fallbackNodeId) ?? null;
+
+  const votes = currentMission
+    ? await prisma.vote.findMany({
+        where: { teamId: team.id, missionId: currentMission.id },
+        select: { studentId: true, optionIndex: true },
+      })
+    : [];
+
+  const branchState = createBranchState(
+    parseJson<Record<string, number>>(team.branchStateJson, {
+      capFlex: 0,
+      starPower: 0,
+      dataTrust: 0,
+      culture: 0,
+      riskHeat: 0,
+    })
+  );
+
   const now = new Date();
-  const activeCutoff = new Date(now.getTime() - 60 * 1000); // 60s
+  const activeCutoff = new Date(now.getTime() - 60 * 1000);
   const activeMembers = team.students.filter((s) => s.lastSeenAt >= activeCutoff);
 
-  const currentMission = MISSIONS[team.missionIndex] ?? null;
-  const badges = JSON.parse(team.badges) as string[];
-  const completedMissions = JSON.parse(team.completedMissions) as string[];
-  const teamStatus = JSON.parse(team.teamStatus) as string[];
-  const roleAssignments = JSON.parse(team.roleAssignments) as Record<string, string>;
-  const missionRoundState = JSON.parse(team.missionRoundState || "{}") as Record<string, unknown>;
-  const unlockedMissions = getUnlockedMissions(completedMissions);
-  const gameComplete = isGameComplete(completedMissions);
-  const myRole = roleAssignments[student.id] ?? null;
+  const runoff = parseJson<RunoffState | null>(team.runoffStateJson, null);
+  const validRunoff = runoff && Array.isArray(runoff.optionIndexes) && runoff.optionIndexes.length >= 2
+    ? runoff
+    : null;
 
-  // Get votes for the active round (keyed by missionId + currentRoundId from missionRoundState)
-  const rsm = missionRoundState as { missionId?: string; currentRoundId?: string; isResolved?: boolean };
-  const votes =
-    rsm.missionId && !rsm.isResolved
-      ? await prisma.vote.findMany({
-          where: {
-            teamId: team.id,
-            missionId: rsm.missionId,
-            roundId: rsm.currentRoundId ?? "final",
-          },
-        })
-      : [];
-
-  // Elapsed time since last progress update
-  const missionStartedAt = team.lastProgressAt;
-  const elapsedSeconds = Math.floor((now.getTime() - missionStartedAt.getTime()) / 1000);
+  const elapsedSeconds = Math.floor((now.getTime() - team.lastProgressAt.getTime()) / 1000);
+  const badges = parseJson<string[]>(team.badges, []);
 
   return NextResponse.json({
     team: {
@@ -62,38 +82,30 @@ export async function GET(req: NextRequest) {
       name: team.name,
       joinCode: team.joinCode,
       missionIndex: team.missionIndex,
+      currentNodeId,
+      branchState,
       badges,
       score: team.score,
       claimCode: team.claimCode,
       completedAt: team.completedAt,
-      completedMissions,
-      teamStatus,
     },
     me: {
       id: student.id,
       nickname: student.nickname,
-      role: myRole,
     },
     members: team.students.map((s) => ({
       id: s.id,
       nickname: s.nickname,
       active: s.lastSeenAt >= activeCutoff,
-      role: roleAssignments[s.id] ?? null,
     })),
     activeCount: activeMembers.length,
     currentMission,
+    runoff: validRunoff,
     elapsedSeconds,
     votes: votes.map((v) => ({
       studentId: v.studentId,
       optionIndex: v.optionIndex,
     })),
     myVote: votes.find((v) => v.studentId === student.id)?.optionIndex ?? null,
-    // New fields for rich mission system
-    unlockedMissions,
-    completedMissions,
-    teamStatus,
-    roleAssignments,
-    missionRoundState,
-    gameComplete,
   });
 }

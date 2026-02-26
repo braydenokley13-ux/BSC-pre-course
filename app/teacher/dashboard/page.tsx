@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MISSIONS } from "@/lib/missions";
+import { GAME_SITUATION_COUNT } from "@/lib/missions";
 
 interface TeamData {
   id: string;
@@ -102,7 +102,7 @@ export default function TeacherDashboard() {
   }
 
   async function handleArchive() {
-    if (!password || !confirm("Archive this session? (Data is preserved, but the game ends for all teams.)")) return;
+    if (!password || !confirm("Archive this session? (Data stays saved, but the game ends for all teams.)")) return;
     setArchiving(true);
     await fetch("/api/session/archive", {
       method: "POST",
@@ -118,7 +118,7 @@ export default function TeacherDashboard() {
   }
 
   if (!feed) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading dashboard…</p></div>;
+    return <div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading dashboard...</p></div>;
   }
 
   return (
@@ -128,7 +128,7 @@ export default function TeacherDashboard() {
         <div>
           <h1 className="text-[#c9a84c] font-mono text-xl font-bold">{feed.title}</h1>
           <p className="text-[#6b7280] font-mono text-xs mt-0.5">
-            {feed.completedTeams}/{feed.totalTeams} teams complete · Refreshes every 5s
+            {feed.completedTeams}/{feed.totalTeams} teams complete · Updates every 5s
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ export default function TeacherDashboard() {
             Export Detail CSV
           </button>
           <button className="bsc-btn-ghost text-xs text-[#ef4444] border-[#ef4444]/40 hover:border-[#ef4444]" onClick={handleArchive} disabled={archiving}>
-            {archiving ? "Archiving…" : "Archive Session"}
+            {archiving ? "Archiving..." : "Archive Session"}
           </button>
         </div>
       </div>
@@ -198,11 +198,11 @@ export default function TeacherDashboard() {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
                 <span className="font-mono text-xs text-[#6b7280]">
-                  {team.isComplete ? "Complete" : `Mission ${team.missionIndex + 1}: ${team.missionTitle}`}
+                  {team.isComplete ? "Complete" : `Situation ${team.missionIndex + 1}: ${team.missionTitle}`}
                 </span>
                 <span className="font-mono text-xs text-[#6b7280]">⏱ {formatElapsed(team.elapsedSeconds)}</span>
               </div>
-              <MissionProgress index={team.missionIndex} total={MISSIONS.length} />
+              <MissionProgress index={team.missionIndex} total={GAME_SITUATION_COUNT} />
             </div>
 
             {/* Badges */}

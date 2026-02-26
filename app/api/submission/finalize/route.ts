@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
   const team = await prisma.team.findUnique({ where: { id: student.teamId } });
   if (!team?.claimCode) {
-    return NextResponse.json({ error: "Team has not completed all missions" }, { status: 400 });
+    return NextResponse.json({ error: "Team has not completed all situations yet" }, { status: 400 });
   }
 
   // Check if already submitted

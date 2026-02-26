@@ -27,7 +27,7 @@ export default function JoinPage() {
       }
       router.push("/lobby");
     } catch {
-      setError("Network error — please try again");
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export default function JoinPage() {
         <div className="text-center mb-8">
           <div className="text-[#c9a84c] font-mono text-4xl font-bold mb-2">GM SEAT</div>
           <p className="text-[#6b7280] font-mono text-sm">
-            You're about to run a front office. 8 decisions stand between you and a championship.
+            You are about to run a front office. Work through 8 situations with your team.
           </p>
         </div>
 
@@ -78,7 +78,7 @@ export default function JoinPage() {
                 required
               />
               <p className="text-[#6b7280] font-mono text-xs mt-1">
-                Get this from your instructor or breakout room chat
+                Get this code from your instructor or breakout room chat.
               </p>
             </div>
 
@@ -93,7 +93,7 @@ export default function JoinPage() {
               className="bsc-btn-gold w-full py-3"
               disabled={loading || !nickname.trim() || !joinCode.trim()}
             >
-              {loading ? "Joining…" : "Enter the Front Office →"}
+              {loading ? "Joining..." : "Enter Front Office ->"}
             </button>
           </form>
         </div>
@@ -101,7 +101,7 @@ export default function JoinPage() {
         <p className="text-center text-[#6b7280] font-mono text-xs mt-4">
           Instructor?{" "}
           <a href="/teacher" className="text-[#c9a84c] hover:underline">
-            Open teacher dashboard →
+            Open teacher dashboard
           </a>
         </p>
       </div>

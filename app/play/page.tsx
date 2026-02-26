@@ -1,621 +1,448 @@
 "use client";
-import { useEffect, useState, useCallback, useRef, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
-import { STATUS_EFFECTS } from "@/lib/statusEffects";
-import { CONCEPT_CARDS } from "@/lib/concepts";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import type { BranchState, MissionNode } from "@/lib/missions";
+import { GAME_SITUATION_COUNT } from "@/lib/missions";
+import { GLOSSARY_TERMS, getAllGlossaryTerms } from "@/lib/concepts";
+import { GlossaryPanel } from "@/components/GlossaryPanel";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+type Phase = "scenario" | "waiting" | "runoff" | "reveal" | "done";
 
-type MissionPhase =
-  | "loading"
-  | "briefing"
-  | "voting"
-  | "waiting"
-  | "rival-alert"
-  | "rival-voting"
-  | "rival-waiting"
-  | "outcome"
-  | "error";
+interface VoteEntry { studentId: string; optionIndex: number }
+interface Member { id: string; nickname: string; active: boolean }
+interface RunoffInfo { optionIndexes: number[]; endsAt: string }
 
-interface MemberInfo { id: string; nickname: string; active: boolean; role: string | null }
-interface MissionRoundState {
-  missionId?: string;
-  currentRoundId?: string;
-  completedRounds?: Array<{ roundId: string; winningOptionId: string; winningTags: string[] }>;
-  allTags?: string[];
-  rivalFired?: boolean;
-  isResolved?: boolean;
-}
-interface TeamStateResponse {
-  team: { id: string; name: string; score: number };
-  me: { id: string; nickname: string; role: string | null };
-  members: MemberInfo[];
-  activeCount: number;
-  missionRoundState: MissionRoundState;
-  votes: Array<{ studentId: string; optionIndex: number }>;
-}
-
-interface ResolveResult {
-  roundId: string;
-  winningOptionId: string;
-  winningTags: string[];
-  tally: number[];
-  rivalFired: boolean;
-  rivalMessage?: string;
-  rivalResponseRound?: MissionRound;
-  nextRoundId?: string | null;
-  nextRound?: MissionRound;
-  isComplete: boolean;
-  outcome?: {
-    label: string;
-    narrative: string;
-    scoreΔ: number;
-    applyStatus: string[];
-    newTeamStatus: string[];
+interface TeamState {
+  team: {
+    id: string;
+    name: string;
+    missionIndex: number;
+    currentNodeId: string;
+    branchState: BranchState;
+    badges: string[];
+    score: number;
+    completedAt: string | null;
   };
-  conceptId?: string;
-  missionId?: string;
-  isGameComplete?: boolean;
+  me: { id: string; nickname: string };
+  members: Member[];
+  activeCount: number;
+  currentMission: MissionNode | null;
+  runoff: RunoffInfo | null;
+  elapsedSeconds: number;
+  votes: VoteEntry[];
+  myVote: number | null;
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function RoleTag({ title }: { title: string }) {
-  return (
-    <span className="inline-flex items-center text-[10px] font-mono px-2 py-0.5 rounded border tracking-widest uppercase bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/30">
-      {title}
-    </span>
-  );
+interface ResolveRunoffResult {
+  requiresRunoff: true;
+  runoffOptions: number[];
+  runoffEndsAt: string;
 }
 
-function InfoCardReveal({
-  title,
-  content,
-  delay,
-  isRoleRestricted,
-}: {
-  title: string;
-  content: string;
-  delay: number;
-  isRoleRestricted?: boolean;
-}) {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), delay * 1000);
-    return () => clearTimeout(t);
-  }, [delay]);
-
-  if (!visible) {
-    return (
-      <div className="bsc-card p-3 opacity-30 border-dashed">
-        <p className="font-mono text-xs text-[#6b7280] animate-pulse">Incoming briefing…</p>
-      </div>
-    );
-  }
-  return (
-    <div className={`card-reveal bsc-card p-4 ${isRoleRestricted ? "role-card-active" : ""}`}>
-      {isRoleRestricted && (
-        <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">
-          ◈ Role-Restricted — Your Eyes Only
-        </p>
-      )}
-      <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">{title}</p>
-      <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{content}</p>
-    </div>
-  );
+interface ResolveOutcomeResult {
+  outcome: number;
+  tally: number[];
+  narrative: string;
+  scoreΔ: number;
+  conceptId: string;
+  missionId: string;
+  isComplete: boolean;
+  nextNodeId: string | null;
+  tieBreakMethod?: "majority" | "random-after-runoff";
 }
 
-// ── Main inner component ──────────────────────────────────────────────────────
+type ResolveResult = ResolveRunoffResult | ResolveOutcomeResult;
 
-function PlayInner() {
+function formatElapsed(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function isRunoffResult(input: ResolveResult): input is ResolveRunoffResult {
+  return (input as ResolveRunoffResult).requiresRunoff === true;
+}
+
+export default function PlayPage() {
   const router = useRouter();
-  const params = useSearchParams();
-  const missionId = params.get("missionId") ?? "";
-
-  const mission = missionId ? getMissionById(missionId) : null;
-  const isLegacy = mission ? isLegacyMission(mission) : false;
-
-  const [phase, setPhase] = useState<MissionPhase>("loading");
-  const [teamState, setTeamState] = useState<TeamStateResponse | null>(null);
-  const [currentRound, setCurrentRound] = useState<MissionRound | null>(null);
-  const [selectedOptionIdx, setSelectedOptionIdx] = useState<number | null>(null);
-  const [resolveResult, setResolveResult] = useState<ResolveResult | null>(null);
-  const [rivalMessage, setRivalMessage] = useState<string>("");
-  const [rivalRound, setRivalRound] = useState<MissionRound | null>(null);
+  const [state, setState] = useState<TeamState | null>(null);
+  const [phase, setPhase] = useState<Phase>("scenario");
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [resolveResult, setResolveResult] = useState<ResolveOutcomeResult | null>(null);
   const [resolving, setResolving] = useState(false);
   const [error, setError] = useState("");
-  const missionStarted = useRef(false);
+  const [selectedGlossaryTermId, setSelectedGlossaryTermId] = useState<string | null>(null);
   const resolvedRef = useRef<string>("");
 
-  useEffect(() => {
-    if (!missionId) { router.replace("/hq"); return; }
-    if (mission && isLegacy) { router.replace("/hq"); return; }
-  }, [missionId, mission, isLegacy, router]);
-
-  const startMission = useCallback(async () => {
-    if (missionStarted.current) return;
-    missionStarted.current = true;
-    try {
-      const res = await fetch("/api/mission/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ missionId }),
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = (await res.json()) as { error?: string };
-        setError(err.error ?? "Failed to start mission");
-        setPhase("error");
-        return;
-      }
-      const data = (await res.json()) as { currentRound: MissionRound };
-      setCurrentRound(data.currentRound);
-      setPhase("briefing");
-    } catch {
-      missionStarted.current = false; // allow retry on refresh
-      setError("Network error starting mission");
-      setPhase("error");
-    }
-  }, [missionId]);
+  const glossaryTermsById = useMemo(() => {
+    return new Map(getAllGlossaryTerms().map((term) => [term.id, term]));
+  }, []);
 
   const fetchState = useCallback(async () => {
-    if (!missionId) return;
     try {
       const res = await fetch("/api/team/state", { credentials: "include" });
-      if (res.status === 401) { router.replace("/join"); return; }
-      const data: TeamStateResponse = await res.json();
-      setTeamState(data);
-
-      const rsm = data.missionRoundState;
-
-      // Need to start the mission?
-      if (rsm?.missionId !== missionId && !missionStarted.current) {
-        await startMission();
+      if (res.status === 401) {
+        router.replace("/join");
         return;
       }
 
-      // Already resolved — nothing to do in poll (outcome phase handles it)
-      if (rsm?.isResolved && rsm?.missionId === missionId) return;
+      const data: TeamState = await res.json();
+      setState(data);
 
-      // Auto-resolve when all active members have voted
-      if (phase === "waiting" || phase === "rival-waiting") {
-        const roundId =
-          phase === "rival-waiting" ? "rival-response" : (rsm?.currentRoundId ?? "");
-        const votedIds = data.votes.map((v) => v.studentId);
-        const activeIds = data.members.filter((m) => m.active).map((m) => m.id);
-        const allVoted =
-          activeIds.length > 0 && activeIds.every((id) => votedIds.includes(id));
-        if (allVoted && !resolving) {
-          const key = `${missionId}-${roundId}`;
-          if (resolvedRef.current !== key) {
-            resolvedRef.current = key;
-            await handleResolveRound(roundId);
-          }
+      if (data.team?.completedAt) {
+        router.replace("/complete");
+        return;
+      }
+
+      const activeIds = data.members.filter((m) => m.active).map((m) => m.id);
+      const votedIds = data.votes.map((v) => v.studentId);
+      const allActiveVoted = activeIds.length > 0 && activeIds.every((id) => votedIds.includes(id));
+      const runoffEndsAtMs = data.runoff ? new Date(data.runoff.endsAt).getTime() : 0;
+      const runoffActive = !!data.runoff && runoffEndsAtMs > Date.now();
+      const runoffExpired = !!data.runoff && runoffEndsAtMs <= Date.now();
+
+      if (data.myVote !== null && phase !== "waiting" && phase !== "reveal") {
+        setPhase("waiting");
+        setSelectedOption(data.myVote);
+      }
+
+      if (runoffActive && phase !== "reveal" && data.myVote === null) {
+        setPhase("runoff");
+      }
+
+      if (!runoffActive && phase === "runoff" && data.myVote === null) {
+        setPhase("scenario");
+      }
+
+      const inVotingPhase = phase === "scenario" || phase === "waiting" || phase === "runoff";
+      const shouldResolve = allActiveVoted || runoffExpired;
+
+      if (inVotingPhase && shouldResolve && !resolving && data.currentMission) {
+        const key = `${data.team.missionIndex}-${data.currentMission.id}-${data.votes.length}-${runoffActive}`;
+        if (resolvedRef.current !== key) {
+          resolvedRef.current = key;
+          handleResolve();
         }
       }
     } catch {
-      // silent
+      setError("Connection issue. Try refreshing.");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missionId, phase, resolving, startMission, router]);
+  }, [phase, resolving, router]);
 
   useEffect(() => {
-    void fetchState();
-    const id = setInterval(() => void fetchState(), 4000);
+    fetchState();
+    const id = setInterval(fetchState, 5000);
     return () => clearInterval(id);
   }, [fetchState]);
 
-  async function handleVote(optionIdx: number) {
-    if (!currentRound) return;
-    setSelectedOptionIdx(optionIdx);
+  async function handleVote(optionIndex: number) {
+    setSelectedOption(optionIndex);
     setPhase("waiting");
-    try {
-      const res = await fetch("/api/mission/vote-round", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ missionId, roundId: currentRound.id, optionIndex: optionIdx }),
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Vote failed");
-    } catch {
-      setPhase("voting");
-      setSelectedOptionIdx(null);
+
+    const res = await fetch("/api/vote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ optionIndex }),
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: "Vote failed" }));
+      setError(data.error ?? "Vote failed");
+      setPhase("scenario");
+      return;
     }
+
+    fetchState();
   }
 
-  async function handleRivalVote(optionIdx: number) {
-    setSelectedOptionIdx(optionIdx);
-    setPhase("rival-waiting");
-    try {
-      const res = await fetch("/api/mission/vote-round", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ missionId, roundId: "rival-response", optionIndex: optionIdx }),
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Vote failed");
-    } catch {
-      setPhase("rival-voting");
-      setSelectedOptionIdx(null);
-    }
-  }
-
-  async function handleResolveRound(roundId: string) {
+  async function handleResolve() {
     if (resolving) return;
     setResolving(true);
+
     try {
-      const res = await fetch("/api/mission/resolve-round", {
+      const res = await fetch("/api/mission/resolve", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ missionId, roundId }),
         credentials: "include",
       });
-      const data: ResolveResult = await res.json();
-      setResolveResult(data);
 
-      if (data.rivalFired && data.rivalResponseRound) {
-        setRivalMessage(data.rivalMessage ?? "");
-        setRivalRound(data.rivalResponseRound);
-        setSelectedOptionIdx(null);
-        setPhase("rival-alert");
+      const data: ResolveResult = await res.json();
+      if (!res.ok) {
+        setError("Could not finish this vote yet.");
         return;
       }
-      if (data.isComplete) { setPhase("outcome"); return; }
-      if (data.nextRound) {
-        setCurrentRound(data.nextRound);
-        setSelectedOptionIdx(null);
-        setPhase("voting");
+
+      if (isRunoffResult(data)) {
+        setResolveResult(null);
+        setSelectedOption(null);
+        setPhase("runoff");
+        await fetchState();
+        return;
       }
+
+      setResolveResult(data);
+      setPhase("reveal");
     } catch {
-      setError("Failed to resolve round — try refreshing");
-      setPhase("error");
+      setError("Could not resolve votes. Refresh and try again.");
     } finally {
       setResolving(false);
     }
   }
 
   function handleContinue() {
-    if (resolveResult?.isGameComplete) { router.push("/complete"); return; }
-    if (resolveResult?.conceptId) { router.push(`/catalog?concept=${resolveResult.conceptId}`); return; }
-    router.push("/hq");
+    if (!resolveResult) return;
+    if (resolveResult.isComplete) {
+      router.push("/complete");
+      return;
+    }
+    router.push(`/catalog?concept=${resolveResult.conceptId}`);
   }
 
-  // ── Guards ────────────────────────────────────────────────────────────────
-
-  if (!missionId || !mission || isLegacy) {
+  function renderTermChips(termIds: string[]) {
+    if (!termIds.length) return null;
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Redirecting…</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {termIds.map((termId) => {
+          const term = glossaryTermsById.get(termId);
+          if (!term) return null;
+          const selected = selectedGlossaryTermId === termId;
+          return (
+            <button
+              key={termId}
+              type="button"
+              className={`px-2 py-1 rounded border font-mono text-[11px] transition-colors ${
+                selected
+                  ? "border-[#c9a84c] bg-[#c9a84c]/15 text-[#f3e6b0]"
+                  : "border-[#1e2435] text-[#9ca3af] hover:border-[#c9a84c]/40"
+              }`}
+              onClick={() => setSelectedGlossaryTermId(termId)}
+              title={term.def}
+            >
+              {term.term}
+            </button>
+          );
+        })}
       </div>
     );
   }
-  if (phase === "error") {
+
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <p className="text-[#ef4444] font-mono text-sm mb-4">{error}</p>
-          <button className="bsc-btn-ghost" onClick={() => router.push("/hq")}>← Back to HQ</button>
-        </div>
-      </div>
-    );
-  }
-  if (phase === "loading" || !teamState) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Entering the building…</p>
+        <p className="text-[#ef4444] font-mono text-sm">{error}</p>
       </div>
     );
   }
 
-  const richMission = mission as Mission;
-  const { me, members, activeCount } = teamState;
-  const myRole = richMission.roles.find((r) => r.id === me.role) ?? null;
-  const myInfoCards = richMission.infoCards.filter(
-    (c) => !c.roleOnly || c.roleOnly === me.role
-  );
-  const conceptTitle =
-    CONCEPT_CARDS.find((c) => c.id === richMission.conceptId)?.title ?? richMission.conceptId;
-
-  // ── Briefing ──────────────────────────────────────────────────────────────
-
-  if (phase === "briefing") {
+  if (!state || !state.currentMission) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in">
-        <div className="flex items-center gap-3 mb-5">
-          <button className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb]" onClick={() => router.push("/hq")}>
-            ← HQ
-          </button>
-          <span className="text-[#1e2435]">|</span>
-          <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.department}</span>
-          <span className="text-[#1e2435]">|</span>
-          <span className="text-[#e5e7eb] font-mono text-sm font-bold">{richMission.title}</span>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading situation...</p>
+      </div>
+    );
+  }
 
-        <div className="bsc-card p-5 mb-4">
-          <p className="bsc-section-title">Situation</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{richMission.scenario}</p>
-        </div>
+  const mission = state.currentMission;
+  const myVotedOption = state.myVote;
+  const runoffActive = !!state.runoff && new Date(state.runoff.endsAt).getTime() > Date.now();
+  const runoffRemaining = runoffActive ? Math.max(0, Math.ceil((new Date(state.runoff!.endsAt).getTime() - Date.now()) / 1000)) : 0;
+  const runoffOptions = runoffActive ? state.runoff!.optionIndexes : null;
+  const highlightedTerms =
+    selectedOption !== null
+      ? [...mission.termIds, ...mission.options[selectedOption].termIds]
+      : mission.termIds;
 
-        {myRole && (
-          <div className="bsc-card p-4 mb-4 role-card-active border-[#c9a84c]/30">
-            <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-2">Your Role</p>
-            <p className="font-mono text-sm font-bold text-[#e5e7eb] mb-1">{myRole.title}</p>
-            <p className="font-mono text-xs text-[#6b7280] mb-3">{myRole.description}</p>
-            <div className="border-t border-[#c9a84c]/20 pt-3 private-reveal">
-              <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">◈ Private Intelligence</p>
-              <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{myRole.privateInfo}</p>
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      <div className="flex gap-6 flex-col lg:flex-row">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="bsc-badge-gold">Situation {mission.step}/{GAME_SITUATION_COUNT}</span>
+              <span className="text-[#c9a84c] font-mono font-bold">{mission.title}</span>
+            </div>
+            <div className="flex items-center gap-4 text-[#6b7280] font-mono text-xs">
+              <span>Team: {state.team.name}</span>
+              <span>Time: {formatElapsed(state.elapsedSeconds)}</span>
+              <span>Score: {state.team.score}</span>
             </div>
           </div>
-        )}
 
-        <div className="flex flex-wrap gap-2 mb-4">
-          {members.map((m) => (
-            <span
-              key={m.id}
-              className={`font-mono text-[10px] px-2 py-0.5 rounded border ${
-                m.id === me.id ? "border-[#c9a84c] text-[#c9a84c]"
-                : m.active ? "border-[#22c55e]/30 text-[#22c55e]"
-                : "border-[#1e2435] text-[#6b7280]"
-              }`}
-            >
-              {m.nickname}
-              {m.role && <span className="opacity-60 ml-1">({m.role})</span>}
-              {m.id === me.id && " ●"}
-            </span>
-          ))}
-        </div>
-
-        <div className="space-y-3 mb-5">
-          {myInfoCards.map((card) => (
-            <InfoCardReveal
-              key={card.title}
-              title={card.title}
-              content={card.content}
-              delay={card.revealDelay}
-              isRoleRestricted={!!card.roleOnly}
-            />
-          ))}
-        </div>
-
-        <button
-          className="bsc-btn-gold w-full py-3"
-          onClick={() => { if (currentRound) setPhase("voting"); }}
-          disabled={!currentRound}
-        >
-          {currentRound ? "I've Read the Briefing — Begin Voting →" : "Preparing mission…"}
-        </button>
-      </div>
-    );
-  }
-
-  // ── Voting / waiting ──────────────────────────────────────────────────────
-
-  if ((phase === "voting" || phase === "waiting") && currentRound) {
-    const votedIds = teamState.votes.map((v) => v.studentId);
-    const activeIds = members.filter((m) => m.active).map((m) => m.id);
-    const votedCount = activeIds.filter((id) => votedIds.includes(id)).length;
-    const canReveal = votedCount >= activeCount && activeCount > 0;
-
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in round-enter">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <button className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb]" onClick={() => setPhase("briefing")}>← Briefing</button>
-            <span className="text-[#1e2435]">|</span>
-            <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
+          <div className="flex items-center gap-2 mb-5 flex-wrap">
+            {state.members.map((m) => (
+              <span
+                key={m.id}
+                className={`font-mono text-xs px-2 py-0.5 rounded border ${
+                  m.id === state.me.id
+                    ? "border-[#c9a84c] text-[#c9a84c]"
+                    : m.active
+                    ? "border-[#22c55e]/40 text-[#22c55e]"
+                    : "border-[#1e2435] text-[#6b7280]"
+                }`}
+              >
+                {m.nickname}
+                {m.id === state.me.id && " ●"}
+              </span>
+            ))}
           </div>
-          <div className="flex items-center gap-2">
-            {myRole && <RoleTag title={myRole.title} />}
-            <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
-          </div>
-        </div>
 
-        <div className="bsc-card p-4 mb-4">
-          <p className="bsc-section-title">Decision Point</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{currentRound.prompt}</p>
-          {currentRound.context && (
-            <p className="font-mono text-xs text-[#6b7280] mt-2 leading-relaxed border-t border-[#1e2435] pt-2">
-              {currentRound.context}
-            </p>
+          {selectedGlossaryTermId && glossaryTermsById.get(selectedGlossaryTermId) && (
+            <div className="bsc-card p-3 mb-4 border-[#c9a84c]/40">
+              <p className="font-mono text-xs text-[#c9a84c] font-bold mb-1">
+                {glossaryTermsById.get(selectedGlossaryTermId)?.term}
+              </p>
+              <p className="font-mono text-xs text-[#e5e7eb]">
+                {glossaryTermsById.get(selectedGlossaryTermId)?.def}
+              </p>
+            </div>
+          )}
+
+          <div className="bsc-card p-5 mb-5">
+            <p className="bsc-section-title">Situation</p>
+            <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{mission.scenario}</p>
+            {renderTermChips(mission.termIds)}
+          </div>
+
+          {phase !== "reveal" && (
+            <div>
+              <p className="bsc-section-title mb-3">
+                {phase === "scenario" && "Pick one option. Votes stay hidden until reveal."}
+                {phase === "waiting" && "Waiting for teammates to finish voting..."}
+                {phase === "runoff" && "Runoff vote: choose between tied options only."}
+              </p>
+
+              <div className="grid grid-cols-1 gap-3">
+                {mission.options.map((opt, i) => {
+                  const isSelected = myVotedOption === i || selectedOption === i;
+                  const isRunoffChoice = !runoffOptions || runoffOptions.includes(i);
+                  const canVote = (phase === "scenario" || phase === "runoff") && isRunoffChoice;
+                  return (
+                    <button
+                      key={i}
+                      className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${
+                        phase === "waiting" ? "cursor-default" : ""
+                      } ${runoffOptions && !isRunoffChoice ? "opacity-40" : ""}`}
+                      onClick={() => canVote && handleVote(i)}
+                      disabled={phase === "waiting" || phase === "done" || !canVote}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`flex-shrink-0 w-6 h-6 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${
+                            isSelected
+                              ? "border-[#c9a84c] bg-[#c9a84c] text-black"
+                              : "border-[#1e2435] text-[#6b7280]"
+                          }`}
+                        >
+                          {String.fromCharCode(65 + i)}
+                        </span>
+                        <div>
+                          <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
+                          <p className="font-mono text-xs text-[#6b7280] mt-0.5">{opt.note}</p>
+                          {renderTermChips(opt.termIds)}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {phase === "waiting" && (
+                <div className="mt-4 text-center">
+                  <p className="text-[#6b7280] font-mono text-xs animate-pulse">
+                    {state.votes.length}/{state.activeCount} votes in
+                    {runoffActive ? " (runoff round)" : ""}...
+                  </p>
+                  {runoffActive && (
+                    <p className="text-[#c9a84c] font-mono text-xs mt-1">Runoff timer: {runoffRemaining}s</p>
+                  )}
+                  {state.votes.length >= state.activeCount && (
+                    <button className="bsc-btn-gold mt-3" onClick={handleResolve} disabled={resolving}>
+                      {resolving ? "Resolving..." : "Reveal Results ->"}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {phase === "runoff" && runoffActive && (
+                <div className="mt-4 text-center">
+                  <p className="text-[#6b7280] font-mono text-xs">
+                    Tied options: {state.runoff?.optionIndexes.map((i) => String.fromCharCode(65 + i)).join(", ")}
+                  </p>
+                  <p className="text-[#c9a84c] font-mono text-xs mt-1">Runoff ends in {runoffRemaining}s</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {phase === "reveal" && resolveResult && (
+            <div className="animate-fade-in">
+              <p className="bsc-section-title mb-3">Vote Results</p>
+              <div className="grid grid-cols-1 gap-3 mb-5">
+                {mission.options.map((opt, i) => {
+                  const isWinner = i === resolveResult.outcome;
+                  const voteCount = resolveResult.tally[i] ?? 0;
+                  const total = resolveResult.tally.reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? Math.round((voteCount / total) * 100) : 0;
+                  return (
+                    <div key={i} className={`mission-option ${isWinner ? "winning" : "losing"}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-6 h-6 rounded border font-mono text-xs flex items-center justify-center ${
+                              isWinner
+                                ? "border-[#22c55e] bg-[#22c55e] text-black"
+                                : "border-[#1e2435] text-[#6b7280]"
+                            }`}
+                          >
+                            {String.fromCharCode(65 + i)}
+                          </span>
+                          <span className="font-mono text-sm text-[#e5e7eb]">{opt.label}</span>
+                        </div>
+                        <span className={`font-mono text-xs ${isWinner ? "text-[#22c55e] font-bold" : "text-[#6b7280]"}`}>
+                          {voteCount} vote{voteCount !== 1 ? "s" : ""} ({pct}%)
+                        </span>
+                      </div>
+                      <div className="h-1 bg-[#1e2435] rounded overflow-hidden">
+                        <div
+                          className={`h-full rounded transition-all duration-500 ${isWinner ? "bg-[#22c55e]" : "bg-[#6b7280]/40"}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="bsc-card p-5 mb-5 border-[#22c55e]/40">
+                <p className="bsc-section-title text-[#22c55e] mb-2">Outcome</p>
+                <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{resolveResult.narrative}</p>
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  <span className="bsc-badge-green">+{resolveResult.scoreΔ} pts</span>
+                  {resolveResult.tieBreakMethod === "random-after-runoff" && (
+                    <span className="text-[#f59e0b] font-mono text-xs">Runoff tie broke by random draw.</span>
+                  )}
+                  <span className="text-[#6b7280] font-mono text-xs">Concept card unlocked</span>
+                </div>
+              </div>
+
+              <button className="bsc-btn-gold w-full py-3" onClick={handleContinue}>
+                Open Concept Card
+              </button>
+            </div>
           )}
         </div>
 
-        <div className="space-y-3 mb-5">
-          {currentRound.options.map((opt, i) => {
-            const isSelected = selectedOptionIdx === i;
-            const disabled = phase === "waiting";
-            return (
-              <button
-                key={opt.id}
-                className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${disabled ? "cursor-default" : ""}`}
-                onClick={() => !disabled && void handleVote(i)}
-                disabled={disabled}
-              >
-                <div className="flex items-start gap-3">
-                  <span className={`flex-shrink-0 w-6 h-6 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${isSelected ? "border-[#c9a84c] bg-[#c9a84c] text-black" : "border-[#1e2435] text-[#6b7280]"}`}>
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <div>
-                    <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
-                    <p className="font-mono text-xs text-[#6b7280] mt-0.5 leading-relaxed">{opt.description}</p>
-                    {opt.requiresStatus && (
-                      <p className="font-mono text-[10px] text-[#c9a84c] mt-1">
-                        Requires: {STATUS_EFFECTS[opt.requiresStatus]?.label ?? opt.requiresStatus}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {phase === "waiting" && (
-          <div className="text-center">
-            <p className="text-[#6b7280] font-mono text-xs animate-pulse mb-3">
-              {votedCount}/{activeCount} votes in — waiting for teammates…
-            </p>
-            {canReveal && (
-              <button className="bsc-btn-gold" onClick={() => void handleResolveRound(currentRound.id)} disabled={resolving}>
-                {resolving ? "Counting…" : "Reveal Results →"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Rival alert ───────────────────────────────────────────────────────────
-
-  if (phase === "rival-alert") {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in">
-        <div className="ticker-bar mb-4">
-          <span className="ticker-text">⚡ BREAKING — LEAGUE DEVELOPMENT ALERT &nbsp;&nbsp;&nbsp; ⚡ BREAKING — LEAGUE DEVELOPMENT ALERT</span>
-        </div>
-        <div className="rival-alert bsc-card p-5 mb-5">
-          <p className="text-[10px] font-mono tracking-widest uppercase text-[#ef4444] mb-2">Rival Move Detected</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalMessage}</p>
-        </div>
-        {rivalRound && (
-          <button className="bsc-btn-gold w-full py-3" onClick={() => { setCurrentRound(rivalRound); setSelectedOptionIdx(null); setPhase("rival-voting"); }}>
-            Respond →
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  // ── Rival voting / waiting ────────────────────────────────────────────────
-
-  if ((phase === "rival-voting" || phase === "rival-waiting") && rivalRound) {
-    const votedIds = teamState.votes.map((v) => v.studentId);
-    const activeIds = members.filter((m) => m.active).map((m) => m.id);
-    const votedCount = activeIds.filter((id) => votedIds.includes(id)).length;
-    const canReveal = votedCount >= activeCount && activeCount > 0;
-
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in round-enter">
-        <div className="ticker-bar mb-4">
-          <span className="ticker-text">RIVAL RESPONSE REQUIRED — FRONT OFFICE DECISION PENDING</span>
-        </div>
-        <div className="flex items-center justify-between mb-5">
-          <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
-          <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
-        </div>
-        <div className="bsc-card p-4 mb-4">
-          <p className="bsc-section-title">How do you respond?</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalRound.prompt}</p>
-        </div>
-        <div className="space-y-3 mb-5">
-          {rivalRound.options.map((opt, i) => {
-            const isSelected = selectedOptionIdx === i;
-            const disabled = phase === "rival-waiting";
-            return (
-              <button
-                key={opt.id}
-                className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${disabled ? "cursor-default" : ""}`}
-                onClick={() => !disabled && void handleRivalVote(i)}
-                disabled={disabled}
-              >
-                <div className="flex items-start gap-3">
-                  <span className={`flex-shrink-0 w-6 h-6 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${isSelected ? "border-[#c9a84c] bg-[#c9a84c] text-black" : "border-[#1e2435] text-[#6b7280]"}`}>
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <div>
-                    <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
-                    <p className="font-mono text-xs text-[#6b7280] mt-0.5 leading-relaxed">{opt.description}</p>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        {phase === "rival-waiting" && (
-          <div className="text-center">
-            <p className="text-[#6b7280] font-mono text-xs animate-pulse mb-3">{votedCount}/{activeCount} responses in…</p>
-            {canReveal && (
-              <button className="bsc-btn-gold" onClick={() => void handleResolveRound("rival-response")} disabled={resolving}>
-                {resolving ? "Processing…" : "Confirm Response →"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Outcome ───────────────────────────────────────────────────────────────
-
-  if (phase === "outcome" && resolveResult?.outcome) {
-    const { outcome } = resolveResult;
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
-          <span className="text-[#1e2435]">|</span>
-          <span className="bsc-badge-green">Mission Complete</span>
-        </div>
-
-        <div className="bsc-card p-5 mb-4 border-[#22c55e]/30">
-          <p className="text-[10px] font-mono tracking-widest uppercase text-[#22c55e] mb-2">Outcome</p>
-          <p className="font-mono text-sm font-bold text-[#e5e7eb] mb-3">{outcome.label}</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{outcome.narrative}</p>
-        </div>
-
-        <div className="bsc-card p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">Points Earned</p>
-              <p className="score-pop text-[#22c55e] font-mono text-2xl font-bold">+{outcome.scoreΔ}</p>
-            </div>
-            {outcome.applyStatus.length > 0 && (
-              <div>
-                <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">Status Applied</p>
-                <div className="flex flex-wrap gap-1 justify-end">
-                  {outcome.applyStatus.map((sid) => {
-                    const eff = STATUS_EFFECTS[sid];
-                    return eff ? (
-                      <span key={sid} className={`text-[10px] font-mono px-2 py-0.5 rounded border ${eff.positive ? "bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/30" : "bg-[#ef4444]/10 text-[#ef4444]/70 border-[#ef4444]/25"}`} title={eff.description}>
-                        {eff.icon} {eff.label}
-                      </span>
-                    ) : null;
-                  })}
-                </div>
-              </div>
-            )}
+        <div className="w-full lg:w-80 flex-shrink-0">
+          <div className="sticky top-6">
+            <GlossaryPanel
+              groups={GLOSSARY_TERMS}
+              highlightedTermIds={highlightedTerms}
+              title={undefined}
+              onTermSelect={(id) => setSelectedGlossaryTermId(id)}
+            />
           </div>
         </div>
-
-        <button className="bsc-btn-gold w-full py-3 mb-2" onClick={handleContinue}>
-          {resolveResult.isGameComplete ? "Claim Your Score →" : `Unlock Concept — ${conceptTitle} →`}
-        </button>
-        <button className="bsc-btn-ghost w-full py-2 text-xs" onClick={() => router.push("/hq")}>
-          Return to HQ
-        </button>
       </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading…</p>
     </div>
-  );
-}
-
-// ── Suspense wrapper ──────────────────────────────────────────────────────────
-
-export default function PlayPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading mission…</p>
-      </div>
-    }>
-      <PlayInner />
-    </Suspense>
   );
 }
