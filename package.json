@@ -8,9 +8,15 @@
     "start": "next start",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
+    "db:seed:adaptive": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/seed-adaptive-bank.ts --outDir .tmp/bsc-adaptive-tools && node .tmp/bsc-adaptive-tools/scripts/seed-adaptive-bank.js",
     "check:glossary": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-glossary-coverage.ts --outDir /tmp/bsc-content-checks && node /tmp/bsc-content-checks/check-glossary-coverage.js",
     "check:readability": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-reading-level.ts --outDir /tmp/bsc-content-checks && node /tmp/bsc-content-checks/check-reading-level.js",
-    "check:content": "npm run check:glossary && npm run check:readability",
+    "check:adaptive:coverage": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-adaptive-bank-coverage.ts --outDir /tmp/bsc-adaptive-tools && node /tmp/bsc-adaptive-tools/scripts/check-adaptive-bank-coverage.js",
+    "check:adaptive:balance": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-adaptive-bank-balance.ts --outDir /tmp/bsc-adaptive-tools && node /tmp/bsc-adaptive-tools/scripts/check-adaptive-bank-balance.js",
+    "check:adaptive:readability": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-adaptive-bank-readability.ts --outDir /tmp/bsc-adaptive-tools && node /tmp/bsc-adaptive-tools/scripts/check-adaptive-bank-readability.js",
+    "check:adaptive:duplicates": "tsc --pretty false --skipLibCheck --module commonjs --target ES2020 scripts/check-adaptive-bank-duplicates.ts --outDir /tmp/bsc-adaptive-tools && node /tmp/bsc-adaptive-tools/scripts/check-adaptive-bank-duplicates.js",
+    "check:adaptive": "npm run check:adaptive:coverage && npm run check:adaptive:balance && npm run check:adaptive:readability && npm run check:adaptive:duplicates",
+    "check:content": "npm run check:glossary && npm run check:readability && npm run check:adaptive",
     "postinstall": "prisma generate"
   },
   "dependencies": {

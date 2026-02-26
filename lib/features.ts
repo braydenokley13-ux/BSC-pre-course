@@ -23,3 +23,7 @@ export const FEATURE_TEACHER_AUTH_LEGACY_FALLBACK = parseFlag(
   process.env.FEATURE_TEACHER_AUTH_LEGACY_FALLBACK,
   true
 );
+export const FEATURE_ADAPTIVE_CHECKS_V1 = parseFlag(
+  process.env.FEATURE_ADAPTIVE_CHECKS_V1,
+  true
+);
