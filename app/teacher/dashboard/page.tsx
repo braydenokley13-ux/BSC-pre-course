@@ -73,11 +73,48 @@ interface AnalyticsData {
   }>;
   conceptInsights: Array<{
     conceptId: string;
-    attempts: number;
-    studentsAttempted: number;
-    passRate: number;
-    avgAttemptsToPass: number | null;
+    avgMastery: number;
+    studentsMeasured: number;
+    heavyPct: number;
+    mediumPct: number;
+    lightPct: number;
+    priorityScore: number;
     teachingPriority: "heavy" | "medium" | "light";
+  }>;
+  classConceptMastery: Array<{
+    conceptId: string;
+    avgMastery: number;
+    meanUncertainty: number;
+    studentsMeasured: number;
+    heavyCount: number;
+    mediumCount: number;
+    lightCount: number;
+    priorityScore: number;
+    teachingPriority: "heavy" | "medium" | "light";
+  }>;
+  teamConceptMastery: Array<{
+    teamId: string;
+    teamName: string;
+    conceptId: string;
+    avgMastery: number;
+    variance: number;
+    studentsMeasured: number;
+  }>;
+  objectiveWeakness: Array<{
+    conceptId: string;
+    objectiveId: string;
+    missRate: number;
+    uncertaintyRate: number;
+    topMisconceptions: string[];
+    recommendedAction: string;
+  }>;
+  decisionVsMastery: Array<{
+    missionId: string;
+    missionTitle: string;
+    roundId: string;
+    lowBandTopOption: string | null;
+    highBandTopOption: string | null;
+    divergence: number;
   }>;
   focusRecommendations: {
     heavyConcepts: string[];
@@ -93,6 +130,7 @@ interface AnalyticsData {
   totals: {
     students: number;
     votes: number;
+    adaptiveAssessments: number;
   };
 }
 
@@ -572,7 +610,8 @@ export default function TeacherDashboard() {
                 </p>
                 <p className="text-[#9ca3af]">
                   Students: <span className="text-[#e5e7eb]">{analytics.totals.students}</span> · Votes:{" "}
-                  <span className="text-[#e5e7eb]">{analytics.totals.votes}</span>
+                  <span className="text-[#e5e7eb]">{analytics.totals.votes}</span> · Adaptive checks:{" "}
+                  <span className="text-[#e5e7eb]">{analytics.totals.adaptiveAssessments}</span>
                 </p>
                 <div className="pt-2 border-t border-[#1a2030]">
                   <p className="text-[#6b7280] mb-1">Teach heavily</p>
@@ -587,28 +626,61 @@ export default function TeacherDashboard() {
                   )}
                 </div>
                 <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Concept mastery</p>
-                  {analytics.conceptInsights.length === 0 ? (
-                    <p className="text-[#6b7280]">No concept attempts yet.</p>
+                  <p className="text-[#6b7280] mb-1">Class Concept Mastery</p>
+                  {analytics.classConceptMastery.length === 0 ? (
+                    <p className="text-[#6b7280]">No adaptive concept data yet.</p>
                   ) : (
-                    analytics.conceptInsights.slice(0, 3).map((item) => (
+                    analytics.classConceptMastery.slice(0, 3).map((item) => (
                       <p key={item.conceptId} className="text-[#9ca3af]">
-                        {item.conceptId}: <span className="text-[#e5e7eb]">{item.passRate}% pass</span>
+                        {item.conceptId}:{" "}
+                        <span className="text-[#e5e7eb]">
+                          {item.avgMastery.toFixed(2)} / 4 ({item.teachingPriority})
+                        </span>
                       </p>
                     ))
                   )}
                 </div>
                 <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Decision patterns</p>
-                  {analytics.decisionInsights.length === 0 ? (
-                    <p className="text-[#6b7280]">No decision data yet.</p>
+                  <p className="text-[#6b7280] mb-1">Team Variance Watch</p>
+                  {analytics.teamConceptMastery.length === 0 ? (
+                    <p className="text-[#6b7280]">No team-level mastery data yet.</p>
                   ) : (
-                    analytics.decisionInsights.slice(0, 2).map((decision) => (
-                      <p key={`${decision.missionId}-${decision.roundId}`} className="text-[#9ca3af]">
-                        {decision.missionTitle}:{" "}
+                    analytics.teamConceptMastery
+                      .slice()
+                      .sort((a, b) => b.variance - a.variance)
+                      .slice(0, 3)
+                      .map((item) => (
+                      <p key={`${item.teamId}-${item.conceptId}`} className="text-[#9ca3af]">
+                        {item.teamName} · {item.conceptId}:{" "}
                         <span className="text-[#e5e7eb]">
-                          {decision.options[0]?.label ?? "No option"} ({decision.options[0]?.pickRate ?? 0}%)
+                          {item.avgMastery.toFixed(2)} / 4 · variance {item.variance.toFixed(2)}
                         </span>
+                      </p>
+                    ))
+                  )}
+                </div>
+                <div className="pt-2 border-t border-[#1a2030]">
+                  <p className="text-[#6b7280] mb-1">Objective Weak Spots</p>
+                  {analytics.objectiveWeakness.length === 0 ? (
+                    <p className="text-[#6b7280]">No objective weakness data yet.</p>
+                  ) : (
+                    analytics.objectiveWeakness.slice(0, 3).map((row) => (
+                      <p key={`${row.conceptId}-${row.objectiveId}`} className="text-[#9ca3af]">
+                        {row.objectiveId}:{" "}
+                        <span className="text-[#e5e7eb]">{row.missRate}% miss</span> ·{" "}
+                        {row.recommendedAction}
+                      </p>
+                    ))
+                  )}
+                </div>
+                <div className="pt-2 border-t border-[#1a2030]">
+                  <p className="text-[#6b7280] mb-1">Decision vs Mastery</p>
+                  {analytics.decisionVsMastery.length === 0 ? (
+                    <p className="text-[#6b7280]">No decision/mastery divergence yet.</p>
+                  ) : (
+                    analytics.decisionVsMastery.slice(0, 2).map((row) => (
+                      <p key={`${row.missionId}-${row.roundId}`} className="text-[#9ca3af]">
+                        {row.missionTitle}: <span className="text-[#e5e7eb]">{row.divergence}% divergence</span>
                       </p>
                     ))
                   )}

@@ -1,14 +1,58 @@
 "use client";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { CONCEPT_CARDS, GLOSSARY_TERMS } from "@/lib/concepts";
-import { CONCEPT_CHECKS } from "@/lib/checks";
 
-type CheckPhase = "card" | "check" | "result";
-interface CheckResult { q1Correct: boolean; q2Correct: boolean; passed: boolean; attemptNum: number }
+type CheckPhase = "card" | "adaptive" | "result";
 
-// ── Stagger variants ───────────────────────────────────────────────────────────
+interface AdaptiveQuestionPayload {
+  id: string;
+  stem: string;
+  options: [string, string, string, string];
+}
+
+interface AdaptiveStartResponse {
+  attemptId: string;
+  question: AdaptiveQuestionPayload;
+  askedCount: number;
+  minQuestions: number;
+  maxQuestions: number;
+  currentEstimate: {
+    masteryScore: number;
+    uncertainty: number;
+  };
+}
+
+interface AdaptiveContinueResponse {
+  done: false;
+  askedCount: number;
+  minQuestions: number;
+  maxQuestions: number;
+  currentEstimate: {
+    masteryScore: number;
+    uncertainty: number;
+  };
+  nextQuestion: AdaptiveQuestionPayload;
+}
+
+interface AdaptiveDoneResponse {
+  done: true;
+  masteryScore: number;
+  uncertainty: number;
+  questionCount: number;
+  objectiveBreakdown: Array<{
+    objectiveId: string;
+    askedCount: number;
+    correctCount: number;
+    missRate: number;
+  }>;
+  misconceptionsTop: Array<{ tag: string; count: number }>;
+  recommendationBand: "heavy" | "medium" | "light";
+  lowConfidence: boolean;
+}
+
+type AdaptiveAnswerResponse = AdaptiveContinueResponse | AdaptiveDoneResponse;
 
 const staggerList: Variants = {
   hidden: {},
@@ -19,34 +63,131 @@ const fadeSlideUp: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" as const } },
 };
 
-// ── Catalog main content ───────────────────────────────────────────────────────
+function recommendationText(band: "heavy" | "medium" | "light"): string {
+  if (band === "heavy") return "Teach this concept heavily in class.";
+  if (band === "medium") return "Review this concept with guided practice.";
+  return "Light review is enough for this concept.";
+}
+
+function recommendationColor(band: "heavy" | "medium" | "light"): string {
+  if (band === "heavy") return "text-[#ef4444]";
+  if (band === "medium") return "text-[#c9a84c]";
+  return "text-[#22c55e]";
+}
 
 function CatalogContent() {
   const router = useRouter();
   const params = useSearchParams();
   const conceptId = params.get("concept") ?? "";
 
-  const card = CONCEPT_CARDS.find((c) => c.id === conceptId);
-  const check = CONCEPT_CHECKS.find((c) => c.conceptId === conceptId);
-
+  const card = useMemo(() => CONCEPT_CARDS.find((c) => c.id === conceptId), [conceptId]);
   const [phase, setPhase] = useState<CheckPhase>("card");
-  const [q1, setQ1] = useState<number | null>(null);
-  const [q2, setQ2] = useState<number | null>(null);
-  const [result, setResult] = useState<CheckResult | null>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<AdaptiveQuestionPayload | null>(null);
+  const [currentEstimate, setCurrentEstimate] = useState<{ masteryScore: number; uncertainty: number } | null>(null);
+  const [askedCount, setAskedCount] = useState(0);
+  const [minQuestions, setMinQuestions] = useState(3);
+  const [maxQuestions, setMaxQuestions] = useState(7);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [result, setResult] = useState<AdaptiveDoneResponse | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingAdaptive, setLoadingAdaptive] = useState(false);
+  const [error, setError] = useState("");
   const [glossaryOpen, setGlossaryOpen] = useState(false);
-  const [feedbackVisible, setFeedbackVisible] = useState(false);
 
-  // Reset state when conceptId changes
   useEffect(() => {
     setPhase("card");
-    setQ1(null);
-    setQ2(null);
+    setAttemptId(null);
+    setCurrentQuestion(null);
+    setCurrentEstimate(null);
+    setAskedCount(0);
+    setSelectedOption(null);
     setResult(null);
-    setFeedbackVisible(false);
+    setError("");
   }, [conceptId]);
 
-  if (!card || !check) {
+  async function startAdaptiveAttempt() {
+    if (!card) return;
+    setError("");
+    setLoadingAdaptive(true);
+    try {
+      const res = await fetch("/api/catalog/adaptive/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ conceptId: card.id }),
+      });
+      const data = (await res.json()) as AdaptiveStartResponse & { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? "Could not start adaptive assessment.");
+        return;
+      }
+
+      setAttemptId(data.attemptId);
+      setCurrentQuestion(data.question);
+      setAskedCount(data.askedCount);
+      setMinQuestions(data.minQuestions);
+      setMaxQuestions(data.maxQuestions);
+      setCurrentEstimate(data.currentEstimate);
+      setSelectedOption(null);
+      setPhase("adaptive");
+    } catch {
+      setError("Network error while starting adaptive assessment.");
+    } finally {
+      setLoadingAdaptive(false);
+    }
+  }
+
+  async function submitAdaptiveAnswer() {
+    if (!attemptId || !currentQuestion || selectedOption == null || submitting) return;
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/catalog/adaptive/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          attemptId,
+          questionId: currentQuestion.id,
+          selectedIndex: selectedOption,
+        }),
+      });
+      const data = (await res.json()) as (AdaptiveAnswerResponse & { error?: string });
+      if (!res.ok) {
+        setError(data.error ?? "Could not submit answer.");
+        return;
+      }
+
+      if (data.done) {
+        setResult(data);
+        setPhase("result");
+        return;
+      }
+
+      setAskedCount(data.askedCount);
+      setCurrentQuestion(data.nextQuestion);
+      setCurrentEstimate(data.currentEstimate);
+      setMinQuestions(data.minQuestions);
+      setMaxQuestions(data.maxQuestions);
+      setSelectedOption(null);
+    } catch {
+      setError("Network error while submitting answer.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function startRetake() {
+    setPhase("card");
+    setResult(null);
+    setAttemptId(null);
+    setCurrentQuestion(null);
+    setSelectedOption(null);
+    await startAdaptiveAttempt();
+  }
+
+  if (!card) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-[#ef4444] font-mono text-sm">Unknown concept: {conceptId}</p>
@@ -54,68 +195,30 @@ function CatalogContent() {
     );
   }
 
-  async function handleSubmitCheck() {
-    if (q1 === null || q2 === null) return;
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/catalog/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conceptId, q1Answer: q1, q2Answer: q2 }),
-        credentials: "include",
-      });
-      const data: CheckResult = await res.json();
-      setResult(data);
-      setPhase("result");
-      setFeedbackVisible(true);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  function handleRetry() {
-    setQ1(null);
-    setQ2(null);
-    setResult(null);
-    setFeedbackVisible(false);
-    setPhase("check");
-  }
-
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <div className="flex gap-5">
-        {/* ── LEFT PANEL: Dossier sidebar ──────────────────────────────────── */}
         <div className="w-56 flex-shrink-0 hidden lg:block">
           <div className="bsc-card p-0 sticky top-[80px] overflow-hidden">
             <div className="px-4 py-3 border-b border-[#1a2030]">
               <p className="font-mono text-[10px] tracking-widest uppercase text-[#c9a84c]">GM Case Files</p>
-              <p className="font-mono text-[9px] text-[#6b7280] mt-0.5">Classified Intelligence</p>
+              <p className="font-mono text-[9px] text-[#6b7280] mt-0.5">Adaptive Assessment</p>
             </div>
-            <motion.ul
-              variants={staggerList}
-              initial="hidden"
-              animate="show"
-              className="py-2"
-            >
-              {CONCEPT_CARDS.map((c) => {
-                const isCurrent = c.id === conceptId;
+            <motion.ul variants={staggerList} initial="hidden" animate="show" className="py-2">
+              {CONCEPT_CARDS.map((concept) => {
+                const isCurrent = concept.id === conceptId;
                 return (
-                  <motion.li
-                    key={c.id}
-                    variants={fadeSlideUp}
-                  >
+                  <motion.li key={concept.id} variants={fadeSlideUp}>
                     <button
-                      onClick={() => router.push(`/catalog?concept=${c.id}`)}
+                      onClick={() => router.push(`/catalog?concept=${concept.id}`)}
                       className={`w-full text-left px-4 py-2.5 transition-colors font-mono text-xs flex items-center gap-2 ${
                         isCurrent
                           ? "bg-[#c9a84c]/10 text-[#c9a84c] border-l-2 border-[#c9a84c]"
                           : "text-[#6b7280] hover:text-[#e5e7eb] hover:bg-[#1a2030]/50 border-l-2 border-transparent"
                       }`}
                     >
-                      <span className="text-[10px]">
-                        {isCurrent ? "▶" : "◦"}
-                      </span>
-                      <span className="leading-tight">{c.title}</span>
+                      <span className="text-[10px]">{isCurrent ? "▶" : "◦"}</span>
+                      <span className="leading-tight">{concept.title}</span>
                     </button>
                   </motion.li>
                 );
@@ -124,9 +227,7 @@ function CatalogContent() {
           </div>
         </div>
 
-        {/* ── RIGHT PANEL: Active file ──────────────────────────────────────── */}
         <div className="flex-1 min-w-0">
-          {/* File header */}
           <motion.div
             key={conceptId + "-header"}
             initial={{ opacity: 0, y: -8 }}
@@ -139,7 +240,7 @@ function CatalogContent() {
                 <span className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] border border-[#c9a84c]/30 px-2 py-0.5 rounded">
                   Classification: GM Only
                 </span>
-                <span className="bsc-badge-gold">Active File</span>
+                <span className="bsc-badge-gold">Adaptive Mode</span>
               </div>
               <button
                 className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb] transition-colors"
@@ -148,12 +249,9 @@ function CatalogContent() {
                 ← HQ
               </button>
             </div>
-            <h2 className="text-[#c9a84c] font-mono text-xl font-bold leading-tight">
-              {card.title}
-            </h2>
+            <h2 className="text-[#c9a84c] font-mono text-xl font-bold leading-tight">{card.title}</h2>
           </motion.div>
 
-          {/* Concept card */}
           <AnimatePresence mode="wait">
             <motion.div
               key={conceptId + "-card"}
@@ -170,7 +268,12 @@ function CatalogContent() {
             </motion.div>
           </AnimatePresence>
 
-          {/* ── PHASE: card → proceed to check ─────────────────────────────── */}
+          {error && (
+            <div className="border border-[#ef4444]/40 bg-[#ef4444]/10 rounded px-3 py-2 mb-4">
+              <p className="text-[#ef4444] font-mono text-xs">{error}</p>
+            </div>
+          )}
+
           {phase === "card" && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -179,24 +282,24 @@ function CatalogContent() {
               className="text-center py-4"
             >
               <p className="text-[#6b7280] font-mono text-sm mb-4">
-                Study the file above, then verify your intelligence.
+                Start an adaptive check. You will answer between {minQuestions} and {maxQuestions} questions.
               </p>
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className="bsc-btn-gold px-8 py-3"
-                onClick={() => setPhase("check")}
+                onClick={startAdaptiveAttempt}
+                disabled={loadingAdaptive}
               >
-                Verify Intelligence →
+                {loadingAdaptive ? "Loading..." : "Start Adaptive Check →"}
               </motion.button>
             </motion.div>
           )}
 
-          {/* ── PHASE: check ────────────────────────────────────────────────── */}
           <AnimatePresence>
-            {phase === "check" && (
+            {phase === "adaptive" && currentQuestion && (
               <motion.div
-                key="check-panel"
+                key="adaptive-panel"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -204,194 +307,142 @@ function CatalogContent() {
                 className="bsc-card p-6"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <p className="bsc-section-title mb-0">Verify Intelligence</p>
+                  <p className="bsc-section-title mb-0">Adaptive Assessment</p>
                   <div className="flex-1 h-px bg-[#c9a84c]/20" />
-                  <span className="text-[10px] font-mono text-[#6b7280]">2 questions · unlimited retries</span>
+                  <span className="text-[10px] font-mono text-[#6b7280]">
+                    Question {askedCount} of up to {maxQuestions}
+                  </span>
                 </div>
 
-                {/* Q1 */}
-                <div className="mb-6">
-                  <p className="font-mono text-sm text-[#e5e7eb] mb-3">
-                    <span className="text-[#c9a84c] font-bold">Q1.</span> {check.questions[0].question}
-                  </p>
-                  <motion.div
-                    variants={staggerList}
-                    initial="hidden"
-                    animate="show"
-                    className="space-y-2"
-                  >
-                    {check.questions[0].options.map((opt, i) => (
-                      <motion.button
-                        key={i}
-                        variants={fadeSlideUp}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
-                          q1 === i
-                            ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
-                            : "border-[#1a2030] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
-                        }`}
-                        onClick={() => setQ1(i)}
-                      >
-                        <span className="text-[#6b7280] mr-2">{String.fromCharCode(65 + i)}.</span>
-                        {opt}
-                      </motion.button>
-                    ))}
-                  </motion.div>
+                <div className="mb-4">
+                  <p className="font-mono text-sm text-[#e5e7eb] mb-2">{currentQuestion.stem}</p>
+                  {currentEstimate && (
+                    <p className="font-mono text-[11px] text-[#6b7280]">
+                      Current estimate: {currentEstimate.masteryScore.toFixed(2)} / 4.00
+                    </p>
+                  )}
                 </div>
 
-                {/* Q2 */}
-                <div className="mb-6">
-                  <p className="font-mono text-sm text-[#e5e7eb] mb-3">
-                    <span className="text-[#c9a84c] font-bold">Q2.</span> {check.questions[1].question}
-                  </p>
-                  <motion.div
-                    variants={staggerList}
-                    initial="hidden"
-                    animate="show"
-                    className="space-y-2"
-                  >
-                    {check.questions[1].options.map((opt, i) => (
-                      <motion.button
-                        key={i}
-                        variants={fadeSlideUp}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
-                          q2 === i
-                            ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
-                            : "border-[#1a2030] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
-                        }`}
-                        onClick={() => setQ2(i)}
-                      >
-                        <span className="text-[#6b7280] mr-2">{String.fromCharCode(65 + i)}.</span>
-                        {opt}
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                </div>
+                <motion.div variants={staggerList} initial="hidden" animate="show" className="space-y-2 mb-6">
+                  {currentQuestion.options.map((option, index) => (
+                    <motion.button
+                      key={index}
+                      variants={fadeSlideUp}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
+                        selectedOption === index
+                          ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
+                          : "border-[#1a2030] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
+                      }`}
+                      onClick={() => setSelectedOption(index)}
+                    >
+                      <span className="text-[#6b7280] mr-2">{index + 1}.</span>
+                      {option}
+                    </motion.button>
+                  ))}
+                </motion.div>
 
                 <motion.button
-                  whileHover={q1 !== null && q2 !== null ? { scale: 1.02 } : {}}
-                  whileTap={q1 !== null && q2 !== null ? { scale: 0.98 } : {}}
+                  whileHover={selectedOption !== null ? { scale: 1.02 } : {}}
+                  whileTap={selectedOption !== null ? { scale: 0.98 } : {}}
                   className="bsc-btn-gold w-full py-3"
-                  onClick={handleSubmitCheck}
-                  disabled={q1 === null || q2 === null || submitting}
+                  onClick={submitAdaptiveAnswer}
+                  disabled={selectedOption === null || submitting}
                 >
-                  {submitting ? "Checking…" : "File My Report →"}
+                  {submitting ? "Saving..." : "Submit and Continue →"}
                 </motion.button>
+                <p className="text-[#6b7280] font-mono text-[11px] mt-2">
+                  Answers are scored at the end so we can estimate understanding more accurately.
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* ── PHASE: result ───────────────────────────────────────────────── */}
           <AnimatePresence>
-            {phase === "result" && result && feedbackVisible && (
+            {phase === "result" && result && (
               <motion.div
                 key="result-panel"
                 initial={{ opacity: 0, scale: 0.97, y: 14 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 220, damping: 20 }}
-                className={`bsc-card p-6 border-2 ${result.passed ? "border-[#22c55e]/50" : "border-[#ef4444]/40"}`}
+                className="bsc-card p-6 border-2 border-[#c9a84c]/40"
               >
                 <div className="text-center mb-5">
-                  {result.passed ? (
-                    <>
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
-                        className="text-[#22c55e] font-mono text-5xl mb-3"
-                      >
-                        ✓
-                      </motion.div>
-                      <motion.h3
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.25 }}
-                        className="text-[#22c55e] font-mono font-bold text-lg"
-                      >
-                        Intelligence Confirmed
-                      </motion.h3>
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.38 }}
-                        className="text-[#6b7280] font-mono text-xs mt-1"
-                      >
-                        {card.title} · Attempt {result.attemptNum}
-                      </motion.p>
-                    </>
-                  ) : (
-                    <>
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 280, damping: 14, delay: 0.1 }}
-                        className="text-[#ef4444] font-mono text-5xl mb-3"
-                      >
-                        ✗
-                      </motion.div>
-                      <h3 className="text-[#ef4444] font-mono font-bold text-lg">Unconfirmed</h3>
-                      <p className="text-[#6b7280] font-mono text-xs mt-1">
-                        Re-read the file above and try again.
-                      </p>
-                    </>
-                  )}
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
+                    className="text-[#c9a84c] font-mono text-5xl mb-3"
+                  >
+                    ◎
+                  </motion.div>
+                  <h3 className="text-[#e5e7eb] font-mono font-bold text-lg">Adaptive Summary Complete</h3>
+                  <p className="text-[#6b7280] font-mono text-xs mt-1">
+                    {result.questionCount} questions · Mastery {result.masteryScore.toFixed(2)} / 4.00
+                  </p>
                 </div>
 
-                <motion.div
-                  variants={staggerList}
-                  initial="hidden"
-                  animate="show"
-                  className="space-y-2 mb-5"
-                >
-                  {[
-                    { correct: result.q1Correct, label: "Question 1" },
-                    { correct: result.q2Correct, label: "Question 2" },
-                  ].map(({ correct, label }) => (
-                    <motion.div
-                      key={label}
-                      variants={fadeSlideUp}
-                      className={`flex items-center gap-2 font-mono text-sm ${correct ? "text-[#22c55e]" : "text-[#ef4444]"}`}
-                    >
-                      <span>{correct ? "✓" : "✗"}</span>
-                      <span>{label}</span>
-                    </motion.div>
-                  ))}
-                </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                  <div className="border border-[#1a2030] rounded px-3 py-3">
+                    <p className="text-[#6b7280] font-mono text-xs">Recommendation Band</p>
+                    <p className={`font-mono text-sm mt-1 ${recommendationColor(result.recommendationBand)}`}>
+                      {result.recommendationBand.toUpperCase()}
+                    </p>
+                    <p className="text-[#9ca3af] font-mono text-xs mt-1">
+                      {recommendationText(result.recommendationBand)}
+                    </p>
+                  </div>
+                  <div className="border border-[#1a2030] rounded px-3 py-3">
+                    <p className="text-[#6b7280] font-mono text-xs">Confidence</p>
+                    <p className="font-mono text-sm mt-1 text-[#e5e7eb]">
+                      {result.lowConfidence ? "Lower confidence estimate" : "Stable estimate"}
+                    </p>
+                    <p className="text-[#9ca3af] font-mono text-xs mt-1">
+                      Uncertainty: {result.uncertainty.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
 
-                {result.passed ? (
-                  <motion.button
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.45 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="bsc-btn-gold w-full py-3"
-                    onClick={() => router.push("/hq")}
-                  >
-                    Next Mission →
-                  </motion.button>
-                ) : (
-                  <motion.button
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="bsc-btn-ghost w-full py-3"
-                    onClick={handleRetry}
-                  >
-                    Try Again
-                  </motion.button>
+                {result.objectiveBreakdown.length > 0 && (
+                  <div className="border border-[#1a2030] rounded px-3 py-3 mb-4">
+                    <p className="text-[#6b7280] font-mono text-xs mb-2">Objective Breakdown</p>
+                    <div className="space-y-1">
+                      {result.objectiveBreakdown.slice(0, 4).map((item) => (
+                        <p key={item.objectiveId} className="text-[#9ca3af] font-mono text-xs">
+                          {item.objectiveId}: {item.correctCount}/{item.askedCount} correct · {item.missRate}% miss
+                        </p>
+                      ))}
+                    </div>
+                  </div>
                 )}
+
+                {result.misconceptionsTop.length > 0 && (
+                  <div className="border border-[#1a2030] rounded px-3 py-3 mb-4">
+                    <p className="text-[#6b7280] font-mono text-xs mb-2">Top Misconceptions</p>
+                    <div className="space-y-1">
+                      {result.misconceptionsTop.slice(0, 3).map((row) => (
+                        <p key={row.tag} className="text-[#9ca3af] font-mono text-xs">
+                          {row.tag}: {row.count}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <button className="bsc-btn-gold w-full py-3" onClick={() => router.push("/hq")}>
+                    Continue to HQ →
+                  </button>
+                  <button className="bsc-btn-ghost w-full py-3" onClick={startRetake}>
+                    Retake Adaptive Check
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* ── FAR RIGHT: Glossary sidebar ──────────────────────────────────── */}
         <div className="w-56 flex-shrink-0 hidden xl:block">
           <div className="bsc-card sticky top-[80px] max-h-[80vh] overflow-y-auto">
             <button
@@ -418,7 +469,7 @@ function CatalogContent() {
                   className="px-4 py-3"
                 >
                   <p className="text-[#6b7280] font-mono text-xs leading-relaxed">
-                    30 terms across Cap Rules, Contracts, Trades, and Analytics.
+                    30 terms across cap rules, contracts, trades, and analytics.
                   </p>
                   <button
                     onClick={() => setGlossaryOpen(true)}
@@ -430,27 +481,26 @@ function CatalogContent() {
               ) : (
                 <motion.div
                   key="open"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.28 }}
-                  className="overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="px-3 py-2"
                 >
-                  <div className="px-4 py-3 space-y-4">
-                    {GLOSSARY_TERMS.map((group) => (
-                      <div key={group.group}>
-                        <p className="text-[#c9a84c] font-mono text-[10px] font-bold mb-2 tracking-widest uppercase">
-                          {group.group}
-                        </p>
-                        {group.terms.map((t) => (
-                          <div key={t.term} className="mb-2">
-                            <p className="font-mono text-xs text-[#e5e7eb] font-semibold">{t.term}</p>
-                            <p className="font-mono text-[10px] text-[#6b7280] leading-relaxed">{t.def}</p>
+                  {GLOSSARY_TERMS.map((group) => (
+                    <div key={group.group} className="mb-3">
+                      <p className="font-mono text-[10px] text-[#c9a84c] tracking-widest uppercase mb-1">
+                        {group.group}
+                      </p>
+                      <div className="space-y-1">
+                        {group.terms.slice(0, 4).map((term) => (
+                          <div key={term.id} className="border border-[#1a2030] rounded px-2 py-1">
+                            <p className="text-[#e5e7eb] font-mono text-[11px]">{term.term}</p>
+                            <p className="text-[#6b7280] font-mono text-[10px] leading-snug">{term.def}</p>
                           </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -463,11 +513,7 @@ function CatalogContent() {
 
 export default function CatalogPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading concept…</p>
-      </div>
-    }>
+    <Suspense fallback={<div className="text-[#6b7280] font-mono text-sm p-6">Loading...</div>}>
       <CatalogContent />
     </Suspense>
   );

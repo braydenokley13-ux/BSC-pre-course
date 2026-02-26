@@ -19,13 +19,17 @@ export async function GET(req: NextRequest) {
       medianVoteLatencySeconds: null,
       decisionInsights: [],
       conceptInsights: [],
+      classConceptMastery: [],
+      teamConceptMastery: [],
+      objectiveWeakness: [],
+      decisionVsMastery: [],
       focusRecommendations: {
         heavyConcepts: [],
         mediumConcepts: [],
         lightConcepts: [],
       },
       missionBottlenecks: [],
-      totals: { students: 0, votes: 0 },
+      totals: { students: 0, votes: 0, adaptiveAssessments: 0 },
     });
   }
 
