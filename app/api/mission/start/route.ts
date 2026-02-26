@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStudentFromRequest } from "@/lib/getStudent";
-import { getMissionById, isLegacyMission, Mission } from "@/lib/missions";
+import { getMissionById, isLegacyMission, Mission, MissionRound, RoundOption } from "@/lib/missions";
 import { getUnlockedMissions } from "@/lib/missionGraph";
 
 interface MissionRoundState {
@@ -99,10 +99,46 @@ export async function POST(req: NextRequest) {
     ? richMission.roles.find((r) => r.id === roleAssignments[student.id]) ?? null
     : null;
 
+  // ── Apply status-driven mutations and scenario injections ────────────────
+  const teamStatus: string[] = JSON.parse(team.teamStatus ?? "[]");
+
+  // 1. Scenario injections — prepend matching context to the scenario
+  let scenario = richMission.scenario;
+  if (richMission.scenarioInjections) {
+    const injections = richMission.scenarioInjections
+      .filter((inj) => teamStatus.includes(inj.requiredStatus))
+      .map((inj) => inj.prependText);
+    if (injections.length > 0) {
+      scenario = injections.join("") + scenario;
+    }
+  }
+
+  // 2. Option mutations — patch labels/descriptions based on active statuses
+  function applyMutations(round: MissionRound): MissionRound {
+    const patchedOptions: RoundOption[] = round.options
+      .map((opt) => {
+        if (!opt.mutations) return opt;
+        let patched = { ...opt };
+        for (const mut of opt.mutations) {
+          if (teamStatus.includes(mut.ifStatus)) {
+            if (mut.blocksThis) return null; // will be filtered
+            if (mut.labelSuffix) patched = { ...patched, label: patched.label + mut.labelSuffix };
+            if (mut.descriptionPrefix) patched = { ...patched, description: mut.descriptionPrefix + patched.description };
+          }
+        }
+        return patched;
+      })
+      .filter(Boolean) as RoundOption[];
+    return { ...round, options: patchedOptions };
+  }
+
+  const patchedFirstRound = applyMutations(firstRound);
+
   return NextResponse.json({
     ok: true,
     missionId,
-    currentRound: firstRound,
+    scenario,
+    currentRound: patchedFirstRound,
     roleAssignments,
     myRole,
     roles: richMission.roles,

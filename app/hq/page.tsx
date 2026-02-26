@@ -1,224 +1,529 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { BranchState, MissionNode } from "@/lib/missions";
-import { GAME_SITUATION_COUNT } from "@/lib/missions";
+import { motion, AnimatePresence } from "framer-motion";
+import { ROOM_LAYOUT, RoomMeta } from "@/lib/missionGraph";
+import { STATUS_EFFECTS } from "@/lib/statusEffects";
 
-interface MemberInfo {
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface TeamInfo {
   id: string;
-  nickname: string;
-  active: boolean;
+  name: string;
+  score: number;
+  completedMissions: string[];
+  teamStatus: string[];
+  completedAt: string | null;
 }
-
+interface MeInfo { id: string; nickname: string; role: string | null }
+interface MissionRoundState { missionId?: string; isResolved?: boolean }
 interface TeamStateResponse {
-  team: {
-    id: string;
-    name: string;
-    score: number;
-    missionIndex: number;
-    branchState: BranchState;
-    badges: string[];
-    completedAt: string | null;
-  };
-  me: {
-    id: string;
-    nickname: string;
-  };
-  members: MemberInfo[];
-  activeCount: number;
-  currentMission: MissionNode | null;
-  elapsedSeconds: number;
+  team: TeamInfo;
+  me: MeInfo;
+  unlockedMissions: string[];
+  completedMissions: string[];
+  teamStatus: string[];
+  missionRoundState: MissionRoundState;
+  gameComplete: boolean;
 }
 
-function formatElapsed(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
+type RoomStatus = "completed" | "active" | "unlocked" | "locked";
+
+function getRoomStatus(room: RoomMeta, completed: string[], unlocked: string[]): RoomStatus {
+  if (completed.includes(room.missionId)) return "completed";
+  if (unlocked.includes(room.missionId)) return "unlocked";
+  return "locked";
 }
 
-function toMeterPercent(value: number): number {
-  const normalized = ((value + 8) / 16) * 100;
-  return Math.max(0, Math.min(100, normalized));
+// ── SVG room coordinates for 900×580 viewBox ─────────────────────────────────
+// Layout: Cap Room center top, tier-2 row, tier-3 row, Owner's Suite bottom
+const ROOM_SVG: Record<string, { x: number; y: number; w: number; h: number; label: string; sub: string }> = {
+  "cap-crunch":      { x: 330, y: 28,  w: 240, h: 72, label: "CAP ROOM",       sub: "SALARY CAP DEPT" },
+  "contract-choice": { x: 48,  y: 160, w: 200, h: 70, label: "CONTRACT OFFICE", sub: "CONTRACT DEPT"   },
+  "revenue-mix":     { x: 350, y: 160, w: 200, h: 70, label: "REVENUE HUB",    sub: "PARTNERSHIP OFFICE" },
+  "stats-lineup":    { x: 652, y: 160, w: 200, h: 70, label: "ANALYTICS LAB",  sub: "ANALYTICS DEPT"  },
+  "expense-pressure":{ x: 48,  y: 300, w: 200, h: 70, label: "TRADE DESK",     sub: "TRADE OPERATIONS" },
+  "matchup-adjust":  { x: 350, y: 300, w: 200, h: 70, label: "MEDICAL BAY",    sub: "MEDICAL DEPT"    },
+  "draft-table":     { x: 652, y: 300, w: 200, h: 70, label: "DRAFT WAR ROOM", sub: "SCOUTING DEPT"   },
+  "final-gm-call":   { x: 330, y: 440, w: 240, h: 72, label: "OWNER'S SUITE",  sub: "OWNERSHIP"       },
+};
+
+// Corridor paths (SVG path d attributes) connecting rooms
+const CORRIDORS = [
+  // Cap Room → Contract
+  "M 450 100 L 450 130 L 148 130 L 148 160",
+  // Cap Room → Revenue
+  "M 450 100 L 450 160",
+  // Cap Room → Stats
+  "M 450 100 L 450 130 L 752 130 L 752 160",
+  // Contract → Expense
+  "M 148 230 L 148 300",
+  // Revenue → Matchup
+  "M 450 230 L 450 300",
+  // Stats → Draft
+  "M 752 230 L 752 300",
+  // Contract → Matchup (cross)
+  "M 248 195 L 350 195",
+  // Revenue → Draft (cross)
+  "M 550 195 L 652 195",
+  // Expense → Owner's Suite
+  "M 148 370 L 148 420 L 330 420 L 330 440",
+  // Matchup → Owner's Suite
+  "M 450 370 L 450 440",
+  // Draft → Owner's Suite
+  "M 752 370 L 752 420 L 570 420 L 570 440",
+];
+
+// Status pill component
+function StatusPill({ id, positive }: { id: string; positive: boolean }) {
+  const effect = STATUS_EFFECTS[id];
+  if (!effect) return null;
+  return (
+    <motion.span
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+      className={`inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border ${
+        positive
+          ? "bg-[#c9a84c]/12 text-[#c9a84c] border-[#c9a84c]/28"
+          : "bg-[#ef4444]/10 text-[#ef4444]/80 border-[#ef4444]/22"
+      }`}
+      title={effect.description}
+    >
+      <span className="text-[11px]">{effect.icon}</span>
+      <span className="tracking-wider uppercase">{effect.label}</span>
+    </motion.span>
+  );
 }
 
-function formatSigned(value: number): string {
-  return `${value > 0 ? "+" : ""}${value}`;
+// Animated score counter
+function ScoreCounter({ value }: { value: number }) {
+  const [display, setDisplay] = useState(0);
+  const prev = useRef(0);
+
+  useEffect(() => {
+    const diff = value - prev.current;
+    if (diff === 0) return;
+    const steps = Math.min(Math.abs(diff), 20);
+    const step = diff / steps;
+    let current = prev.current;
+    let count = 0;
+    const interval = setInterval(() => {
+      current += step;
+      count++;
+      setDisplay(Math.round(current));
+      if (count >= steps) {
+        setDisplay(value);
+        prev.current = value;
+        clearInterval(interval);
+      }
+    }, 30);
+    return () => clearInterval(interval);
+  }, [value]);
+
+  return <>{display}</>;
 }
 
+// Individual SVG room
+function SVGRoom({
+  missionId,
+  status,
+  isAvatar,
+  onClick,
+}: {
+  missionId: string;
+  status: RoomStatus;
+  isAvatar: boolean;
+  onClick: () => void;
+}) {
+  const r = ROOM_SVG[missionId];
+  if (!r) return null;
+
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2;
+
+  const strokeColor = {
+    completed: "#22c55e",
+    unlocked:  "#c9a84c",
+    active:    "#c9a84c",
+    locked:    "#1a2030",
+  }[status];
+
+  const fillColor = {
+    completed: "rgba(34,197,94,0.06)",
+    unlocked:  "rgba(201,168,76,0.05)",
+    active:    "rgba(201,168,76,0.08)",
+    locked:    "rgba(10,12,18,0.6)",
+  }[status];
+
+  const glowId = `glow-${missionId.replace(/-/g, "")}`;
+
+  return (
+    <g
+      onClick={status !== "locked" ? onClick : undefined}
+      style={{ cursor: status !== "locked" ? "pointer" : "not-allowed" }}
+      opacity={status === "locked" ? 0.35 : 1}
+    >
+      {/* Glow filter def */}
+      <defs>
+        <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation={status === "unlocked" ? "4" : status === "completed" ? "3" : "0"} result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {/* Room rectangle */}
+      <rect
+        x={r.x} y={r.y} width={r.w} height={r.h}
+        rx="8" ry="8"
+        fill={fillColor}
+        stroke={strokeColor}
+        strokeWidth={status === "locked" ? 1 : status === "completed" || status === "unlocked" ? 1.5 : 2}
+        filter={status !== "locked" && status !== "active" ? `url(#${glowId})` : undefined}
+      />
+
+      {/* Grid blueprint lines inside the room */}
+      <line x1={r.x + 12} y1={cy} x2={r.x + r.w - 12} y2={cy}
+        stroke={strokeColor} strokeWidth="0.4" strokeDasharray="3 4" opacity="0.3" />
+      <line x1={cx} y1={r.y + 8} x2={cx} y2={r.y + r.h - 8}
+        stroke={strokeColor} strokeWidth="0.4" strokeDasharray="3 4" opacity="0.3" />
+
+      {/* Status corner indicator */}
+      {status === "completed" && (
+        <text x={r.x + r.w - 14} y={r.y + 16} fill="#22c55e" fontSize="11" fontFamily="monospace" textAnchor="middle">✓</text>
+      )}
+      {status === "locked" && (
+        <text x={r.x + r.w - 14} y={r.y + 16} fill="#1a2030" fontSize="10" fontFamily="monospace" textAnchor="middle">⬡</text>
+      )}
+      {status === "unlocked" && (
+        <text x={r.x + r.w - 12} y={r.y + 16} fill="#c9a84c" fontSize="9" fontFamily="monospace" textAnchor="middle">▶</text>
+      )}
+
+      {/* Department label */}
+      <text x={cx} y={r.y + 20} textAnchor="middle"
+        fill={status === "locked" ? "#2a3245" : "#6b7280"}
+        fontSize="8" fontFamily="monospace" letterSpacing="1.5"
+        style={{ textTransform: "uppercase" }}
+      >
+        {r.sub}
+      </text>
+
+      {/* Room name */}
+      <text x={cx} y={cy + 6} textAnchor="middle"
+        fill={status === "locked" ? "#2a3245" : status === "completed" ? "#22c55e" : "#e5e7eb"}
+        fontSize="13" fontWeight="700" fontFamily="monospace" letterSpacing="0.5"
+      >
+        {r.label}
+      </text>
+
+      {/* Tagline or status */}
+      <text x={cx} y={r.y + r.h - 12} textAnchor="middle"
+        fill={status === "locked" ? "#1a2030" : status === "completed" ? "rgba(34,197,94,0.6)" : "#6b7280"}
+        fontSize="8" fontFamily="monospace"
+      >
+        {status === "completed" ? "CLEARED" : status === "locked" ? "— CLASSIFIED —" : status === "unlocked" ? "ENTER →" : "IN PROGRESS"}
+      </text>
+
+      {/* Avatar dot */}
+      {isAvatar && (
+        <g>
+          <circle cx={r.x + 20} cy={r.y + r.h - 20} r="10"
+            fill="#c9a84c" stroke="rgba(201,168,76,0.4)" strokeWidth="4"
+          />
+          <text x={r.x + 20} y={r.y + r.h - 16} textAnchor="middle"
+            fill="#000" fontSize="7" fontWeight="900" fontFamily="monospace"
+          >GM</text>
+        </g>
+      )}
+    </g>
+  );
+}
+
+// ── Main HQ component ─────────────────────────────────────────────────────────
 export default function HQPage() {
   const router = useRouter();
   const [state, setState] = useState<TeamStateResponse | null>(null);
   const [error, setError] = useState("");
+  const [navigating, setNavigating] = useState<string | null>(null);
+  const [avatarRoom, setAvatarRoom] = useState<string | null>(null);
 
   const fetchState = useCallback(async () => {
     try {
       const res = await fetch("/api/team/state", { credentials: "include" });
-      if (res.status === 401) {
-        router.replace("/join");
-        return;
-      }
-
+      if (res.status === 401) { router.replace("/join"); return; }
       const data: TeamStateResponse = await res.json();
-      if (data.team.completedAt || data.team.missionIndex >= GAME_SITUATION_COUNT) {
+      if (data.team.completedAt || data.gameComplete) {
         router.replace("/complete");
         return;
       }
-
       setState(data);
+      const rsm = data.missionRoundState;
+      if (rsm?.missionId && !rsm.isResolved) {
+        setAvatarRoom(rsm.missionId);
+      }
     } catch {
-      setError("Connection error");
+      setError("Connection error — retrying…");
     }
   }, [router]);
 
   useEffect(() => {
     fetchState();
-    const id = setInterval(fetchState, 5000);
+    const id = setInterval(fetchState, 8000);
     return () => clearInterval(id);
   }, [fetchState]);
 
-  const branchMetrics: Array<{ key: keyof BranchState; label: string }> = useMemo(
-    () => [
-      { key: "capFlex", label: "Cap Flex" },
-      { key: "starPower", label: "Star Power" },
-      { key: "dataTrust", label: "Data Trust" },
-      { key: "culture", label: "Culture" },
-      { key: "riskHeat", label: "Risk Heat" },
-    ],
-    []
-  );
+  function handleRoomClick(missionId: string, status: RoomStatus) {
+    if (status === "locked" || navigating) return;
+    setNavigating(missionId);
+    setAvatarRoom(missionId);
+    // Short delay so avatar movement is visible
+    setTimeout(() => {
+      router.push(`/play?missionId=${missionId}`);
+    }, 400);
+  }
 
-  if (error) {
+  if (error && !state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-[#ef4444] font-mono text-sm">{error}</p>
       </div>
     );
   }
-
   if (!state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading HQ...</p>
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[#c9a84c]/30 border-t-[#c9a84c] rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[#6b7280] font-mono text-xs tracking-widest uppercase">Loading HQ…</p>
+        </div>
       </div>
     );
   }
 
-  const progress = Math.min(state.team.missionIndex, GAME_SITUATION_COUNT);
-  const nextMission = state.currentMission;
+  const { team, me, unlockedMissions, completedMissions, teamStatus } = state;
+  const totalRooms = ROOM_LAYOUT.length;
+  const completedCount = completedMissions.length;
+  const progressPct = (completedCount / totalRooms) * 100;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
-      <div className="bsc-broadcast-shell p-5">
-        <div className="bsc-score-grid mb-4">
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Team</p>
-            <p className="bsc-score-value">{state.team.name}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Progress</p>
-            <p className="bsc-score-value">{progress}/{GAME_SITUATION_COUNT}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Score</p>
-            <p className="bsc-score-value">{state.team.score}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Elapsed</p>
-            <p className="bsc-score-value">{formatElapsed(state.elapsedSeconds)}</p>
-          </div>
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      {/* ── Top bar ─────────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-start justify-between mb-5 gap-4 flex-wrap"
+      >
+        <div>
+          <p className="text-[#6b7280] font-mono text-[10px] tracking-widest uppercase mb-0.5">
+            General Manager
+          </p>
+          <h1 className="text-[#c9a84c] font-mono text-2xl font-bold tracking-wider"
+            style={{ textShadow: "0 0 20px rgba(201,168,76,0.3)" }}
+          >
+            {team.name}
+          </h1>
+          <p className="text-[#6b7280] font-mono text-xs mt-1">
+            Welcome back,{" "}
+            <span className="text-[#e5e7eb]">{me.nickname}</span>
+            {me.role && (
+              <span className="ml-2 text-[#c9a84c]">— {me.role.toUpperCase()}</span>
+            )}
+          </p>
         </div>
 
-        <div className="bsc-live-ticker mb-5">
-          <span className="bsc-live-label">Live Desk</span>
-          <div className="min-w-0 overflow-hidden">
-            <span className="ticker-text bsc-live-track">
-              Review your team status, then enter the next situation when your group is ready.
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-5">
-          <div className="space-y-4">
-            <div className="bsc-card p-5">
-              <p className="bsc-section-title mb-2">Mission Control</p>
-              <p className="text-[#c9a84c] font-mono text-lg font-bold mb-1">
-                {nextMission ? nextMission.title : "All situations complete"}
-              </p>
-              <p className="font-mono text-xs text-[#6b7280]">
-                {nextMission
-                  ? "Continue into the next decision round."
-                  : "Your team has no remaining situations."}
-              </p>
-              <button
-                className="bsc-btn-gold mt-4"
-                onClick={() => router.push(nextMission ? "/play" : "/complete")}
-              >
-                {nextMission ? "Enter Next Situation ->" : "Open Completion Page ->"}
-              </button>
-            </div>
-
-            <div className="bsc-card p-5">
-              <p className="bsc-section-title mb-2">Team Roster</p>
-              <div className="flex flex-wrap gap-2">
-                {state.members.map((member) => (
-                  <span
-                    key={member.id}
-                    className={`font-mono text-xs px-2 py-0.5 rounded border ${
-                      member.active
-                        ? "border-[#22c55e]/40 text-[#22c55e]"
-                        : "border-[#1e2435] text-[#6b7280]"
-                    }`}
-                  >
-                    {member.nickname}
-                    {member.id === state.me.id ? " *" : ""}
-                  </span>
-                ))}
+        <div className="flex items-center gap-6">
+          {/* Score ring */}
+          <div className="text-center">
+            <p className="text-[#6b7280] font-mono text-[9px] uppercase tracking-widest mb-1">Score</p>
+            <div className="relative w-14 h-14">
+              <svg viewBox="0 0 56 56" className="w-14 h-14 -rotate-90">
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#1a2030" strokeWidth="4" />
+                <motion.circle
+                  cx="28" cy="28" r="22" fill="none"
+                  stroke="#c9a84c" strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 22}`}
+                  initial={{ strokeDashoffset: 2 * Math.PI * 22 }}
+                  animate={{ strokeDashoffset: 2 * Math.PI * 22 * (1 - Math.min(team.score / 80, 1)) }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[#c9a84c] font-mono text-sm font-bold">
+                  <ScoreCounter value={team.score} />
+                </span>
               </div>
-              <p className="text-[#6b7280] font-mono text-xs mt-3">
-                {state.activeCount}/{state.members.length} active now
-              </p>
-            </div>
-
-            <div className="bsc-card p-5">
-              <p className="bsc-section-title mb-2">Badges</p>
-              {state.team.badges.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {state.team.badges.map((badgeId) => (
-                    <span key={badgeId} className="bsc-badge-gold text-xs">
-                      {badgeId}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[#6b7280] font-mono text-xs">No concept badges yet.</p>
-              )}
             </div>
           </div>
 
-          <div className="bsc-card p-5">
-            <p className="bsc-section-title">Decision Signals</p>
-            <div className="bsc-metric-list">
-              {branchMetrics.map((metric) => {
-                const value = state.team.branchState[metric.key];
-                return (
-                  <div key={metric.key} className="bsc-metric-row">
-                    <div className="bsc-metric-head">
-                      <span className="bsc-metric-name">{metric.label}</span>
-                      <span className="bsc-metric-value">{formatSigned(value)}</span>
-                    </div>
-                    <div className="bsc-metric-bar">
-                      <div
-                        className="bsc-metric-fill"
-                        style={{ width: `${toMeterPercent(value)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="text-right">
+            <p className="text-[#6b7280] font-mono text-[9px] uppercase tracking-widest mb-1">Progress</p>
+            <p className="text-[#e5e7eb] font-mono text-xl font-bold">
+              {completedCount}<span className="text-[#6b7280] text-sm">/{totalRooms}</span>
+            </p>
+            <p className="text-[#6b7280] font-mono text-[9px] uppercase tracking-widest">Missions</p>
           </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* ── Progress bar ─────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.15, duration: 0.4 }}
+        className="mb-5"
+      >
+        <div className="flex justify-between text-[9px] font-mono text-[#6b7280] tracking-widest uppercase mb-1.5">
+          <span>Floor Progress</span>
+          <span>{completedCount} of {totalRooms} departments cleared</span>
+        </div>
+        <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{
+              background: "linear-gradient(90deg, #8a6d2e 0%, #c9a84c 50%, #e8c56a 100%)",
+              boxShadow: "0 0 8px rgba(201,168,76,0.5)",
+            }}
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPct}%` }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+          />
+        </div>
+      </motion.div>
+
+      {/* ── Status effects ───────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {teamStatus.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex flex-wrap gap-2 mb-5"
+          >
+            {teamStatus.map((sid) => (
+              <StatusPill
+                key={sid}
+                id={sid}
+                positive={STATUS_EFFECTS[sid]?.positive ?? false}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── SVG Arena Floor Blueprint ────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.25, duration: 0.5 }}
+        className="glass-card p-4 mb-4 overflow-hidden relative"
+      >
+        {/* Blueprint grid background */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: "linear-gradient(#c9a84c 1px, transparent 1px), linear-gradient(90deg, #c9a84c 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+
+        <p className="text-[9px] font-mono text-[#6b7280] tracking-widest uppercase mb-3 relative z-10">
+          ◈ Arena HQ — Front Office Floor Map
+          {unlockedMissions.length > 0 && (
+            <span className="ml-3 text-[#c9a84c]">
+              {unlockedMissions.length} room{unlockedMissions.length > 1 ? "s" : ""} unlocked
+            </span>
+          )}
+        </p>
+
+        <svg
+          viewBox="0 0 900 528"
+          className="w-full relative z-10"
+          style={{ maxHeight: "480px" }}
+        >
+          {/* Corridor lines */}
+          {CORRIDORS.map((d, i) => (
+            <path
+              key={i}
+              d={d}
+              fill="none"
+              stroke="#1a2030"
+              strokeWidth="1.5"
+              strokeDasharray="6 4"
+              className="svg-corridor"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            />
+          ))}
+
+          {/* Rooms */}
+          {ROOM_LAYOUT.map((room) => {
+            const status = getRoomStatus(room, completedMissions, unlockedMissions);
+            return (
+              <SVGRoom
+                key={room.missionId}
+                missionId={room.missionId}
+                status={status}
+                isAvatar={avatarRoom === room.missionId}
+                onClick={() => handleRoomClick(room.missionId, status)}
+              />
+            );
+          })}
+
+          {/* Floor label */}
+          <text x="450" y="516" textAnchor="middle"
+            fill="#2a3245" fontSize="8" fontFamily="monospace" letterSpacing="2"
+          >
+            FRONT OFFICE — LEVEL 1
+          </text>
+        </svg>
+
+        {/* Navigation overlay during room entry */}
+        <AnimatePresence>
+          {navigating && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-[#020408]/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-xl"
+            >
+              <div className="text-center">
+                <div className="w-8 h-8 border-2 border-[#c9a84c]/30 border-t-[#c9a84c] rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">
+                  Entering {ROOM_SVG[navigating]?.label ?? "room"}…
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* ── Legend ──────────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="flex items-center justify-center gap-6 text-[9px] font-mono text-[#6b7280] tracking-wider"
+      >
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded border border-[#22c55e] bg-[rgba(34,197,94,0.06)] inline-block" />
+          Cleared
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded border border-[#c9a84c] bg-[rgba(201,168,76,0.05)] inline-block" />
+          Unlocked
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded border border-[#1a2030] bg-[rgba(10,12,18,0.6)] opacity-40 inline-block" />
+          Locked
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#c9a84c] inline-block" />
+          You (GM)
+        </span>
+      </motion.div>
+
+      <p className="text-center text-[#2a3245] font-mono text-[9px] tracking-widest uppercase mt-4">
+        Auto-refreshes every 8s · Rooms unlock as prerequisites clear
+      </p>
     </div>
   );
 }

@@ -1,569 +1,955 @@
 "use client";
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import type { BranchState, MissionNode } from "@/lib/missions";
-import { GAME_SITUATION_COUNT } from "@/lib/missions";
-import { GLOSSARY_TERMS, getAllGlossaryTerms } from "@/lib/concepts";
-import { GlossaryPanel } from "@/components/GlossaryPanel";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
+import { STATUS_EFFECTS } from "@/lib/statusEffects";
+import { CONCEPT_CARDS } from "@/lib/concepts";
 
-type Phase = "scenario" | "waiting" | "runoff" | "reveal" | "done";
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-interface VoteEntry { studentId: string; optionIndex: number }
-interface Member { id: string; nickname: string; active: boolean }
-interface RunoffInfo { optionIndexes: number[]; endsAt: string }
+type MissionPhase =
+  | "loading"
+  | "briefing"
+  | "voting"
+  | "waiting"
+  | "rival-alert"
+  | "rival-voting"
+  | "rival-waiting"
+  | "outcome"
+  | "error";
 
-interface TeamState {
-  team: {
-    id: string;
-    name: string;
-    missionIndex: number;
-    currentNodeId: string;
-    branchState: BranchState;
-    badges: string[];
-    score: number;
-    completedAt: string | null;
-  };
-  me: { id: string; nickname: string };
-  members: Member[];
+interface MemberInfo { id: string; nickname: string; active: boolean; role: string | null }
+interface MissionRoundState {
+  missionId?: string;
+  currentRoundId?: string;
+  completedRounds?: Array<{ roundId: string; winningOptionId: string; winningTags: string[] }>;
+  allTags?: string[];
+  rivalFired?: boolean;
+  isResolved?: boolean;
+}
+interface TeamStateResponse {
+  team: { id: string; name: string; score: number };
+  me: { id: string; nickname: string; role: string | null };
+  members: MemberInfo[];
   activeCount: number;
-  currentMission: MissionNode | null;
-  runoff: RunoffInfo | null;
-  elapsedSeconds: number;
-  votes: VoteEntry[];
-  myVote: number | null;
+  missionRoundState: MissionRoundState;
+  votes: Array<{ studentId: string; optionIndex: number }>;
 }
 
-interface ResolveRunoffResult {
-  requiresRunoff: true;
-  runoffOptions: number[];
-  runoffEndsAt: string;
-}
-
-interface ResolveOutcomeResult {
-  outcome: number;
+interface ResolveResult {
+  roundId: string;
+  winningOptionId: string;
+  winningTags: string[];
   tally: number[];
-  narrative: string;
-  scoreΔ: number;
-  conceptId: string;
-  missionId: string;
+  rivalFired: boolean;
+  rivalMessage?: string;
+  rivalResponseRound?: MissionRound;
+  nextRoundId?: string | null;
+  nextRound?: MissionRound;
   isComplete: boolean;
-  nextNodeId: string | null;
-  tieBreakMethod?: "majority" | "random-after-runoff";
+  outcome?: {
+    label: string;
+    narrative: string;
+    scoreΔ: number;
+    applyStatus: string[];
+    newTeamStatus: string[];
+  };
+  conceptId?: string;
+  missionId?: string;
+  isGameComplete?: boolean;
 }
 
-type ResolveResult = ResolveRunoffResult | ResolveOutcomeResult;
+// ── Framer Motion variants ─────────────────────────────────────────────────────
 
-function formatElapsed(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
+const staggerContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+
+const slideFromRight: Variants = {
+  hidden: { opacity: 0, x: 32 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.28, ease: "easeOut" as const } },
+};
+
+const scalePopIn: Variants = {
+  hidden: { scale: 0, opacity: 0 },
+  show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 320, damping: 16 } },
+};
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function RoleTag({ title }: { title: string }) {
+  return (
+    <span className="inline-flex items-center text-[10px] font-mono px-2 py-0.5 rounded border tracking-widest uppercase bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/30">
+      {title}
+    </span>
+  );
 }
 
-function isRunoffResult(input: ResolveResult): input is ResolveRunoffResult {
-  return (input as ResolveRunoffResult).requiresRunoff === true;
+function InfoCardReveal({
+  title,
+  content,
+  delay,
+  isRoleRestricted,
+}: {
+  title: string;
+  content: string;
+  delay: number;
+  isRoleRestricted?: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), delay * 1000);
+    return () => clearTimeout(t);
+  }, [delay]);
+
+  return (
+    <AnimatePresence mode="wait">
+      {!visible ? (
+        <motion.div
+          key="pending"
+          initial={{ opacity: 0.3 }}
+          animate={{ opacity: [0.3, 0.5, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+          exit={{ opacity: 0, transition: { duration: 0.15 } }}
+          className="bsc-card p-3 border-dashed"
+        >
+          <div className="flex items-center gap-2">
+            <motion.div
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+              className="w-1.5 h-1.5 rounded-full bg-[#c9a84c]/50"
+            />
+            <p className="font-mono text-xs text-[#6b7280]">Incoming briefing…</p>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="revealed"
+          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className={`bsc-card p-4 ${isRoleRestricted ? "role-card-active border-[#c9a84c]/30" : ""}`}
+        >
+          {isRoleRestricted && (
+            <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">
+              ◈ Role-Restricted — Your Eyes Only
+            </p>
+          )}
+          <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">{title}</p>
+          <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{content}</p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
 
-function toMeterPercent(value: number): number {
-  const normalized = ((value + 8) / 16) * 100;
-  return Math.max(0, Math.min(100, normalized));
+// ── Pulsing dots ───────────────────────────────────────────────────────────────
+
+function PulsingDots({ color = "#c9a84c" }: { color?: string }) {
+  return (
+    <div className="flex items-center justify-center gap-1">
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: color }}
+          animate={{ scale: [1, 1.6, 1], opacity: [0.4, 1, 0.4] }}
+          transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2, ease: "easeInOut" }}
+        />
+      ))}
+    </div>
+  );
 }
 
-function formatSigned(value: number): string {
-  return `${value > 0 ? "+" : ""}${value}`;
-}
+// ── Main inner component ───────────────────────────────────────────────────────
 
-export default function PlayPage() {
+function PlayInner() {
   const router = useRouter();
-  const [state, setState] = useState<TeamState | null>(null);
-  const [phase, setPhase] = useState<Phase>("scenario");
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [resolveResult, setResolveResult] = useState<ResolveOutcomeResult | null>(null);
+  const params = useSearchParams();
+  const missionId = params.get("missionId") ?? "";
+
+  const mission = missionId ? getMissionById(missionId) : null;
+  const isLegacy = mission ? isLegacyMission(mission) : false;
+
+  const [phase, setPhase] = useState<MissionPhase>("loading");
+  const [teamState, setTeamState] = useState<TeamStateResponse | null>(null);
+  const [currentRound, setCurrentRound] = useState<MissionRound | null>(null);
+  const [selectedOptionIdx, setSelectedOptionIdx] = useState<number | null>(null);
+  const [resolveResult, setResolveResult] = useState<ResolveResult | null>(null);
+  const [rivalMessage, setRivalMessage] = useState<string>("");
+  const [rivalRound, setRivalRound] = useState<MissionRound | null>(null);
   const [resolving, setResolving] = useState(false);
   const [error, setError] = useState("");
-  const [selectedGlossaryTermId, setSelectedGlossaryTermId] = useState<string | null>(null);
+  const missionStarted = useRef(false);
   const resolvedRef = useRef<string>("");
 
-  const glossaryTermsById = useMemo(() => {
-    return new Map(getAllGlossaryTerms().map((term) => [term.id, term]));
-  }, []);
+  useEffect(() => {
+    if (!missionId) { router.replace("/hq"); return; }
+    if (mission && isLegacy) { router.replace("/hq"); return; }
+  }, [missionId, mission, isLegacy, router]);
+
+  const startMission = useCallback(async () => {
+    if (missionStarted.current) return;
+    missionStarted.current = true;
+    try {
+      const res = await fetch("/api/mission/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId }),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        setError(err.error ?? "Failed to start mission");
+        setPhase("error");
+        return;
+      }
+      const data = (await res.json()) as { currentRound: MissionRound };
+      setCurrentRound(data.currentRound);
+      setPhase("briefing");
+    } catch {
+      missionStarted.current = false;
+      setError("Network error starting mission");
+      setPhase("error");
+    }
+  }, [missionId]);
 
   const fetchState = useCallback(async () => {
+    if (!missionId) return;
     try {
       const res = await fetch("/api/team/state", { credentials: "include" });
-      if (res.status === 401) {
-        router.replace("/join");
+      if (res.status === 401) { router.replace("/join"); return; }
+      const data: TeamStateResponse = await res.json();
+      setTeamState(data);
+
+      const rsm = data.missionRoundState;
+
+      if (rsm?.missionId !== missionId && !missionStarted.current) {
+        await startMission();
         return;
       }
 
-      const data: TeamState = await res.json();
-      setState(data);
+      if (rsm?.isResolved && rsm?.missionId === missionId) return;
 
-      if (data.team?.completedAt) {
-        router.replace("/complete");
-        return;
-      }
-
-      const activeIds = data.members.filter((m) => m.active).map((m) => m.id);
-      const votedIds = data.votes.map((v) => v.studentId);
-      const allActiveVoted = activeIds.length > 0 && activeIds.every((id) => votedIds.includes(id));
-      const runoffEndsAtMs = data.runoff ? new Date(data.runoff.endsAt).getTime() : 0;
-      const runoffActive = !!data.runoff && runoffEndsAtMs > Date.now();
-      const runoffExpired = !!data.runoff && runoffEndsAtMs <= Date.now();
-
-      if (data.myVote !== null && phase !== "waiting" && phase !== "reveal") {
-        setPhase("waiting");
-        setSelectedOption(data.myVote);
-      }
-
-      if (runoffActive && phase !== "reveal" && data.myVote === null) {
-        setPhase("runoff");
-      }
-
-      if (!runoffActive && phase === "runoff" && data.myVote === null) {
-        setPhase("scenario");
-      }
-
-      const inVotingPhase = phase === "scenario" || phase === "waiting" || phase === "runoff";
-      const shouldResolve = allActiveVoted || runoffExpired;
-
-      if (inVotingPhase && shouldResolve && !resolving && data.currentMission) {
-        const key = `${data.team.missionIndex}-${data.currentMission.id}-${data.votes.length}-${runoffActive}`;
-        if (resolvedRef.current !== key) {
-          resolvedRef.current = key;
-          handleResolve();
+      if (phase === "waiting" || phase === "rival-waiting") {
+        const roundId =
+          phase === "rival-waiting" ? "rival-response" : (rsm?.currentRoundId ?? "");
+        const votedIds = data.votes.map((v) => v.studentId);
+        const activeIds = data.members.filter((m) => m.active).map((m) => m.id);
+        const allVoted =
+          activeIds.length > 0 && activeIds.every((id) => votedIds.includes(id));
+        if (allVoted && !resolving) {
+          const key = `${missionId}-${roundId}`;
+          if (resolvedRef.current !== key) {
+            resolvedRef.current = key;
+            await handleResolveRound(roundId);
+          }
         }
       }
     } catch {
-      setError("Connection issue. Try refreshing.");
+      // silent
     }
-  }, [phase, resolving, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionId, phase, resolving, startMission, router]);
 
   useEffect(() => {
-    fetchState();
-    const id = setInterval(fetchState, 5000);
+    void fetchState();
+    const id = setInterval(() => void fetchState(), 4000);
     return () => clearInterval(id);
   }, [fetchState]);
 
-  async function handleVote(optionIndex: number) {
-    setSelectedOption(optionIndex);
+  async function handleVote(optionIdx: number) {
+    if (!currentRound) return;
+    setSelectedOptionIdx(optionIdx);
     setPhase("waiting");
-
-    const res = await fetch("/api/vote", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ optionIndex }),
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: "Vote failed" }));
-      setError(data.error ?? "Vote failed");
-      setPhase("scenario");
-      return;
-    }
-
-    fetchState();
-  }
-
-  async function handleResolve() {
-    if (resolving) return;
-    setResolving(true);
-
     try {
-      const res = await fetch("/api/mission/resolve", {
+      const res = await fetch("/api/mission/vote-round", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId, roundId: currentRound.id, optionIndex: optionIdx }),
         credentials: "include",
       });
-
-      const data: ResolveResult = await res.json();
-      if (!res.ok) {
-        setError("Could not finish this vote yet.");
-        return;
-      }
-
-      if (isRunoffResult(data)) {
-        setResolveResult(null);
-        setSelectedOption(null);
-        setPhase("runoff");
-        await fetchState();
-        return;
-      }
-
-      setResolveResult(data);
-      setPhase("reveal");
+      if (!res.ok) throw new Error("Vote failed");
     } catch {
-      setError("Could not resolve votes. Refresh and try again.");
+      setPhase("voting");
+      setSelectedOptionIdx(null);
+    }
+  }
+
+  async function handleRivalVote(optionIdx: number) {
+    setSelectedOptionIdx(optionIdx);
+    setPhase("rival-waiting");
+    try {
+      const res = await fetch("/api/mission/vote-round", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId, roundId: "rival-response", optionIndex: optionIdx }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Vote failed");
+    } catch {
+      setPhase("rival-voting");
+      setSelectedOptionIdx(null);
+    }
+  }
+
+  async function handleResolveRound(roundId: string) {
+    if (resolving) return;
+    setResolving(true);
+    try {
+      const res = await fetch("/api/mission/resolve-round", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId, roundId }),
+        credentials: "include",
+      });
+      const data: ResolveResult = await res.json();
+      setResolveResult(data);
+
+      if (data.rivalFired && data.rivalResponseRound) {
+        setRivalMessage(data.rivalMessage ?? "");
+        setRivalRound(data.rivalResponseRound);
+        setSelectedOptionIdx(null);
+        setPhase("rival-alert");
+        return;
+      }
+      if (data.isComplete) { setPhase("outcome"); return; }
+      if (data.nextRound) {
+        setCurrentRound(data.nextRound);
+        setSelectedOptionIdx(null);
+        setPhase("voting");
+      }
+    } catch {
+      setError("Failed to resolve round — try refreshing");
+      setPhase("error");
     } finally {
       setResolving(false);
     }
   }
 
   function handleContinue() {
-    if (!resolveResult) return;
-    if (resolveResult.isComplete) {
-      router.push("/complete");
-      return;
-    }
-    router.push(`/catalog?concept=${resolveResult.conceptId}`);
+    if (resolveResult?.isGameComplete) { router.push("/complete"); return; }
+    if (resolveResult?.conceptId) { router.push(`/catalog?concept=${resolveResult.conceptId}`); return; }
+    router.push("/hq");
   }
 
-  function renderTermChips(termIds: string[]) {
-    if (!termIds.length) return null;
-    return (
-      <div className="mt-3 flex flex-wrap gap-2">
-        {termIds.map((termId) => {
-          const term = glossaryTermsById.get(termId);
-          if (!term) return null;
-          const selected = selectedGlossaryTermId === termId;
-          return (
-            <button
-              key={termId}
-              type="button"
-              className={`px-2 py-1 rounded border font-mono text-[11px] transition-colors ${
-                selected
-                  ? "border-[#c9a84c] bg-[#c9a84c]/15 text-[#f3e6b0]"
-                  : "border-[#1e2435] text-[#9ca3af] hover:border-[#c9a84c]/40"
-              }`}
-              onClick={() => setSelectedGlossaryTermId(termId)}
-              title={term.def}
-            >
-              {term.term}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
+  // ── Guards ─────────────────────────────────────────────────────────────────
 
-  if (error) {
+  if (!missionId || !mission || isLegacy) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#ef4444] font-mono text-sm">{error}</p>
+        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Redirecting…</p>
       </div>
     );
   }
 
-  if (!state || !state.currentMission) {
+  if (phase === "error") {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading situation...</p>
+        <div className="text-center space-y-4">
+          <p className="text-[#ef4444] font-mono text-sm">{error}</p>
+          <button className="bsc-btn-ghost" onClick={() => router.push("/hq")}>← Back to HQ</button>
+        </div>
       </div>
     );
   }
 
-  const mission = state.currentMission;
-  const myVotedOption = state.myVote;
-  const runoffActive = !!state.runoff && new Date(state.runoff.endsAt).getTime() > Date.now();
-  const runoffRemaining = runoffActive ? Math.max(0, Math.ceil((new Date(state.runoff!.endsAt).getTime() - Date.now()) / 1000)) : 0;
-  const runoffOptions = runoffActive ? state.runoff!.optionIndexes : null;
-  const highlightedTerms =
-    selectedOption !== null && mission.options[selectedOption]
-      ? [...mission.termIds, ...mission.options[selectedOption].termIds]
-      : mission.termIds;
-  const phaseLabel =
-    phase === "scenario"
-      ? "Voting"
-      : phase === "waiting"
-      ? "Waiting"
-      : phase === "runoff"
-      ? "Runoff"
-      : phase === "reveal"
-      ? "Reveal"
-      : "Done";
-  const phaseStatusClass =
-    phase === "runoff"
-      ? "bsc-status-warning"
-      : phase === "reveal"
-      ? "bsc-status-success"
-      : "bsc-status-normal";
-  const phaseTicker =
-    phase === "scenario"
-      ? `${mission.title}. Pick one option with your team before reveal.`
-      : phase === "waiting"
-      ? `Votes incoming: ${state.votes.length}/${state.activeCount} submitted. Waiting for teammates.`
-      : phase === "runoff"
-      ? `Runoff live for ${mission.title}. Choose between tied options only.`
-      : phase === "reveal"
-      ? `Outcome locked for ${mission.title}. Review the result and open the concept card.`
-      : "Round complete.";
-  const branchMetrics: Array<{ key: keyof BranchState; label: string }> = [
-    { key: "capFlex", label: "Cap Flex" },
-    { key: "starPower", label: "Star Power" },
-    { key: "dataTrust", label: "Data Trust" },
-    { key: "culture", label: "Culture" },
-    { key: "riskHeat", label: "Risk Heat" },
-  ];
+  if (phase === "loading" || !teamState) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-3">
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+            transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+            className="text-[#c9a84c] font-mono text-3xl"
+          >
+            ◈
+          </motion.div>
+          <p className="text-[#6b7280] font-mono text-sm">Entering the building…</p>
+        </div>
+      </div>
+    );
+  }
+
+  const richMission = mission as Mission;
+  const { me, members, activeCount } = teamState;
+  const myRole = richMission.roles.find((r) => r.id === me.role) ?? null;
+  const myInfoCards = richMission.infoCards.filter(
+    (c) => !c.roleOnly || c.roleOnly === me.role
+  );
+  const conceptTitle =
+    CONCEPT_CARDS.find((c) => c.id === richMission.conceptId)?.title ?? richMission.conceptId;
+
+  // Vote tally for current active round
+  const activeRound = (phase === "rival-voting" || phase === "rival-waiting") ? rivalRound : currentRound;
+  const voteTally = activeRound
+    ? activeRound.options.map((_, i) => teamState.votes.filter((v) => v.optionIndex === i).length)
+    : [];
+  const totalVotes = teamState.votes.length;
+  const votePct = (count: number) => totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+
+  const votedIds = teamState.votes.map((v) => v.studentId);
+  const activeIds = members.filter((m) => m.active).map((m) => m.id);
+  const votedCount = activeIds.filter((id) => votedIds.includes(id)).length;
+  const canReveal = votedCount >= activeCount && activeCount > 0;
+
+  // Stable phase key so voting→waiting doesn't re-animate options
+  const phaseKey =
+    phase === "waiting" ? "voting"
+    : phase === "rival-waiting" ? "rival-voting"
+    : phase;
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 animate-fade-in">
-      <div className="bsc-broadcast-shell p-4 md:p-5">
-        <div className="bsc-score-grid mb-4">
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Team</p>
-            <p className="bsc-score-value">{state.team.name}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Situation</p>
-            <p className="bsc-score-value">
-              {mission.step}/{GAME_SITUATION_COUNT}
-            </p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Time</p>
-            <p className="bsc-score-value">{formatElapsed(state.elapsedSeconds)}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Score</p>
-            <p className="bsc-score-value">{state.team.score}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <span className={phaseStatusClass}>{phaseLabel}</span>
-          <span className="text-[#c9a84c] font-mono text-xs md:text-sm font-semibold">
-            {mission.title}
-          </span>
-        </div>
-
-        <div className="bsc-live-ticker mb-5">
-          <span className="bsc-live-label">Live Desk</span>
-          <div className="min-w-0 overflow-hidden">
-            <span className="ticker-text bsc-live-track">{phaseTicker}</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5">
-          <div className="min-w-0">
-            <div className="bsc-card p-4 mb-4">
-              <div className="flex items-center gap-2 flex-wrap">
-                {state.members.map((m) => (
-                  <span
-                    key={m.id}
-                    className={`font-mono text-xs px-2 py-0.5 rounded border ${
-                      m.id === state.me.id
-                        ? "border-[#c9a84c] text-[#c9a84c]"
-                        : m.active
-                        ? "border-[#22c55e]/40 text-[#22c55e]"
-                        : "border-[#1e2435] text-[#6b7280]"
-                    }`}
-                  >
-                    {m.nickname}
-                    {m.id === state.me.id && " *"}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-          {selectedGlossaryTermId && glossaryTermsById.get(selectedGlossaryTermId) && (
-            <div className="bsc-card p-3 mb-4 border-[#c9a84c]/40">
-              <p className="font-mono text-xs text-[#c9a84c] font-bold mb-1">
-                {glossaryTermsById.get(selectedGlossaryTermId)?.term}
-              </p>
-              <p className="font-mono text-xs text-[#e5e7eb]">
-                {glossaryTermsById.get(selectedGlossaryTermId)?.def}
-              </p>
-            </div>
-          )}
-
-          <div className="bsc-card p-5 mb-5">
-            <p className="bsc-section-title">Situation</p>
-            <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{mission.scenario}</p>
-            {renderTermChips(mission.termIds)}
-          </div>
-
-          {phase !== "reveal" && (
-            <div className="bsc-card p-5">
-              <p className="bsc-section-title mb-3">
-                {phase === "scenario" && "Pick one option. Votes stay hidden until reveal."}
-                {phase === "waiting" && "Waiting for teammates to finish voting..."}
-                {phase === "runoff" && "Runoff vote: choose between tied options only."}
-              </p>
-
-              <div className="grid grid-cols-1 gap-3">
-                {mission.options.map((opt, i) => {
-                  const isSelected = myVotedOption === i || selectedOption === i;
-                  const isRunoffChoice = !runoffOptions || runoffOptions.includes(i);
-                  const canVote = (phase === "scenario" || phase === "runoff") && isRunoffChoice;
-                  return (
-                    <button
-                      key={i}
-                      className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${
-                        phase === "waiting" ? "cursor-default" : ""
-                      } ${runoffOptions && !isRunoffChoice ? "opacity-40" : ""}`}
-                      onClick={() => canVote && handleVote(i)}
-                      disabled={phase === "waiting" || phase === "done" || !canVote}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span
-                          className={`flex-shrink-0 w-6 h-6 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${
-                            isSelected
-                              ? "border-[#c9a84c] bg-[#c9a84c] text-black"
-                              : "border-[#1e2435] text-[#6b7280]"
-                          }`}
-                        >
-                          {String.fromCharCode(65 + i)}
-                        </span>
-                        <div>
-                          <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
-                          <p className="font-mono text-xs text-[#6b7280] mt-0.5">{opt.note}</p>
-                          {renderTermChips(opt.termIds)}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {phase === "waiting" && (
-                <div className="mt-4 text-center">
-                  <p className="text-[#6b7280] font-mono text-xs animate-pulse">
-                    {state.votes.length}/{state.activeCount} votes in
-                    {runoffActive ? " (runoff round)" : ""}...
-                  </p>
-                  {runoffActive && (
-                    <p className="text-[#c9a84c] font-mono text-xs mt-1">Runoff timer: {runoffRemaining}s</p>
-                  )}
-                  {state.votes.length >= state.activeCount && (
-                    <button className="bsc-btn-gold mt-3" onClick={handleResolve} disabled={resolving}>
-                      {resolving ? "Resolving..." : "Reveal Results ->"}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {phase === "runoff" && runoffActive && (
-                <div className="mt-4 text-center">
-                  <p className="text-[#6b7280] font-mono text-xs">
-                    Tied options: {state.runoff?.optionIndexes.map((i) => String.fromCharCode(65 + i)).join(", ")}
-                  </p>
-                  <p className="text-[#c9a84c] font-mono text-xs mt-1">Runoff ends in {runoffRemaining}s</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {phase === "reveal" && resolveResult && (
-            <div className="animate-fade-in bsc-card p-5">
-              <p className="bsc-section-title mb-3">Vote Results</p>
-              <div className="grid grid-cols-1 gap-3 mb-5">
-                {mission.options.map((opt, i) => {
-                  const isWinner = i === resolveResult.outcome;
-                  const voteCount = resolveResult.tally[i] ?? 0;
-                  const total = resolveResult.tally.reduce((a, b) => a + b, 0);
-                  const pct = total > 0 ? Math.round((voteCount / total) * 100) : 0;
-                  return (
-                    <div key={i} className={`mission-option ${isWinner ? "winning" : "losing"}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`w-6 h-6 rounded border font-mono text-xs flex items-center justify-center ${
-                              isWinner
-                                ? "border-[#22c55e] bg-[#22c55e] text-black"
-                                : "border-[#1e2435] text-[#6b7280]"
-                            }`}
-                          >
-                            {String.fromCharCode(65 + i)}
-                          </span>
-                          <span className="font-mono text-sm text-[#e5e7eb]">{opt.label}</span>
-                        </div>
-                        <span className={`font-mono text-xs ${isWinner ? "text-[#22c55e] font-bold" : "text-[#6b7280]"}`}>
-                          {voteCount} vote{voteCount !== 1 ? "s" : ""} ({pct}%)
-                        </span>
-                      </div>
-                      <div className="h-1 bg-[#1e2435] rounded overflow-hidden">
-                        <div
-                          className={`h-full rounded transition-all duration-500 ${isWinner ? "bg-[#22c55e]" : "bg-[#6b7280]/40"}`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="bsc-card p-5 mb-5 border-[#22c55e]/40">
-                <p className="bsc-section-title text-[#22c55e] mb-2">Outcome</p>
-                <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{resolveResult.narrative}</p>
-                <div className="mt-3 flex items-center gap-2 flex-wrap">
-                  <span className="bsc-badge-green">+{resolveResult.scoreΔ} pts</span>
-                  {resolveResult.tieBreakMethod === "random-after-runoff" && (
-                    <span className="text-[#f59e0b] font-mono text-xs">Runoff tie broke by random draw.</span>
-                  )}
-                  <span className="text-[#6b7280] font-mono text-xs">Concept card unlocked</span>
-                </div>
-              </div>
-
-              <button className="bsc-btn-gold w-full py-3" onClick={handleContinue}>
-                Open Concept Card
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={phaseKey}
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -18 }}
+        transition={{ duration: 0.32, ease: "easeOut" }}
+        className="max-w-3xl mx-auto px-4 py-6"
+      >
+        {/* ── BRIEFING ─────────────────────────────────────────────────────── */}
+        {phase === "briefing" && (
+          <div>
+            {/* Breadcrumb */}
+            <motion.div
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center gap-3 mb-5"
+            >
+              <button
+                className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb] transition-colors"
+                onClick={() => router.push("/hq")}
+              >
+                ← HQ
               </button>
+              <span className="text-[#1a2030]">|</span>
+              <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.department}</span>
+              <span className="text-[#1a2030]">|</span>
+              <span className="text-[#e5e7eb] font-mono text-sm font-bold">{richMission.title}</span>
+            </motion.div>
+
+            {/* Scenario */}
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="bsc-card p-5 mb-4 spotlight"
+            >
+              <p className="bsc-section-title">Situation</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{richMission.scenario}</p>
+            </motion.div>
+
+            {/* Role card — flip reveal */}
+            {myRole && (
+              <motion.div
+                initial={{ opacity: 0, rotateX: 80, transformPerspective: 800 }}
+                animate={{ opacity: 1, rotateX: 0 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 180, damping: 22 }}
+                className="bsc-card p-4 mb-4 role-card-active border-[#c9a84c]/30"
+              >
+                <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-2">Your Role</p>
+                <p className="font-mono text-sm font-bold text-[#e5e7eb] mb-1">{myRole.title}</p>
+                <p className="font-mono text-xs text-[#6b7280] mb-3">{myRole.description}</p>
+                <div className="border-t border-[#c9a84c]/20 pt-3">
+                  <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">◈ Private Intelligence</p>
+                  <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{myRole.privateInfo}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Team roster pills */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.28 }}
+              className="flex flex-wrap gap-2 mb-4"
+            >
+              {members.map((m, i) => (
+                <motion.span
+                  key={m.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.32 + i * 0.06 }}
+                  className={`font-mono text-[10px] px-2 py-0.5 rounded border ${
+                    m.id === me.id
+                      ? "border-[#c9a84c] text-[#c9a84c]"
+                      : m.active
+                      ? "border-[#22c55e]/30 text-[#22c55e]"
+                      : "border-[#1a2030] text-[#6b7280]"
+                  }`}
+                >
+                  {m.nickname}
+                  {m.role && <span className="opacity-60 ml-1">({m.role})</span>}
+                  {m.id === me.id && " ●"}
+                </motion.span>
+              ))}
+            </motion.div>
+
+            {/* Info cards */}
+            <div className="space-y-3 mb-5">
+              {myInfoCards.map((card) => (
+                <InfoCardReveal
+                  key={card.title}
+                  title={card.title}
+                  content={card.content}
+                  delay={card.revealDelay}
+                  isRoleRestricted={!!card.roleOnly}
+                />
+              ))}
             </div>
-          )}
 
+            {/* CTA */}
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              className="bsc-btn-gold w-full py-3"
+              onClick={() => { if (currentRound) setPhase("voting"); }}
+              disabled={!currentRound}
+            >
+              {currentRound ? "I've Read the Briefing — Begin Voting →" : "Preparing mission…"}
+            </motion.button>
           </div>
+        )}
 
-          <div className="space-y-4">
-            <div className="bsc-card p-4">
-              <p className="bsc-section-title">Decision Signals</p>
-              <div className="bsc-metric-list">
-                {branchMetrics.map((metric) => {
-                  const value = state.team.branchState[metric.key];
-                  const percent = toMeterPercent(value);
-                  return (
-                    <div key={metric.key} className="bsc-metric-row">
-                      <div className="bsc-metric-head">
-                        <span className="bsc-metric-name">{metric.label}</span>
-                        <span className="bsc-metric-value">{formatSigned(value)}</span>
-                      </div>
-                      <div className="bsc-metric-bar">
-                        <div className="bsc-metric-fill" style={{ width: `${percent}%` }} />
+        {/* ── VOTING / WAITING ──────────────────────────────────────────────── */}
+        {(phase === "voting" || phase === "waiting") && currentRound && (
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb] transition-colors"
+                  onClick={() => setPhase("briefing")}
+                >
+                  ← Briefing
+                </button>
+                <span className="text-[#1a2030]">|</span>
+                <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {myRole && <RoleTag title={myRole.title} />}
+                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+              </div>
+            </div>
+
+            {/* Decision prompt */}
+            <div className="bsc-card p-5 mb-5 spotlight">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[#c9a84c] font-mono text-[10px] tracking-widest">⚡ DECISION POINT</span>
+                <div className="flex-1 h-px bg-[#c9a84c]/20" />
+              </div>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{currentRound.prompt}</p>
+              {currentRound.context && (
+                <p className="font-mono text-xs text-[#6b7280] mt-3 leading-relaxed border-t border-[#1a2030] pt-3">
+                  {currentRound.context}
+                </p>
+              )}
+            </div>
+
+            {/* Option cards — staggered from right */}
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="space-y-3 mb-5"
+            >
+              {currentRound.options.map((opt, i) => {
+                const isSelected = selectedOptionIdx === i;
+                const isOther = selectedOptionIdx !== null && !isSelected;
+                const disabled = phase === "waiting";
+                const thisVotes = voteTally[i] ?? 0;
+                const thisPct = votePct(thisVotes);
+
+                return (
+                  <motion.button
+                    key={opt.id}
+                    variants={slideFromRight}
+                    animate={{ opacity: isOther ? 0.32 : 1, scale: isSelected ? 1.015 : 1 }}
+                    whileHover={!disabled ? { scale: isSelected ? 1.015 : 1.02 } : {}}
+                    whileTap={!disabled ? { scale: 0.985 } : {}}
+                    transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
+                    className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${disabled && !isSelected ? "cursor-default" : ""}`}
+                    onClick={() => !disabled && void handleVote(i)}
+                    disabled={disabled}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5 transition-colors duration-150 ${
+                          isSelected
+                            ? "border-[#c9a84c] bg-[#c9a84c] text-black font-bold"
+                            : "border-[#1a2030] text-[#6b7280]"
+                        }`}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-sm text-[#e5e7eb] leading-snug">{opt.label}</p>
+                        <p className="font-mono text-xs text-[#6b7280] mt-1 leading-relaxed">{opt.description}</p>
+                        {opt.requiresStatus && (
+                          <p className="font-mono text-[10px] text-[#c9a84c] mt-1">
+                            Requires: {STATUS_EFFECTS[opt.requiresStatus]?.label ?? opt.requiresStatus}
+                          </p>
+                        )}
+                        {/* Live tally bar */}
+                        {(phase === "waiting" || thisVotes > 0) && (
+                          <div className="mt-2.5">
+                            <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
+                              <motion.div
+                                className={`h-full rounded-full ${isSelected ? "bg-[#c9a84c]" : "bg-[#2a3050]"}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${thisPct}%` }}
+                                transition={{ type: "spring", stiffness: 110, damping: 22 }}
+                              />
+                            </div>
+                            <p className="font-mono text-[10px] text-[#6b7280] mt-1">
+                              {thisVotes} vote{thisVotes !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
 
-            <div className="bsc-card p-4">
-              <p className="bsc-section-title">Team Pulse</p>
-              <div className="space-y-2 font-mono text-xs text-[#9ca3af]">
-                <div className="flex items-center justify-between">
-                  <span>Active Members</span>
-                  <span className="text-[#e5e7eb]">
-                    {state.activeCount}/{state.members.length}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Votes In</span>
-                  <span className="text-[#e5e7eb]">
-                    {state.votes.length}/{Math.max(state.activeCount, 1)}
-                  </span>
-                </div>
-                {runoffActive && (
-                  <div className="flex items-center justify-between">
-                    <span>Runoff Timer</span>
-                    <span className="text-[#c9a84c]">{runoffRemaining}s</span>
-                  </div>
+            {/* Waiting state */}
+            {phase === "waiting" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center space-y-3"
+              >
+                <PulsingDots />
+                <p className="text-[#6b7280] font-mono text-xs">
+                  {votedCount}/{activeCount} votes in — waiting for teammates…
+                </p>
+                {canReveal && (
+                  <motion.button
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="bsc-btn-gold px-8 py-2"
+                    onClick={() => void handleResolveRound(currentRound.id)}
+                    disabled={resolving}
+                  >
+                    {resolving ? "Counting votes…" : "Reveal Results →"}
+                  </motion.button>
                 )}
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* ── RIVAL ALERT ───────────────────────────────────────────────────── */}
+        {phase === "rival-alert" && (
+          <div>
+            <motion.div
+              initial={{ y: -40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              className="ticker-bar mb-5"
+            >
+              <span className="ticker-text">⚡ BREAKING — LEAGUE DEVELOPMENT ALERT &nbsp;&nbsp;&nbsp; ⚡ BREAKING — LEAGUE DEVELOPMENT ALERT</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.18, type: "spring", stiffness: 200, damping: 20 }}
+              className="bsc-card p-6 mb-5 border-[#ef4444]/40"
+              style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(239,68,68,0.06) 0%, transparent 70%)" }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <motion.span
+                  animate={{ opacity: [1, 0.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.1 }}
+                  className="w-2 h-2 rounded-full bg-[#ef4444]"
+                />
+                <p className="text-[10px] font-mono tracking-widest uppercase text-[#ef4444]">Rival Move Detected</p>
               </div>
-              <div className="mt-3 flex items-center gap-2 flex-wrap">
-                <span className={state.activeCount > 0 ? "bsc-status-success" : "bsc-status-warning"}>
-                  Live Team
-                </span>
-                <span className="bsc-status-normal">Vote Sync 5s</span>
-              </div>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalMessage}</p>
+            </motion.div>
+
+            {rivalRound && (
+              <motion.button
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bsc-btn-gold w-full py-3"
+                onClick={() => {
+                  setCurrentRound(rivalRound);
+                  setSelectedOptionIdx(null);
+                  setPhase("rival-voting");
+                }}
+              >
+                Respond →
+              </motion.button>
+            )}
+          </div>
+        )}
+
+        {/* ── RIVAL VOTING / WAITING ────────────────────────────────────────── */}
+        {(phase === "rival-voting" || phase === "rival-waiting") && rivalRound && (
+          <div>
+            <motion.div
+              initial={{ y: -24, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="ticker-bar mb-5"
+            >
+              <span className="ticker-text">RIVAL RESPONSE REQUIRED — FRONT OFFICE DECISION PENDING</span>
+            </motion.div>
+
+            <div className="flex items-center justify-between mb-5">
+              <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
+              <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
             </div>
 
-            <div className="sticky top-6">
-              <GlossaryPanel
-                groups={GLOSSARY_TERMS}
-                highlightedTermIds={highlightedTerms}
-                title={undefined}
-                onTermSelect={(id) => setSelectedGlossaryTermId(id)}
-              />
+            <div className="bsc-card p-5 mb-5 border-[#ef4444]/20">
+              <p className="bsc-section-title" style={{ color: "#ef4444" }}>How do you respond?</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalRound.prompt}</p>
             </div>
+
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="space-y-3 mb-5"
+            >
+              {rivalRound.options.map((opt, i) => {
+                const isSelected = selectedOptionIdx === i;
+                const isOther = selectedOptionIdx !== null && !isSelected;
+                const disabled = phase === "rival-waiting";
+                const thisVotes = voteTally[i] ?? 0;
+                const thisPct = votePct(thisVotes);
+
+                return (
+                  <motion.button
+                    key={opt.id}
+                    variants={slideFromRight}
+                    animate={{ opacity: isOther ? 0.32 : 1, scale: isSelected ? 1.015 : 1 }}
+                    whileHover={!disabled ? { scale: 1.02 } : {}}
+                    whileTap={!disabled ? { scale: 0.985 } : {}}
+                    transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
+                    className={`mission-option text-left w-full border-[#ef4444]/20 ${
+                      isSelected ? "border-[#ef4444]/60 bg-[#ef4444]/5" : ""
+                    } ${disabled && !isSelected ? "cursor-default" : ""}`}
+                    onClick={() => !disabled && void handleRivalVote(i)}
+                    disabled={disabled}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${
+                          isSelected
+                            ? "border-[#ef4444] bg-[#ef4444] text-white"
+                            : "border-[#1a2030] text-[#6b7280]"
+                        }`}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
+                        <p className="font-mono text-xs text-[#6b7280] mt-1 leading-relaxed">{opt.description}</p>
+                        {(phase === "rival-waiting" || thisVotes > 0) && (
+                          <div className="mt-2.5">
+                            <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full rounded-full bg-[#ef4444]/50"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${thisPct}%` }}
+                                transition={{ type: "spring", stiffness: 110, damping: 22 }}
+                              />
+                            </div>
+                            <p className="font-mono text-[10px] text-[#6b7280] mt-1">
+                              {thisVotes} vote{thisVotes !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+
+            {phase === "rival-waiting" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center space-y-3"
+              >
+                <PulsingDots color="#ef4444" />
+                <p className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} responses in…</p>
+                {canReveal && (
+                  <motion.button
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="bsc-btn-gold px-8 py-2"
+                    onClick={() => void handleResolveRound("rival-response")}
+                    disabled={resolving}
+                  >
+                    {resolving ? "Processing…" : "Confirm Response →"}
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* ── OUTCOME ───────────────────────────────────────────────────────── */}
+        {phase === "outcome" && resolveResult?.outcome && (
+          <div>
+            {/* Mission complete header */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-3 mb-6"
+            >
+              <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
+              <span className="text-[#1a2030]">|</span>
+              <motion.span
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25 }}
+                className="bsc-badge-green"
+              >
+                Mission Complete
+              </motion.span>
+            </motion.div>
+
+            {/* Score hero */}
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 }}
+              className="bsc-card p-7 mb-4 text-center border-[#22c55e]/25"
+            >
+              <motion.p
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.32, type: "spring", stiffness: 300, damping: 14 }}
+                className={`font-mono text-6xl font-bold mb-2 leading-none ${
+                  resolveResult.outcome.scoreΔ >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"
+                }`}
+              >
+                {resolveResult.outcome.scoreΔ >= 0 ? "+" : ""}{resolveResult.outcome.scoreΔ}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.52 }}
+                className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-4"
+              >
+                Points Earned
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.62 }}
+                className="font-mono text-base font-bold text-[#e5e7eb]"
+              >
+                {resolveResult.outcome.label}
+              </motion.p>
+            </motion.div>
+
+            {/* Narrative */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.78 }}
+              className="bsc-card p-5 mb-4"
+            >
+              <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-2">Outcome</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{resolveResult.outcome.narrative}</p>
+            </motion.div>
+
+            {/* Status badges */}
+            {resolveResult.outcome.applyStatus.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.0 }}
+                className="bsc-card p-4 mb-4"
+              >
+                <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-3">Status Applied</p>
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  className="flex flex-wrap gap-2"
+                >
+                  {resolveResult.outcome.applyStatus.map((sid) => {
+                    const eff = STATUS_EFFECTS[sid];
+                    return eff ? (
+                      <motion.span
+                        key={sid}
+                        variants={scalePopIn}
+                        className={`text-xs font-mono px-3 py-1 rounded border ${
+                          eff.positive
+                            ? "bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/30"
+                            : "bg-[#ef4444]/10 text-[#ef4444]/80 border-[#ef4444]/25"
+                        }`}
+                        title={eff.description}
+                      >
+                        {eff.icon} {eff.label}
+                      </motion.span>
+                    ) : null;
+                  })}
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* Continue actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.18 }}
+              className="space-y-2"
+            >
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bsc-btn-gold w-full py-3"
+                onClick={handleContinue}
+              >
+                {resolveResult.isGameComplete ? "Claim Your Score →" : `Unlock Concept — ${conceptTitle} →`}
+              </motion.button>
+              <button className="bsc-btn-ghost w-full py-2 text-xs" onClick={() => router.push("/hq")}>
+                Return to HQ
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// ── Suspense wrapper ───────────────────────────────────────────────────────────
+
+export default function PlayPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading mission…</p>
       </div>
-    </div>
+    }>
+      <PlayInner />
+    </Suspense>
   );
 }

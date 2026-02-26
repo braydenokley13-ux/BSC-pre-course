@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { GAME_SITUATION_COUNT } from "@/lib/missions";
+import { motion, AnimatePresence } from "framer-motion";
+import { MISSIONS } from "@/lib/missions";
 
 interface TeamData {
   id: string;
@@ -37,15 +38,37 @@ function formatElapsed(s: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-function MissionProgress({ index, total }: { index: number; total: number }) {
+function AnimatedProgressBar({ index, total }: { index: number; total: number }) {
+  const pct = total > 0 ? (index / total) * 100 : 0;
   return (
-    <div className="flex gap-0.5 mt-1">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-1.5 flex-1 rounded-sm ${i < index ? "bg-[#c9a84c]" : "bg-[#1e2435]"}`}
-        />
-      ))}
+    <div className="h-1.5 bg-[#1a2030] rounded-full overflow-hidden mt-1">
+      <motion.div
+        className="h-full bg-[#c9a84c] rounded-full"
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      />
+    </div>
+  );
+}
+
+function StatCard({ label, value, color = "#e5e7eb" }: { label: string; value: number; color?: string }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let frame = 0;
+    const steps = 24;
+    const id = setInterval(() => {
+      frame++;
+      setDisplay(Math.round((value / steps) * frame));
+      if (frame >= steps) clearInterval(id);
+    }, 40);
+    return () => clearInterval(id);
+  }, [value]);
+
+  return (
+    <div className="bsc-card p-4 text-center">
+      <p className="bsc-section-title">{label}</p>
+      <p className="font-mono text-2xl font-bold" style={{ color }}>{display}</p>
     </div>
   );
 }
@@ -102,7 +125,7 @@ export default function TeacherDashboard() {
   }
 
   async function handleArchive() {
-    if (!password || !confirm("Archive this session? (Data stays saved, but the game ends for all teams.)")) return;
+    if (!password || !confirm("Archive this session? (Data is preserved, but the game ends for all teams.)")) return;
     setArchiving(true);
     await fetch("/api/session/archive", {
       method: "POST",
@@ -118,112 +141,144 @@ export default function TeacherDashboard() {
   }
 
   if (!feed) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading dashboard...</p></div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          className="text-[#c9a84c] font-mono text-2xl"
+        >
+          ◈
+        </motion.div>
+      </div>
+    );
   }
+
+  const inProgress = feed.teams.filter((t) => !t.isComplete && t.activeMembers > 0).length;
+  const stuck = feed.teams.filter((t) => t.isStuck).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="bsc-broadcast-shell p-4 md:p-5">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <div>
-            <h1 className="text-[#c9a84c] font-mono text-xl font-bold">{feed.title}</h1>
-            <p className="text-[#6b7280] font-mono text-xs mt-0.5">
-              {feed.completedTeams}/{feed.totalTeams} teams complete · Updates every 5s
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("summary")}>
-              Export Summary CSV
-            </button>
-            <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("detail")}>
-              Export Detail CSV
-            </button>
-            <button className="bsc-btn-ghost text-xs text-[#ef4444] border-[#ef4444]/40 hover:border-[#ef4444]" onClick={handleArchive} disabled={archiving}>
-              {archiving ? "Archiving..." : "Archive Session"}
-            </button>
-          </div>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between mb-6"
+      >
+        <div>
+          <h1 className="text-[#c9a84c] font-mono text-xl font-bold">{feed.title}</h1>
+          <p className="text-[#6b7280] font-mono text-xs mt-0.5">
+            {feed.completedTeams}/{feed.totalTeams} teams complete · Refreshes every 5s
+          </p>
         </div>
-
-        <div className="bsc-score-grid mb-4">
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Teams</p>
-            <p className="bsc-score-value">{feed.totalTeams}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Completed</p>
-            <p className="bsc-score-value text-[#22c55e]">{feed.completedTeams}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">In Progress</p>
-            <p className="bsc-score-value">
-              {feed.teams.filter((t) => !t.isComplete && t.activeMembers > 0).length}
-            </p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Stuck</p>
-            <p className="bsc-score-value text-[#ef4444]">
-              {feed.teams.filter((t) => t.isStuck).length}
-            </p>
-          </div>
+        <div className="flex items-center gap-3">
+          <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("summary")}>Export Summary</button>
+          <button className="bsc-btn-ghost text-xs" onClick={() => downloadExport("detail")}>Export Detail</button>
+          <button
+            className="bsc-btn-ghost text-xs text-[#ef4444] border-[#ef4444]/40 hover:border-[#ef4444]"
+            onClick={handleArchive}
+            disabled={archiving}
+          >
+            {archiving ? "Archiving…" : "Archive Session"}
+          </button>
         </div>
+      </motion.div>
 
-        <div className="bsc-live-ticker mb-5">
-          <span className="bsc-live-label">Live Desk</span>
-          <div className="min-w-0 overflow-hidden">
-            <span className="ticker-text bsc-live-track">
-              Monitor team progress, watch stuck groups, and export class results.
-            </span>
-          </div>
-        </div>
+      {/* Stats row */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <StatCard label="Teams" value={feed.totalTeams} />
+        <StatCard label="Completed" value={feed.completedTeams} color="#22c55e" />
+        <StatCard label="In Progress" value={inProgress} color="#c9a84c" />
+        <StatCard label="Stuck" value={stuck} color="#ef4444" />
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {feed.teams.map((team) => (
-            <div
+      {/* Team cards */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+      >
+        <AnimatePresence>
+          {feed.teams.map((team, i) => (
+            <motion.div
               key={team.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
               className={`bsc-card p-5 border-2 transition-colors ${
                 team.isComplete
                   ? "border-[#22c55e]/40"
                   : team.isStuck
-                  ? "border-[#ef4444]/60"
-                  : "border-[#1e2435]"
+                  ? "border-[#ef4444]/50"
+                  : "border-[#1a2030]"
               }`}
+              style={
+                team.isStuck
+                  ? { boxShadow: "0 0 16px rgba(239,68,68,0.12)" }
+                  : team.isComplete
+                  ? { boxShadow: "0 0 12px rgba(34,197,94,0.08)" }
+                  : {}
+              }
             >
+              {/* Team header */}
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <span className="text-[#e5e7eb] font-mono font-bold">{team.name}</span>
                   <span className="text-[#6b7280] font-mono text-xs ml-2">{team.joinCode}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {team.isComplete && <span className="bsc-status-success">Done</span>}
-                  {team.isStuck && <span className="bsc-status-stuck">Stuck</span>}
-                  {!team.isComplete && !team.isStuck && <span className="bsc-status-normal">Live</span>}
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-mono text-xs text-[#6b7280]">
-                    {team.isComplete ? "Complete" : `Situation ${team.missionIndex + 1}: ${team.missionTitle}`}
-                  </span>
-                  <span className="font-mono text-xs text-[#6b7280]">{formatElapsed(team.elapsedSeconds)}</span>
-                </div>
-                <MissionProgress index={team.missionIndex} total={GAME_SITUATION_COUNT} />
-              </div>
-
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex flex-wrap gap-1">
-                  {team.badgeCount > 0 ? (
-                    Array.from({ length: team.badgeCount }).map((_, i) => (
-                      <span key={i} className="bsc-badge-gold text-xs">★</span>
-                    ))
-                  ) : (
-                    <span className="text-[#6b7280] font-mono text-xs">No badges yet</span>
+                  {team.isComplete && <span className="bsc-badge-green">Done</span>}
+                  {team.isStuck && (
+                    <motion.span
+                      animate={{ opacity: [1, 0.4, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.4 }}
+                      className="bsc-badge-red"
+                    >
+                      Stuck
+                    </motion.span>
                   )}
+                  <span className="text-[#6b7280] font-mono text-xs">{team.score}pts</span>
                 </div>
-                <span className="text-[#6b7280] font-mono text-xs">{team.score}pts</span>
               </div>
 
-              <div className="border-t border-[#1e2435] pt-3">
+              {/* Mission progress */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="font-mono text-xs text-[#6b7280]">
+                    {team.isComplete ? "Complete" : `${team.missionTitle}`}
+                  </span>
+                  <span className="font-mono text-xs text-[#6b7280]">⏱ {formatElapsed(team.elapsedSeconds)}</span>
+                </div>
+                <AnimatedProgressBar index={team.missionIndex} total={MISSIONS.length} />
+                <div className="flex gap-0.5 mt-1">
+                  {Array.from({ length: MISSIONS.length }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-0.5 flex-1 rounded-sm ${idx < team.missionIndex ? "bg-[#c9a84c]/40" : "bg-[#1a2030]"}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Badges */}
+              <div className="flex flex-wrap gap-1 mb-3">
+                {team.badgeCount > 0 ? (
+                  Array.from({ length: team.badgeCount }).map((_, idx) => (
+                    <motion.span
+                      key={idx}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.1 + idx * 0.05, type: "spring", stiffness: 280, damping: 16 }}
+                      className="bsc-badge-gold text-xs"
+                    >
+                      ★
+                    </motion.span>
+                  ))
+                ) : (
+                  <span className="text-[#6b7280] font-mono text-xs">No badges yet</span>
+                )}
+              </div>
+
+              {/* Members */}
+              <div className="border-t border-[#1a2030] pt-3">
                 <div className="flex flex-wrap gap-1.5">
                   {team.members.map((m) => (
                     <span
@@ -231,25 +286,25 @@ export default function TeacherDashboard() {
                       className={`font-mono text-xs px-1.5 py-0.5 rounded border ${
                         m.active
                           ? "border-[#22c55e]/40 text-[#22c55e]"
-                          : "border-[#1e2435] text-[#6b7280]"
+                          : "border-[#1a2030] text-[#6b7280]"
                       }`}
                     >
                       {m.nickname}
                     </span>
                   ))}
                 </div>
-                <div className="flex items-center gap-3 mt-2 font-mono text-xs text-[#6b7280] flex-wrap">
+                <div className="flex items-center gap-3 mt-2 font-mono text-xs text-[#6b7280]">
                   <span>{team.activeMembers}/{team.totalMembers} active</span>
                   {team.checkPassRate !== null && (
-                    <span>Check rate: {team.checkPassRate}%</span>
+                    <span>Check: {team.checkPassRate}%</span>
                   )}
-                  <span>Codes in: {team.claimCodesSubmitted}</span>
+                  <span>Codes: {team.claimCodesSubmitted}</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </div>
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

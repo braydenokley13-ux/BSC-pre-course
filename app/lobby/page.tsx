@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { GAME_SITUATION_COUNT } from "@/lib/missions";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Member {
   id: string;
@@ -10,45 +10,47 @@ interface Member {
 }
 
 interface TeamState {
-  team: {
-    id: string;
-    name: string;
-    joinCode: string;
-    missionIndex: number;
-    currentNodeId?: string;
-    completedAt: string | null;
-  };
+  team: { id: string; name: string; joinCode: string; missionIndex: number; completedAt: string | null };
   me: { id: string; nickname: string };
   members: Member[];
   activeCount: number;
+  completedMissions?: string[];
+}
+
+function PulsingDot() {
+  return (
+    <motion.span
+      animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+      transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+      className="inline-block w-2 h-2 rounded-full bg-[#22c55e]"
+    />
+  );
 }
 
 export default function LobbyPage() {
   const router = useRouter();
   const [state, setState] = useState<TeamState | null>(null);
   const [error, setError] = useState("");
+  const [prevCount, setPrevCount] = useState(0);
 
   const fetchState = useCallback(async () => {
     try {
       const res = await fetch("/api/team/state", { credentials: "include" });
-      if (res.status === 401) {
-        router.replace("/join");
-        return;
-      }
+      if (res.status === 401) { router.replace("/join"); return; }
       const data = await res.json();
-      if (data.team?.completedAt) {
-        router.replace("/complete");
+      if (data.team?.completedAt) { router.replace("/complete"); return; }
+      if (data.team?.missionIndex > 0 || (data.completedMissions?.length ?? 0) > 0) {
+        router.replace("/hq");
         return;
       }
-      if (data.team?.missionIndex > 0 || data.team?.currentNodeId !== "m1_cap_crunch") {
-        router.replace("/play");
-        return;
+      if (state && data.members.length !== prevCount) {
+        setPrevCount(data.members.length);
       }
       setState(data);
     } catch {
       setError("Connection error");
     }
-  }, [router]);
+  }, [router, state, prevCount]);
 
   useEffect(() => {
     fetchState();
@@ -67,7 +69,13 @@ export default function LobbyPage() {
   if (!state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Connecting to team...</p>
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          className="text-[#c9a84c] font-mono text-2xl"
+        >
+          ◈
+        </motion.div>
       </div>
     );
   }
@@ -75,92 +83,123 @@ export default function LobbyPage() {
   const canStart = state.activeCount >= 1;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
-      <div className="bsc-broadcast-shell p-5 md:p-6">
-        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-          <div>
-            <p className="bsc-section-title mb-1">Team Lobby</p>
-            <h1 className="text-[#c9a84c] font-mono text-3xl font-bold">{state.team.name}</h1>
+    <div className="max-w-lg mx-auto px-4 py-10">
+      {/* Team header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bsc-card p-6 mb-4 text-center"
+      >
+        <p className="bsc-section-title">Your Team</p>
+        <motion.h1
+          initial={{ opacity: 0, letterSpacing: "0.05em" }}
+          animate={{ opacity: 1, letterSpacing: "0.1em" }}
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="text-[#c9a84c] font-mono text-3xl font-bold mb-2"
+        >
+          {state.team.name}
+        </motion.h1>
+        <div className="flex items-center justify-center gap-2 mt-2">
+          <span className="text-[#6b7280] font-mono text-xs">Team Code:</span>
+          <motion.span
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.25 }}
+            className="bsc-badge-gold font-mono tracking-widest text-sm px-3 py-1"
+          >
+            {state.team.joinCode}
+          </motion.span>
+        </div>
+        <p className="text-[#6b7280] font-mono text-xs mt-2">
+          Share this code with your teammates in Zoom chat
+        </p>
+      </motion.div>
+
+      {/* Roster */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bsc-card p-6 mb-4"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <p className="bsc-section-title mb-0">Roster</p>
+          <div className="flex items-center gap-2">
+            <PulsingDot />
+            <span className="text-[#6b7280] font-mono text-xs">{state.members.length} joined</span>
           </div>
-          <div className="bsc-badge-gold text-sm px-3 py-1 tracking-widest">{state.team.joinCode}</div>
         </div>
 
-        <div className="bsc-score-grid mb-4">
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Joined</p>
-            <p className="bsc-score-value">{state.members.length}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Active Now</p>
-            <p className="bsc-score-value">{state.activeCount}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Situations</p>
-            <p className="bsc-score-value">{GAME_SITUATION_COUNT}</p>
-          </div>
-          <div className="bsc-score-tile">
-            <p className="bsc-score-label">Status</p>
-            <p className="bsc-score-value">{canStart ? "Ready" : "Waiting"}</p>
-          </div>
-        </div>
-
-        <div className="bsc-live-ticker mb-4">
-          <span className="bsc-live-label">Live Desk</span>
-          <div className="min-w-0 overflow-hidden">
-            <span className="ticker-text bsc-live-track">
-              Share this code with your teammates in chat. The game starts as soon as your group is ready.
-            </span>
-          </div>
-        </div>
-
-        <div className="bsc-card p-6 mb-4">
-          <p className="bsc-section-title">Roster ({state.members.length} joined)</p>
-          <div className="space-y-2">
-            {state.members.map((m) => (
-              <div
+        <motion.div className="space-y-0">
+          <AnimatePresence initial={false}>
+            {state.members.map((m, i) => (
+              <motion.div
                 key={m.id}
-                className="flex items-center justify-between py-2 border-b border-[#1e2435] last:border-0"
+                initial={{ opacity: 0, x: -16, height: 0 }}
+                animate={{ opacity: 1, x: 0, height: "auto" }}
+                exit={{ opacity: 0, x: 16, height: 0 }}
+                transition={{ duration: 0.25, delay: i * 0.04 }}
+                className="flex items-center justify-between py-2.5 border-b border-[#1a2030] last:border-0"
               >
-                <span className="font-mono text-sm text-[#e5e7eb]">
-                  {m.nickname}
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-sm text-[#e5e7eb]">
+                    {m.nickname}
+                  </span>
                   {m.id === state.me.id && (
-                    <span className="text-[#c9a84c] text-xs ml-2">(you)</span>
+                    <span className="text-[#c9a84c] font-mono text-[10px]">(you)</span>
                   )}
-                </span>
-                <span
-                  className={`w-2 h-2 rounded-full ${m.active ? "bg-[#22c55e] pulse-gold" : "bg-[#6b7280]"}`}
+                </div>
+                <motion.span
+                  animate={m.active ? { scale: [1, 1.3, 1] } : {}}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  className={`w-2 h-2 rounded-full ${m.active ? "bg-[#22c55e]" : "bg-[#1a2030]"}`}
                 />
-              </div>
+              </motion.div>
             ))}
-          </div>
-          {state.members.length < 2 && (
-            <p className="text-[#6b7280] font-mono text-xs mt-3">
-              Waiting for teammates to join...
-            </p>
-          )}
-        </div>
+          </AnimatePresence>
+        </motion.div>
 
-        <div className="bsc-card p-6 text-center">
-          <p className="text-[#e5e7eb] font-mono text-sm mb-4">
-            8 situations. 8 key concepts. Build your team identity.
-          </p>
-          {canStart ? (
-            <button
-              className="bsc-btn-gold w-full py-3"
-              onClick={() => router.push("/play")}
-            >
-              Start the Game
-            </button>
-          ) : (
-            <button className="bsc-btn-ghost w-full py-3 cursor-not-allowed" disabled>
-              Waiting for teammates to join...
-            </button>
-          )}
-          <p className="text-[#6b7280] font-mono text-xs mt-3">
-            {state.activeCount} active now · Updates every 5s
-          </p>
-        </div>
-      </div>
+        {state.members.length < 2 && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-[#6b7280] font-mono text-xs mt-3"
+          >
+            Waiting for teammates to join…
+          </motion.p>
+        )}
+      </motion.div>
+
+      {/* Start section */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.28 }}
+        className="bsc-card p-6 text-center"
+      >
+        <p className="text-[#e5e7eb] font-mono text-sm mb-4">
+          8 missions. 8 concepts. One front office philosophy.
+        </p>
+        {canStart ? (
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="bsc-btn-gold w-full py-3"
+            onClick={() => router.push("/hq")}
+          >
+            Enter Front Office HQ →
+          </motion.button>
+        ) : (
+          <button className="bsc-btn-ghost w-full py-3 cursor-not-allowed opacity-50" disabled>
+            Waiting for teammates to join…
+          </button>
+        )}
+        <p className="text-[#6b7280] font-mono text-xs mt-3">
+          {state.activeCount} active now · Auto-refreshes every 5s
+        </p>
+      </motion.div>
     </div>
   );
 }

@@ -1,12 +1,25 @@
 "use client";
-import { useMemo, useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CONCEPT_CARDS, GLOSSARY_TERMS, getAllGlossaryTerms } from "@/lib/concepts";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { CONCEPT_CARDS, GLOSSARY_TERMS } from "@/lib/concepts";
 import { CONCEPT_CHECKS } from "@/lib/checks";
-import { GlossaryPanel } from "@/components/GlossaryPanel";
 
 type CheckPhase = "card" | "check" | "result";
 interface CheckResult { q1Correct: boolean; q2Correct: boolean; passed: boolean; attemptNum: number }
+
+// ── Stagger variants ───────────────────────────────────────────────────────────
+
+const staggerList: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07 } },
+};
+const fadeSlideUp: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" as const } },
+};
+
+// ── Catalog main content ───────────────────────────────────────────────────────
 
 function CatalogContent() {
   const router = useRouter();
@@ -21,11 +34,17 @@ function CatalogContent() {
   const [q2, setQ2] = useState<number | null>(null);
   const [result, setResult] = useState<CheckResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
 
-  const glossaryTermsById = useMemo(() => {
-    return new Map(getAllGlossaryTerms().map((term) => [term.id, term]));
-  }, []);
+  // Reset state when conceptId changes
+  useEffect(() => {
+    setPhase("card");
+    setQ1(null);
+    setQ2(null);
+    setResult(null);
+    setFeedbackVisible(false);
+  }, [conceptId]);
 
   if (!card || !check) {
     return (
@@ -48,6 +67,7 @@ function CatalogContent() {
       const data: CheckResult = await res.json();
       setResult(data);
       setPhase("result");
+      setFeedbackVisible(true);
     } finally {
       setSubmitting(false);
     }
@@ -57,200 +77,383 @@ function CatalogContent() {
     setQ1(null);
     setQ2(null);
     setResult(null);
+    setFeedbackVisible(false);
     setPhase("check");
   }
 
-  function handleContinue() {
-    router.push("/hq");
-  }
-
-  function renderTermChips(termIds: string[]) {
-    if (!termIds.length) return null;
-    return (
-      <div className="mt-3 flex flex-wrap gap-2">
-        {termIds.map((termId) => {
-          const term = glossaryTermsById.get(termId);
-          if (!term) return null;
-          const selected = selectedTermId === termId;
-          return (
-            <button
-              key={termId}
-              type="button"
-              onClick={() => setSelectedTermId(termId)}
-              className={`px-2 py-1 rounded border font-mono text-[11px] transition-colors ${
-                selected
-                  ? "border-[#c9a84c] bg-[#c9a84c]/15 text-[#f3e6b0]"
-                  : "border-[#1e2435] text-[#9ca3af] hover:border-[#c9a84c]/40"
-              }`}
-              title={term.def}
-            >
-              {term.term}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  const highlightedTerms = [
-    ...card.termIds,
-    ...(check.questions[0].termIds ?? []),
-    ...(check.questions[1].termIds ?? []),
-  ];
-
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
-      <div className="flex gap-6 flex-col lg:flex-row">
-        <div className="flex-1 min-w-0">
-          {selectedTermId && glossaryTermsById.get(selectedTermId) && (
-            <div className="bsc-card p-3 mb-4 border-[#c9a84c]/40">
-              <p className="font-mono text-xs text-[#c9a84c] font-bold mb-1">{glossaryTermsById.get(selectedTermId)?.term}</p>
-              <p className="font-mono text-xs text-[#e5e7eb]">{glossaryTermsById.get(selectedTermId)?.def}</p>
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="flex gap-5">
+        {/* ── LEFT PANEL: Dossier sidebar ──────────────────────────────────── */}
+        <div className="w-56 flex-shrink-0 hidden lg:block">
+          <div className="bsc-card p-0 sticky top-[80px] overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#1a2030]">
+              <p className="font-mono text-[10px] tracking-widest uppercase text-[#c9a84c]">GM Case Files</p>
+              <p className="font-mono text-[9px] text-[#6b7280] mt-0.5">Classified Intelligence</p>
             </div>
-          )}
-
-          {(phase === "card" || phase === "check" || phase === "result") && (
-            <div className="bsc-card p-6 mb-5 border-[#c9a84c]/40">
-              <div className="flex items-center justify-between mb-3">
-                <p className="bsc-section-title text-[#c9a84c]">Concept Unlocked</p>
-                <span className="bsc-badge-gold">New</span>
-              </div>
-              <h2 className="text-[#c9a84c] font-mono text-xl font-bold mb-3">{card.title}</h2>
-              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed mb-4">{card.body}</p>
-              {renderTermChips(card.termIds)}
-              <div className="border-t border-[#1e2435] pt-3 mt-4">
-                <p className="font-mono text-xs text-[#6b7280] italic">{card.note}</p>
-              </div>
-            </div>
-          )}
-
-          {phase === "card" && (
-            <div className="text-center">
-              <p className="text-[#e5e7eb] font-mono text-sm mb-4">
-                Read the concept, then do a quick 2-question check.
-              </p>
-              <button className="bsc-btn-gold px-8 py-3" onClick={() => setPhase("check")}>
-                Start Check
-              </button>
-            </div>
-          )}
-
-          {phase === "check" && (
-            <div className="bsc-card p-6">
-              <p className="bsc-section-title mb-4">Quick Check - 2 Questions</p>
-              <p className="text-[#6b7280] font-mono text-xs mb-5">
-                Get both right to earn the badge. You can retry.
-              </p>
-
-              <div className="mb-6">
-                <p className="font-mono text-sm text-[#e5e7eb] mb-3">
-                  <span className="text-[#c9a84c]">Q1.</span> {check.questions[0].question}
-                </p>
-                <div className="space-y-2">
-                  {check.questions[0].options.map((opt, i) => (
+            <motion.ul
+              variants={staggerList}
+              initial="hidden"
+              animate="show"
+              className="py-2"
+            >
+              {CONCEPT_CARDS.map((c) => {
+                const isCurrent = c.id === conceptId;
+                return (
+                  <motion.li
+                    key={c.id}
+                    variants={fadeSlideUp}
+                  >
                     <button
-                      key={i}
-                      className={`w-full text-left px-3 py-2 rounded border font-mono text-sm transition-colors ${
-                        q1 === i
-                          ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
-                          : "border-[#1e2435] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
+                      onClick={() => router.push(`/catalog?concept=${c.id}`)}
+                      className={`w-full text-left px-4 py-2.5 transition-colors font-mono text-xs flex items-center gap-2 ${
+                        isCurrent
+                          ? "bg-[#c9a84c]/10 text-[#c9a84c] border-l-2 border-[#c9a84c]"
+                          : "text-[#6b7280] hover:text-[#e5e7eb] hover:bg-[#1a2030]/50 border-l-2 border-transparent"
                       }`}
-                      onClick={() => setQ1(i)}
                     >
-                      <span className="text-[#6b7280] mr-2">{String.fromCharCode(65 + i)}.</span>
-                      {opt}
+                      <span className="text-[10px]">
+                        {isCurrent ? "▶" : "◦"}
+                      </span>
+                      <span className="leading-tight">{c.title}</span>
                     </button>
-                  ))}
-                </div>
-                {renderTermChips(check.questions[0].termIds)}
-              </div>
-
-              <div className="mb-6">
-                <p className="font-mono text-sm text-[#e5e7eb] mb-3">
-                  <span className="text-[#c9a84c]">Q2.</span> {check.questions[1].question}
-                </p>
-                <div className="space-y-2">
-                  {check.questions[1].options.map((opt, i) => (
-                    <button
-                      key={i}
-                      className={`w-full text-left px-3 py-2 rounded border font-mono text-sm transition-colors ${
-                        q2 === i
-                          ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
-                          : "border-[#1e2435] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
-                      }`}
-                      onClick={() => setQ2(i)}
-                    >
-                      <span className="text-[#6b7280] mr-2">{String.fromCharCode(65 + i)}.</span>
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-                {renderTermChips(check.questions[1].termIds)}
-              </div>
-
-              <button
-                className="bsc-btn-gold w-full py-3"
-                onClick={handleSubmitCheck}
-                disabled={q1 === null || q2 === null || submitting}
-              >
-                {submitting ? "Checking..." : "Submit Answers"}
-              </button>
-            </div>
-          )}
-
-          {phase === "result" && result && (
-            <div className={`bsc-card p-6 border-2 ${result.passed ? "border-[#22c55e]/60" : "border-[#ef4444]/40"}`}>
-              <div className="text-center mb-5">
-                {result.passed ? (
-                  <>
-                    <div className="text-[#22c55e] font-mono text-4xl mb-2">✓</div>
-                    <h3 className="text-[#22c55e] font-mono font-bold text-lg">Badge Earned</h3>
-                    <p className="text-[#6b7280] font-mono text-xs mt-1">
-                      {card.title} · Attempt {result.attemptNum}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-[#ef4444] font-mono text-4xl mb-2">✗</div>
-                    <h3 className="text-[#ef4444] font-mono font-bold text-lg">Try again</h3>
-                    <p className="text-[#6b7280] font-mono text-xs mt-1">
-                      Re-read the concept and retry.
-                    </p>
-                  </>
-                )}
-              </div>
-
-              <div className="space-y-2 mb-5">
-                <div className={`flex items-center gap-2 font-mono text-sm ${result.q1Correct ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
-                  <span>{result.q1Correct ? "✓" : "✗"}</span>
-                  <span>Question 1</span>
-                </div>
-                <div className={`flex items-center gap-2 font-mono text-sm ${result.q2Correct ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
-                  <span>{result.q2Correct ? "✓" : "✗"}</span>
-                  <span>Question 2</span>
-                </div>
-              </div>
-
-              {result.passed ? (
-                <button className="bsc-btn-gold w-full py-3" onClick={handleContinue}>
-                  Next Situation
-                </button>
-              ) : (
-                <button className="bsc-btn-ghost w-full py-3" onClick={handleRetry}>
-                  Retry Check
-                </button>
-              )}
-            </div>
-          )}
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
+          </div>
         </div>
 
-        <div className="w-full lg:w-80 flex-shrink-0">
-          <div className="sticky top-6">
-            <GlossaryPanel
-              groups={GLOSSARY_TERMS}
-              highlightedTermIds={highlightedTerms}
-              onTermSelect={(id) => setSelectedTermId(id)}
-            />
+        {/* ── RIGHT PANEL: Active file ──────────────────────────────────────── */}
+        <div className="flex-1 min-w-0">
+          {/* File header */}
+          <motion.div
+            key={conceptId + "-header"}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28 }}
+            className="bsc-card p-4 mb-4 border-[#c9a84c]/30"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] border border-[#c9a84c]/30 px-2 py-0.5 rounded">
+                  Classification: GM Only
+                </span>
+                <span className="bsc-badge-gold">Active File</span>
+              </div>
+              <button
+                className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb] transition-colors"
+                onClick={() => router.push("/hq")}
+              >
+                ← HQ
+              </button>
+            </div>
+            <h2 className="text-[#c9a84c] font-mono text-xl font-bold leading-tight">
+              {card.title}
+            </h2>
+          </motion.div>
+
+          {/* Concept card */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={conceptId + "-card"}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="bsc-card p-6 mb-4 relative overflow-hidden gm-watermark"
+            >
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed mb-5">{card.body}</p>
+              <div className="border-t border-[#1a2030] pt-4">
+                <p className="font-mono text-xs text-[#6b7280] italic">{card.note}</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* ── PHASE: card → proceed to check ─────────────────────────────── */}
+          {phase === "card" && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-center py-4"
+            >
+              <p className="text-[#6b7280] font-mono text-sm mb-4">
+                Study the file above, then verify your intelligence.
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="bsc-btn-gold px-8 py-3"
+                onClick={() => setPhase("check")}
+              >
+                Verify Intelligence →
+              </motion.button>
+            </motion.div>
+          )}
+
+          {/* ── PHASE: check ────────────────────────────────────────────────── */}
+          <AnimatePresence>
+            {phase === "check" && (
+              <motion.div
+                key="check-panel"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="bsc-card p-6"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <p className="bsc-section-title mb-0">Verify Intelligence</p>
+                  <div className="flex-1 h-px bg-[#c9a84c]/20" />
+                  <span className="text-[10px] font-mono text-[#6b7280]">2 questions · unlimited retries</span>
+                </div>
+
+                {/* Q1 */}
+                <div className="mb-6">
+                  <p className="font-mono text-sm text-[#e5e7eb] mb-3">
+                    <span className="text-[#c9a84c] font-bold">Q1.</span> {check.questions[0].question}
+                  </p>
+                  <motion.div
+                    variants={staggerList}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-2"
+                  >
+                    {check.questions[0].options.map((opt, i) => (
+                      <motion.button
+                        key={i}
+                        variants={fadeSlideUp}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
+                          q1 === i
+                            ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
+                            : "border-[#1a2030] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
+                        }`}
+                        onClick={() => setQ1(i)}
+                      >
+                        <span className="text-[#6b7280] mr-2">{String.fromCharCode(65 + i)}.</span>
+                        {opt}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                </div>
+
+                {/* Q2 */}
+                <div className="mb-6">
+                  <p className="font-mono text-sm text-[#e5e7eb] mb-3">
+                    <span className="text-[#c9a84c] font-bold">Q2.</span> {check.questions[1].question}
+                  </p>
+                  <motion.div
+                    variants={staggerList}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-2"
+                  >
+                    {check.questions[1].options.map((opt, i) => (
+                      <motion.button
+                        key={i}
+                        variants={fadeSlideUp}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
+                          q2 === i
+                            ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
+                            : "border-[#1a2030] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
+                        }`}
+                        onClick={() => setQ2(i)}
+                      >
+                        <span className="text-[#6b7280] mr-2">{String.fromCharCode(65 + i)}.</span>
+                        {opt}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                </div>
+
+                <motion.button
+                  whileHover={q1 !== null && q2 !== null ? { scale: 1.02 } : {}}
+                  whileTap={q1 !== null && q2 !== null ? { scale: 0.98 } : {}}
+                  className="bsc-btn-gold w-full py-3"
+                  onClick={handleSubmitCheck}
+                  disabled={q1 === null || q2 === null || submitting}
+                >
+                  {submitting ? "Checking…" : "File My Report →"}
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── PHASE: result ───────────────────────────────────────────────── */}
+          <AnimatePresence>
+            {phase === "result" && result && feedbackVisible && (
+              <motion.div
+                key="result-panel"
+                initial={{ opacity: 0, scale: 0.97, y: 14 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 220, damping: 20 }}
+                className={`bsc-card p-6 border-2 ${result.passed ? "border-[#22c55e]/50" : "border-[#ef4444]/40"}`}
+              >
+                <div className="text-center mb-5">
+                  {result.passed ? (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
+                        className="text-[#22c55e] font-mono text-5xl mb-3"
+                      >
+                        ✓
+                      </motion.div>
+                      <motion.h3
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="text-[#22c55e] font-mono font-bold text-lg"
+                      >
+                        Intelligence Confirmed
+                      </motion.h3>
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.38 }}
+                        className="text-[#6b7280] font-mono text-xs mt-1"
+                      >
+                        {card.title} · Attempt {result.attemptNum}
+                      </motion.p>
+                    </>
+                  ) : (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 280, damping: 14, delay: 0.1 }}
+                        className="text-[#ef4444] font-mono text-5xl mb-3"
+                      >
+                        ✗
+                      </motion.div>
+                      <h3 className="text-[#ef4444] font-mono font-bold text-lg">Unconfirmed</h3>
+                      <p className="text-[#6b7280] font-mono text-xs mt-1">
+                        Re-read the file above and try again.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <motion.div
+                  variants={staggerList}
+                  initial="hidden"
+                  animate="show"
+                  className="space-y-2 mb-5"
+                >
+                  {[
+                    { correct: result.q1Correct, label: "Question 1" },
+                    { correct: result.q2Correct, label: "Question 2" },
+                  ].map(({ correct, label }) => (
+                    <motion.div
+                      key={label}
+                      variants={fadeSlideUp}
+                      className={`flex items-center gap-2 font-mono text-sm ${correct ? "text-[#22c55e]" : "text-[#ef4444]"}`}
+                    >
+                      <span>{correct ? "✓" : "✗"}</span>
+                      <span>{label}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+
+                {result.passed ? (
+                  <motion.button
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bsc-btn-gold w-full py-3"
+                    onClick={() => router.push("/hq")}
+                  >
+                    Next Mission →
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bsc-btn-ghost w-full py-3"
+                    onClick={handleRetry}
+                  >
+                    Try Again
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ── FAR RIGHT: Glossary sidebar ──────────────────────────────────── */}
+        <div className="w-56 flex-shrink-0 hidden xl:block">
+          <div className="bsc-card sticky top-[80px] max-h-[80vh] overflow-y-auto">
+            <button
+              className="flex items-center justify-between w-full px-4 py-3 border-b border-[#1a2030]"
+              onClick={() => setGlossaryOpen(!glossaryOpen)}
+            >
+              <span className="font-mono text-[10px] tracking-widest uppercase text-[#6b7280]">Cap Glossary</span>
+              <motion.span
+                animate={{ rotate: glossaryOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-[#6b7280] text-xs"
+              >
+                ▼
+              </motion.span>
+            </button>
+
+            <AnimatePresence>
+              {!glossaryOpen ? (
+                <motion.div
+                  key="closed"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="px-4 py-3"
+                >
+                  <p className="text-[#6b7280] font-mono text-xs leading-relaxed">
+                    30 terms across Cap Rules, Contracts, Trades, and Analytics.
+                  </p>
+                  <button
+                    onClick={() => setGlossaryOpen(true)}
+                    className="text-[#c9a84c] font-mono text-xs mt-2 hover:underline"
+                  >
+                    Expand →
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="open"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.28 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 py-3 space-y-4">
+                    {GLOSSARY_TERMS.map((group) => (
+                      <div key={group.group}>
+                        <p className="text-[#c9a84c] font-mono text-[10px] font-bold mb-2 tracking-widest uppercase">
+                          {group.group}
+                        </p>
+                        {group.terms.map((t) => (
+                          <div key={t.term} className="mb-2">
+                            <p className="font-mono text-xs text-[#e5e7eb] font-semibold">{t.term}</p>
+                            <p className="font-mono text-[10px] text-[#6b7280] leading-relaxed">{t.def}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -260,7 +463,11 @@ function CatalogContent() {
 
 export default function CatalogPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><p className="text-[#6b7280] font-mono text-sm">Loading concept...</p></div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading concept…</p>
+      </div>
+    }>
       <CatalogContent />
     </Suspense>
   );
