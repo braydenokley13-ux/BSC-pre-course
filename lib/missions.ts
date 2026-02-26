@@ -1192,6 +1192,33 @@ const revenueMix: Mission = {
         },
       ],
     },
+    {
+      id: "terms-reject",
+      prompt: "You turned down $25M. The owner is furious and wants a revenue plan by end of week. How do you respond?",
+      context: "The sponsor has moved on. But two secondary brands reached out after hearing you walked. The market respects the stand — but the books need filling.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "reject",
+      options: [
+        {
+          id: "pursue-alternative",
+          label: "Approach the secondary sponsors",
+          description: "Two brands reached out — both cleaner culture fits at $15–18M/5yr. Start those conversations now.",
+          tags: ["pursue-alternative", "balanced"],
+        },
+        {
+          id: "renegotiate-original",
+          label: "Re-open talks with the original sponsor",
+          description: "Signal willingness to return — but demand the social media and brand approval clauses be removed. You have some leverage from walking.",
+          tags: ["renegotiate-original", "negotiate"],
+        },
+        {
+          id: "operate-without",
+          label: "No deal — operate without a naming rights partner this season",
+          description: "Use in-house branding. Take the revenue hit, build the brand identity, and return to market with leverage next summer.",
+          tags: ["operate-without", "culture-first"],
+        },
+      ],
+    },
   ],
 
   rivalCounter: {
@@ -1374,6 +1401,61 @@ const revenueMix: Mission = {
           narrative:
             "The base held at $18M. But the $5M upside trigger required a playoff appearance — you finished 9th. NovaTech's board circled the clause and brought it up in Year 2 negotiations. Revenue is below projection.",
           applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["reject", "pursue-alternative"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Alternative Deal Signed",
+          scoreΔ: 6,
+          narrative:
+            "The two secondary brands closed within 90 days — $16.5M over 5 years, no naming rights, no social mandates. Revenue is below the NovaTech number, but ownership respects the execution. The locker room never heard about the drama.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.35,
+          label: "Secondary Sponsor Falls Through",
+          scoreΔ: 3,
+          narrative:
+            "Neither brand moved forward. One went with a rival team; the other wanted naming rights after all. You preserved the culture — but the books are light, and you'll return to market in the summer with less leverage than you started with.",
+          applyStatus: ["cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["reject", "renegotiate-original"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Deal Reset on Better Terms",
+          scoreΔ: 7,
+          narrative:
+            "NovaTech's VP of partnerships picked up immediately — they'd been hoping you'd call. The social mandate dropped to 4 posts per season, no naming rights clause. Final deal: $20M over 5 years. You left $25M on the table but protected the culture.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.45,
+          label: "Sponsor Walks Permanently",
+          scoreΔ: 2,
+          narrative:
+            "NovaTech signed with a rival team three days after you walked. They weren't interested in renegotiating — they were interested in the market. The door is closed, and the ownership group is not happy.",
+          applyStatus: ["cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["reject", "operate-without"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Principled Stand — Revenue Shortfall",
+          scoreΔ: 3,
+          narrative:
+            "The franchise-branded arena sends a clear cultural signal. Operating expenses are tighter, but the locker room never dealt with social media drama. You'll return to the sponsorship market in the summer with a clean narrative and slightly more leverage.",
+          applyStatus: ["cap-space-limited"],
         },
       ],
     },
@@ -1565,6 +1647,60 @@ const expensePressure: Mission = {
         },
       ],
     },
+    {
+      id: "terms-pick",
+      prompt: "Atlanta wants clarity on the pick. Unprotected is non-negotiable for them. What do you offer?",
+      context: "Attaching any first is painful. The question is how much protection you wrap around it.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "add-pick",
+      options: [
+        {
+          id: "unprotected-first",
+          label: "Attach an unprotected 2026 first",
+          description: "Maximum sweetener. Atlanta accepts immediately. You're betting the lottery ticket.",
+          tags: ["unprotected-first", "asset-cost"],
+        },
+        {
+          id: "top-10-protected",
+          label: "Top-10 protected 2026 first",
+          description: "If you miss the playoffs, the pick conveys protected — you keep it. If healthy, Atlanta gets it.",
+          tags: ["top-10-protected", "risk-managed"],
+        },
+        {
+          id: "two-seconds",
+          label: "Offer two unprotected 2nd-round picks instead",
+          description: "No first. Atlanta gets volume, not premium. They'll negotiate.",
+          tags: ["two-seconds", "asset-light"],
+        },
+      ],
+    },
+    {
+      id: "terms-standpat",
+      prompt: "The trade deadline passed. Your roster didn't improve. What's the move now?",
+      context: "You preserved cap flexibility and assets. The question is what you do with them.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "stand-pat",
+      options: [
+        {
+          id: "buyout-market",
+          label: "Target the buyout market",
+          description: "Veterans on playoff teams often get bought out. Cheaper alternative to a full trade. Monitor the market this week.",
+          tags: ["buyout-market", "cap-discipline"],
+        },
+        {
+          id: "revisit-atlanta",
+          label: "Re-open trade talks on new terms",
+          description: "Call Atlanta back. You have leverage now — the deadline is gone and they still need to move the contract.",
+          tags: ["revisit-atlanta", "negotiate"],
+        },
+        {
+          id: "flip-own-vet",
+          label: "Trade your veteran depth piece for picks",
+          description: "Convert your own roster into future assets. Accept a weaker bench now to build for next season.",
+          tags: ["flip-own-vet", "rebuild-assets"],
+        },
+      ],
+    },
   ],
 
   rivalCounter: {
@@ -1726,6 +1862,116 @@ const expensePressure: Mission = {
           narrative:
             "You kept the aggregation rights. Missed the playoffs by 1.5 games. The owner questioned the decision for 6 weeks, then acknowledged the Second Apron logic. Next summer, you used the aggregation rights to acquire a different star on a multi-year deal. The patience paid off — eventually.",
           applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["add-pick", "unprotected-first"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Trade Completed — Premium Asset Spent",
+          scoreΔ: 8,
+          narrative:
+            "The offer was too good for Atlanta to decline. The deal closed within 24 hours — you get the wing, they get an unprotected chip that could land anywhere from 5 to 25. The risk is real, but so is the talent you just added.",
+          applyStatus: ["trade-assets-rich"],
+        },
+        {
+          probability: 0.30,
+          label: "Trade Completed — Pick Converts Early",
+          scoreΔ: 5,
+          narrative:
+            "The wing performed as advertised — solid rotation piece, fits the system. The unprotected first conveyed top-8. You spent a premium asset for a good player, not a great one. Worth it for the window, not for the price.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["add-pick", "top-10-protected"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Trade Completed — Smart Protection",
+          scoreΔ: 8,
+          narrative:
+            "Atlanta accepted the top-10 protection structure. The deal closed, you landed the wing, and if this season goes sideways, you keep the pick. Best-case scenario: healthy team, you never trigger the protection.",
+          applyStatus: ["trade-assets-rich"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["add-pick", "two-seconds"],
+      variants: [
+        {
+          probability: 0.50,
+          label: "Atlanta Accepts",
+          scoreΔ: 7,
+          narrative:
+            "Two seconds isn't a first, but volume has value. Atlanta's front office reviewed the picks' projected positions and accepted. You kept your first-round capital and still made the move.",
+          applyStatus: ["trade-assets-rich"],
+        },
+        {
+          probability: 0.50,
+          label: "Atlanta Counters — Talks Collapse",
+          scoreΔ: 3,
+          narrative:
+            "Atlanta's GM said no directly: the picks don't move the needle for a franchise trying to compete now. Talks collapsed within the hour. You're heading into the stretch run with the same roster you had this morning.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["stand-pat", "buyout-market"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Buyout Veteran Signed",
+          scoreΔ: 6,
+          narrative:
+            "The wait paid off. A 32-year-old guard cleared waivers and chose you over three other contenders — playoff track record, veteran leadership, exactly the depth piece you needed without spending a pick. Cap-efficient and fit-positive.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.40,
+          label: "Buyout Market Dry",
+          scoreΔ: 3,
+          narrative:
+            "Three potential buyout candidates never materialized — their teams decided to keep them for depth. You monitored all week and came away empty. The deadline is gone, the buyout window is closing, and your roster is unchanged.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["stand-pat", "revisit-atlanta"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Deal Done at Better Terms",
+          scoreΔ: 7,
+          narrative:
+            "Atlanta picked up immediately — their leverage dropped to zero the moment the deadline passed. You renegotiated the pick protection from unprotected to top-12 and closed the deal the same day. Standing pat gave you a better deal than deadline pressure would have.",
+          applyStatus: ["trade-assets-rich"],
+        },
+        {
+          probability: 0.45,
+          label: "Atlanta Moves On",
+          scoreΔ: 3,
+          narrative:
+            "Atlanta had already pivoted. They found another trade partner, moved the contract internally, and aren't looking to reopen talks. The post-deadline window closed before you called.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["stand-pat", "flip-own-vet"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Depth Traded for Future",
+          scoreΔ: 5,
+          narrative:
+            "Your veteran big moved to a contender in exchange for a 2025 second and a 2026 second. Bench minutes decrease, winning percentage may soften — but you've added picks to a board that was light on future assets. The rebuild calendar just got clearer.",
+          applyStatus: ["rebuild-mode"],
         },
       ],
     },
@@ -1938,6 +2184,33 @@ const statsLineup: Mission = {
         },
       ],
     },
+    {
+      id: "terms-trust",
+      prompt: "Week 3: The team has gone 3-4 keeping the same lineup. Analytics is quietly frustrated. How do you handle the follow-up?",
+      context: "You gave Coach Hill full authority. Now both the data team and ownership want a read on where this is going.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "trust-coach",
+      options: [
+        {
+          id: "joint-debrief",
+          label: "Schedule a joint coaching + analytics debrief",
+          description: "Bring both sides to the table. Present the data again in a low-pressure setting. No mandates — just conversation.",
+          tags: ["joint-debrief", "collaborative"],
+        },
+        {
+          id: "formalize-pipeline",
+          label: "Formalize the analytics-to-coaching feedback pipeline",
+          description: "Create a standing weekly process: analytics sends a one-page brief, coaching has right of response. Structural solution, not a confrontation.",
+          tags: ["formalize-pipeline", "systemic"],
+        },
+        {
+          id: "full-deference",
+          label: "Fully hands-off — let the season play out",
+          description: "You trusted Coach Hill. Honor that. The season will tell you everything you need to know. Don't second-guess mid-stream.",
+          tags: ["full-deference", "coach-deference"],
+        },
+      ],
+    },
   ],
 
   rivalCounter: {
@@ -2120,6 +2393,61 @@ const statsLineup: Mission = {
           narrative:
             "Coach Hill balked at first — then saw it as distributed accountability, not surveillance. Dr. Morgan and Hill co-designed a rotation framework. The bench lineup ran 12 minutes per game in a structured deployment. Team finished 6th seed. Two free agents cited 'the most thoughtful coaching process I've ever been part of' as a reason to sign.",
           applyStatus: ["analytics-forward", "high-morale"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trust-coach", "joint-debrief"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Common Ground Found",
+          scoreΔ: 6,
+          narrative:
+            "The debrief ran two hours. Coach Hill walked in defensive and left aligned. Three lineup adjustments came out of the session — analytics' suggestions, framed as options rather than mandates. The team went 5-2 the following two weeks. Both sides claimed credit.",
+          applyStatus: ["analytics-forward"],
+        },
+        {
+          probability: 0.35,
+          label: "Tensions Surface",
+          scoreΔ: 4,
+          narrative:
+            "Coach Hill's read of the data differed fundamentally from the analytics team's interpretation. What started as a collaborative session surfaced deep philosophical disagreements about how basketball decisions get made. No lineup changes were agreed upon. The rift is now visible.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trust-coach", "formalize-pipeline"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Process Established",
+          scoreΔ: 7,
+          narrative:
+            "The weekly brief launched without incident. Coach Hill's first right-of-response memo was detailed and substantive — turns out he wanted the data, just not the pressure. The structured process separated information from judgment, and both sides have found a working rhythm.",
+          applyStatus: ["analytics-forward"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trust-coach", "full-deference"],
+      variants: [
+        {
+          probability: 0.50,
+          label: "Coach Delivers",
+          scoreΔ: 6,
+          narrative:
+            "The team finished 4-3 over the next seven games. Coach Hill's lineup decisions stabilized — the instincts proved right more often than wrong. Analytics logged the outcome and quietly acknowledged the sample size was too small to be definitive.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.50,
+          label: "Analytics Gap Widens",
+          scoreΔ: 3,
+          narrative:
+            "Seven more weeks of coach-driven lineups produced no meaningful improvement. Analytics tracked every decision against the model's recommendations — the divergence is documented. The season closes with an unresolved culture question: whose read of the game do you trust?",
+          applyStatus: ["coach-conflict"],
         },
       ],
     },
@@ -2311,6 +2639,60 @@ const matchupAdjust: Mission = {
         },
       ],
     },
+    {
+      id: "terms-flexible",
+      prompt: "Week 3: Morris played 37 and 38 minutes in back-to-back games. Coach says he 'had to play him.' How do you respond?",
+      context: "Your 34-minute plan is being tested. The coach sees it as a guideline, not a ceiling.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "flexible-plan",
+      options: [
+        {
+          id: "enforce-ceiling",
+          label: "Formally enforce — 34 minutes is the ceiling, not a target",
+          description: "Send a written memo. Cc the medical staff. This is not a suggestion.",
+          tags: ["enforce-ceiling", "health-first"],
+        },
+        {
+          id: "trust-game-read",
+          label: "Trust the coach's in-game judgment",
+          description: "You hired Coach Morris to make real-time decisions. Two games over the mark isn't a pattern — yet.",
+          tags: ["trust-game-read", "coach-deference"],
+        },
+        {
+          id: "revise-upward",
+          label: "Revise the plan — 36-minute cap with mandatory rest on back-to-backs",
+          description: "Meet pragmatically in the middle. Give the coach more room on single games, protect the back-to-backs.",
+          tags: ["revise-upward", "compromise"],
+        },
+      ],
+    },
+    {
+      id: "terms-fullrest",
+      prompt: "Week 2: Morris tells reporters 'the front office is managing me like I'm 38.' Two playoff contenders just got eliminated — easier path ahead. How do you handle it?",
+      context: "Your rest decision is now a media story. The player, the media, and ownership are all watching your next move.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "full-rest",
+      options: [
+        {
+          id: "private-meeting",
+          label: "Private 1-on-1 with Morris — explain the data",
+          description: "Show him the medical numbers personally. Give him agency in structuring his own return timeline.",
+          tags: ["private-meeting", "player-relations"],
+        },
+        {
+          id: "early-return",
+          label: "Reinstate him 1 week early — 28-minute limit",
+          description: "Acknowledge the softer playoff path. Bring him back carefully. Show you're listening.",
+          tags: ["early-return", "compromise"],
+        },
+        {
+          id: "hold-plan",
+          label: "Hold firm — the rest plan stays",
+          description: "Media noise is temporary. Your job is his long-term health. The plan is the plan.",
+          tags: ["hold-plan", "health-first"],
+        },
+      ],
+    },
   ],
 
   rivalCounter: {
@@ -2466,6 +2848,116 @@ const matchupAdjust: Mission = {
           scoreΔ: 3,
           narrative:
             "The 5-game absence cost more seeds than projected. Team finished 9th — out of the play-in. Morris was 100% healthy for a lottery finish. The medical decision was correct. The timing was catastrophic.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["flexible-plan", "enforce-ceiling"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Coach Complies — Health Protected",
+          scoreΔ: 7,
+          narrative:
+            "The memo landed. The medical staff's co-signature gave it institutional weight Coach Morris couldn't ignore. Minutes dropped back below 34, and Morris never showed signs of the fatigue the training staff had flagged. The season ended without a minutes-related health incident.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.30,
+          label: "Coach Pushes Back",
+          scoreΔ: 4,
+          narrative:
+            "Coach Morris replied to the memo in a press availability, calling it 'front office overreach.' The public friction forced an internal meeting that consumed two days of organizational energy. The relationship between the bench and the front office is now a distraction.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["flexible-plan", "trust-game-read"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Coach Vindicated — Morris Performs",
+          scoreΔ: 6,
+          narrative:
+            "Morris stayed healthy and delivered three of his best performances in a seven-game stretch-run road trip. Coach Morris's in-game reads proved correct — the high-minutes nights came in must-win games, not meaningless ones. Your flexibility bought goodwill with the bench.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.45,
+          label: "Overuse Catches Up",
+          scoreΔ: 3,
+          narrative:
+            "Morris missed four games in March with a soft-tissue strain in his left knee — exactly the fatigue-related injury the medical staff had flagged. He returned for the playoffs, but the coaching staff never acknowledged the connection. The medical team is not happy.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["flexible-plan", "revise-upward"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Pragmatic Compromise Holds",
+          scoreΔ: 6,
+          narrative:
+            "The revised plan held for the rest of the season: 36-minute cap on single games, mandatory seat for all back-to-backs. Morris stayed healthy, Coach Morris stopped pushing. A workable ceiling turned out to be better than an aspirational target.",
+          applyStatus: ["high-morale"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["full-rest", "private-meeting"],
+      variants: [
+        {
+          probability: 0.75,
+          label: "Morris Buys In",
+          scoreΔ: 7,
+          narrative:
+            "The 1-on-1 ran 45 minutes. You walked him through the MRI comparisons, the workload curves, the injury probability models. Morris is a professional — he understood the data, pushed back on the timeline, and ultimately agreed to a modified return schedule. The media story died within a week.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.25,
+          label: "Morris Remains Frustrated",
+          scoreΔ: 4,
+          narrative:
+            "Morris heard the data and remained unconvinced. He told reporters the meeting changed nothing. The narrative shifted from 'front office vs. player' to 'franchise communication breakdown.' The rest plan stayed, but the relationship frayed in ways that may linger into contract talks.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["full-rest", "early-return"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Soft Return Successful",
+          scoreΔ: 6,
+          narrative:
+            "Morris came back a week early on a 28-minute restriction and immediately performed — three straight double-doubles, no physical complaints. The media story evaporated. His gratitude for the flexibility translated into genuine locker room goodwill heading into the playoffs.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.35,
+          label: "Early Return — Minor Strain",
+          scoreΔ: 3,
+          narrative:
+            "Morris pushed through the 28-minute limit in game 3 of his return. A minor quad strain sent him back to the bench for six days — nearly identical to the scenario the rest plan was designed to prevent. He's fine, but the medical staff's credibility took a hit.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["full-rest", "hold-plan"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Health First — Relationship Cost",
+          scoreΔ: 5,
+          narrative:
+            "The rest plan completed as designed. Morris returned fully healthy, posted strong playoff numbers, and the medical team's projections were validated. The cost was real: Morris's public frustration damaged the relationship with a player you may need to re-sign. The health outcome was right; the trust deficit is the bill.",
           applyStatus: [],
         },
       ],
@@ -2658,6 +3150,60 @@ const draftTable: Mission = {
         },
       ],
     },
+    {
+      id: "terms-silva",
+      prompt: "Summer league week 1: Analytics flags that Silva's lateral quickness numbers project 28th-percentile on-ball defense at the NBA level. Coaching staff is bullish. How do you address it?",
+      context: "Silva looks excellent offensively in summer league. The defensive concern is real in the models but invisible in person so far.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "take-silva",
+      options: [
+        {
+          id: "dev-plan",
+          label: "Build a formal defensive development plan",
+          description: "Work with the assistant coaches now: weekly film sessions, defensive drill protocols targeting his specific lateral weakness.",
+          tags: ["dev-plan", "analytics-informed"],
+        },
+        {
+          id: "hide-weakness",
+          label: "Adjust your system to minimize his defensive exposure",
+          description: "Design the scheme so Silva rarely guards the opponent's best perimeter player. Build around his strengths.",
+          tags: ["hide-weakness", "systemic"],
+        },
+        {
+          id: "let-develop",
+          label: "Let him develop naturally — it's Year 1",
+          description: "Every rookie has holes. Don't over-coach him. Let the process work and reassess at the All-Star break.",
+          tags: ["let-develop", "patient"],
+        },
+      ],
+    },
+    {
+      id: "terms-tradeup",
+      prompt: "Team 3 has responded: they'll move to #6 for your first-round pick. What's your offer?",
+      context: "You want Cole, who projects top-3. Team 3 needs picks. The price will be steep.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "trade-up",
+      options: [
+        {
+          id: "offer-unprotected",
+          label: "Offer #6 + unprotected 2027 first",
+          description: "Top offer. Secures the trade. You're betting your next draft capital on Cole being the right player.",
+          tags: ["offer-unprotected", "aggressive-move"],
+        },
+        {
+          id: "offer-protected",
+          label: "Offer #6 + top-8 protected 2027 first",
+          description: "If you miss the playoffs, you keep it. Team 3 will negotiate — but it's workable.",
+          tags: ["offer-protected", "risk-managed"],
+        },
+        {
+          id: "walk-price",
+          label: "Walk away — the price is too high",
+          description: "Two firsts for one player is almost never worth it. Fall back, take Silva at #6 or whoever remains.",
+          tags: ["walk-price", "asset-discipline"],
+        },
+      ],
+    },
   ],
 
   rivalCounter: {
@@ -2806,6 +3352,116 @@ const draftTable: Mission = {
           narrative:
             "Golden State took a center. Cole would have been there at #6. You paid a future first to jump one spot unnecessarily. Cole became a star — the pick was right, the execution cost extra.",
           applyStatus: ["analytics-forward"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["take-silva", "dev-plan"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Development Plan Pays Off",
+          scoreΔ: 7,
+          narrative:
+            "The weekly film sessions targeted Silva's specific footwork tendencies and built a drill protocol around them. By November, his on-ball defensive numbers had climbed from 28th percentile to 44th — not elite, but functional. Analytics updated their projection upward. The coaching staff never mentioned the original concern again.",
+          applyStatus: ["analytics-forward"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["take-silva", "hide-weakness"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "System Protects Him",
+          scoreΔ: 6,
+          narrative:
+            "The scheme adjustments worked precisely as designed. Silva guards off-ball, collapses in help, and stays out of one-on-one matchups against the league's best perimeter players. Opponents haven't found the seam — yet. The analytics models flag zero games where his exposure cost you.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.30,
+          label: "Opponents Exploit the Gap",
+          scoreΔ: 3,
+          narrative:
+            "By December, three teams had identified the scheme and were deliberately switching their best scorer onto Silva in the fourth quarter. The defensive model failed twice in nationally televised games. Analytics logged the pattern; coaches scrambled to find a secondary solution. The hole is now on film for everyone.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["take-silva", "let-develop"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Rookie Grows Into the Role",
+          scoreΔ: 6,
+          narrative:
+            "Silva's lateral agility improved naturally over the first half of the season — the same process that produces most NBA defenders. By the All-Star break, his on-ball numbers had ticked up meaningfully. The patient approach worked, but there was no acceleration in the timeline.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.45,
+          label: "Defensive Concerns Materialize",
+          scoreΔ: 3,
+          narrative:
+            "The analytics flag proved accurate. Silva's lateral quickness never translated without structured intervention. Opponents targeted him systematically in the playoffs, and the coaching staff made him a liability on certain possessions. Year 2 requires a serious development plan.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trade-up", "offer-unprotected"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Cole Landed — Maximum Investment",
+          scoreΔ: 9,
+          narrative:
+            "Team 3 accepted within the hour. You moved from #6 to #3 and drafted Marcus Cole — the player your analytics model had projected as the top talent in the class. An unprotected first is a significant price, but Cole's combination of size, handle, and defensive versatility rarely surfaces in one prospect.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.35,
+          label: "Cole Underperforms Year 1",
+          scoreΔ: 4,
+          narrative:
+            "Cole arrived with elite athleticism and a summer league buzz that didn't translate to November basketball. Rookie adjustment curves are real — his efficiency numbers sat below the threshold that justified the asset cost. The front office is cautiously patient, but the unprotected first already conveyed top-10.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trade-up", "offer-protected"],
+      variants: [
+        {
+          probability: 0.75,
+          label: "Trade Up Complete — Pick Protected",
+          scoreΔ: 8,
+          narrative:
+            "Team 3 negotiated for 48 hours and accepted the top-8 protection. You have Cole and you kept meaningful draft insurance. If the rebuild stalls, you retain the asset. Best-case: the team stays healthy, the pick never conveys, and you effectively paid just the slot change to move up.",
+          applyStatus: ["star-retained", "trade-assets-rich"],
+        },
+        {
+          probability: 0.25,
+          label: "Team 3 Rejects — Trade Falls Through",
+          scoreΔ: 5,
+          narrative:
+            "Team 3's GM said no: top-8 protection on a first from a playoff contender is essentially a second-round pick in their model. They moved on within the hour and drafted their own target. You're back at #6 with Silva still available and your pick capital intact.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trade-up", "walk-price"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Asset Discipline — Stayed at #6",
+          scoreΔ: 5,
+          narrative:
+            "Two firsts for one player is a price very few prospects justify. You made the call, walked from the conversation, and took Silva at #6. The analytics model ranked him #2 in the class anyway. The pick capital you preserved will compound over the next three drafts.",
+          applyStatus: ["trade-assets-rich"],
         },
       ],
     },
