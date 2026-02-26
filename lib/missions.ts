@@ -910,80 +910,727 @@ export interface LegacyMission {
   legacy: true;
 }
 
-const revenueMix: LegacyMission = {
+const revenueMix: Mission = {
   id: "revenue-mix",
   missionNumber: 3,
   title: "Revenue Mix",
   department: "PARTNERSHIP OFFICE",
   tagline: "Largest sponsorship in franchise history.",
   scenario:
-    "A global tech company offers a 5-year jersey patch deal worth $25M/year — the largest in franchise history. The catch: they want naming rights to your practice facility and 10 social media posts per month featuring their products. The CBA's revenue sharing means 50% of this deal's incremental value flows to small-market teams via the BRI pool. Your owner wants to maximize local revenue. How do you structure the deal?",
+    "NovaTech, a global consumer electronics company, has submitted a formal proposal: a 5-year jersey patch deal worth $25M/year — the largest in franchise history. Conditions: they want naming rights to your practice facility, 10 mandated social media posts per month from the team account, and first right of refusal on any future arena naming rights. Under the CBA's BRI rules, ~50% of incremental local revenue flows into the shared pool. The owner wants maximum local dollars. Players are already grumbling about the social media clause.",
   conceptId: "bri-revenue",
-  legacy: true,
-  options: [
+
+  infoCards: [
     {
-      label: "Accept the full deal — $25M guaranteed",
-      note: "Maximum local revenue, all conditions accepted",
-      tags: ["revenue-max", "local-deal"],
-      outcome: { scoreΔ: 8, narrative: "Deal closed. Revenue is up, but the social media requirement burns out players who hate the forced content. Two veteran free agents cite the 'corporate feel' as a reason to look elsewhere. Money in — chemistry slightly out." },
+      title: "BRI REVENUE BREAKDOWN",
+      content:
+        "BRI (Basketball-Related Income) covers gate receipts, local media, sponsorships, and merchandise. The current CBA splits BRI 50/50 between players and owners. Local sponsorship revenue above a baseline threshold is shared via the revenue distribution pool — approximately $0.50 of every incremental dollar goes to smaller-market teams. Net local value to your franchise: ~$12.5M/year of the $25M face value.",
+      revealDelay: 0,
     },
     {
-      label: "Negotiate down — $20M with no facility naming rights",
-      note: "Balanced: good revenue, preserve team culture",
-      tags: ["balanced", "culture-first"],
-      outcome: { scoreΔ: 9, narrative: "Best outcome. You got $20M with terms the team can live with. Players respect the boundary you drew. Sponsor is happy with the social content. Owner sees a franchise that negotiates from strength, not desperation." },
+      title: "PLAYER SENTIMENT ALERT",
+      content:
+        "Three veterans spoke to our Player Relations VP off the record: the practice facility naming rights feel 'disrespectful to the culture here.' The social media mandate is the bigger issue — one All-Star said he will not post branded content and will address it publicly if required. This is not a small concern.",
+      revealDelay: 12,
     },
     {
-      label: "Reject it — protect the brand at all costs",
-      note: "No deal, preserve full autonomy",
-      tags: ["brand-protection"],
-      outcome: { scoreΔ: 3, narrative: "The city respects the decision. The owner does not. You left $100M+ on the table over five years. Other franchises used their patch deals to sign two All-Stars." },
+      title: "OWNER DIRECTIVE",
+      content:
+        "Owner memo: 'NovaTech is the right partner for where this franchise is going. Get this done. We need this revenue to stay competitive on payroll. If they walk, it's on you.' The owner has already told his board this deal is happening. He is emotionally committed to closing.",
+      revealDelay: 20,
     },
     {
-      label: "Performance bonuses only — $12M base + upside",
-      note: "Low guaranteed, high upside tied to wins and viewership",
-      tags: ["risk-tolerance", "performance-linked"],
-      outcome: { scoreΔ: 6, narrative: "Creative structure. You made $15M this year — a good playoffs run. But the uncertainty made financial planning harder. The board hates unpredictable revenue." },
+      title: "COMPETITOR INTELLIGENCE — RESTRICTED",
+      content:
+        "League source: two other franchises are in active talks with NovaTech's rivals for comparable deals. If NovaTech walks away from us and closes with a competitor, the optics are bad. However, NovaTech's VP of Partnerships told our CRO off the record that they prefer our market — this is not a pure auction. We have leverage we haven't used yet.",
+      revealDelay: 24,
+      roleOnly: "cro",
     },
   ],
+
+  roles: [
+    {
+      id: "cro",
+      title: "CHIEF REVENUE OFFICER",
+      description: "You own all commercial partnerships, revenue strategy, and BRI reporting.",
+      privateInfo:
+        "The $25M face value sounds massive, but after BRI sharing, the net to our bottom line is closer to $12.5M/year. That's still meaningful — but it's not $25M. The owner doesn't fully understand this math. More importantly: NovaTech told me privately they have a firm $18M floor and would drop the facility naming rights for $20M+. We have real room to negotiate here.",
+    },
+    {
+      id: "marketing",
+      title: "MARKETING DIRECTOR",
+      description: "You manage brand identity, player partnerships, and social media strategy.",
+      privateInfo:
+        "The 10-post mandate is a brand killer. Our social content currently drives $3.2M in ancillary revenue from organic brand deals — authenticity is the asset. Forced NovaTech posts will drop engagement by an estimated 35%, which actually undercuts the sponsor's own goal. There's a creative solution: 6 organic-feel posts versus 10 overt ads. NovaTech's marketing team would likely accept this — their internal research shows organic integration outperforms hard ads 4:1.",
+    },
+    {
+      id: "capologist",
+      title: "CAPOLOGIST",
+      description: "You track the relationship between revenue and salary cap implications.",
+      privateInfo:
+        "Sponsorship revenue doesn't directly affect the salary cap, but it affects the owner's willingness to pay into the luxury tax. Here's the key: if we close this deal at $20M+ net, the owner has said he'll approve crossing the luxury tax line to re-sign our restricted free agent this summer. If the deal collapses or comes in under $18M, he'll demand we stay under the tax. The sponsorship decision is also the payroll decision.",
+    },
+    {
+      id: "player-relations",
+      title: "PLAYER RELATIONS VP",
+      description: "You manage player-management relationships and locker room climate.",
+      privateInfo:
+        "Marcus Webb told me directly: 'If they put NovaTech's name on our practice facility, I'm asking to be traded.' He's not exaggerating. Three veterans echoed this. The social posts are the second issue — our starting center has a personal brand agreement with a NovaTech competitor. He would be in breach of his own deal if he posts NovaTech content. We have a legal conflict that nobody has flagged yet.",
+    },
+  ],
+
+  rounds: [
+    {
+      id: "direction",
+      prompt: "NovaTech is waiting for your response. How do you approach the deal?",
+      options: [
+        {
+          id: "accept-full",
+          label: "Accept all terms — $25M, 5 years",
+          description: "Maximum guaranteed revenue. Close fast before they look elsewhere. Deal with the player concerns internally.",
+          tags: ["accept-full", "revenue-max"],
+        },
+        {
+          id: "negotiate",
+          label: "Negotiate — drop the naming rights, adjust the social mandate",
+          description: "Counter with a modified deal: $20M+, no facility naming, reduce social posts to 6/month.",
+          tags: ["negotiate", "balanced"],
+        },
+        {
+          id: "reject",
+          label: "Reject the deal — the terms compromise team culture",
+          description: "Walk away. Protect the locker room and brand identity. Find a different partner.",
+          tags: ["reject", "culture-first"],
+        },
+        {
+          id: "performance-based",
+          label: "Propose a performance-based structure — $12M base + upside",
+          description: "Minimize guaranteed commitments. Upside tied to wins, viewership, and All-Star appearances.",
+          tags: ["performance-based", "risk-shifted"],
+        },
+      ],
+    },
+    {
+      id: "terms-negotiate",
+      prompt: "NovaTech's VP calls back. They'll drop the naming rights — but they're holding at $22M and want 8 social posts instead of 10.",
+      context: "Your counter for $20M and 6 posts got a partial response. The gap: $2M/year and 2 posts.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "negotiate",
+      options: [
+        {
+          id: "accept-22m",
+          label: "Accept $22M / 8 posts — close now",
+          description: "Strong deal, no naming rights. The social post count is manageable. Don't let perfect kill good.",
+          tags: ["accept-22m", "deal-closed"],
+        },
+        {
+          id: "hold-20m",
+          label: "Hold at $20M / 6 posts — final counter",
+          description: "You know they have a $18M floor and prefer your market. Hold your ground.",
+          tags: ["hold-20m", "hardball"],
+        },
+        {
+          id: "creative-integration",
+          label: "Propose organic integration — 6 'unbranded' posts at $21M",
+          description: "Use the marketing insight: organic content outperforms hard ads 4:1. Sell NovaTech on quality over quantity.",
+          tags: ["creative-integration", "analytics-forward"],
+          requiresStatus: "analytics-forward",
+        },
+        {
+          id: "escalate-to-owner",
+          label: "Escalate to the owner — let him close it directly",
+          description: "The owner wants this done. Let him make the call on the last $2M.",
+          tags: ["escalate-to-owner", "deferred"],
+        },
+      ],
+    },
+    {
+      id: "terms-accept-full",
+      prompt: "Webb's agent calls. Webb is demanding a meeting about the practice facility name. Two veterans are asking the Player Relations VP for clarity on the social posts.",
+      context: "You accepted the full deal. Now you need to manage the player fallout.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "accept-full",
+      options: [
+        {
+          id: "stand-firm",
+          label: "Stand firm — revenue commitments come first",
+          description: "The deal is signed. Communicate the business reality to the players. They'll adjust.",
+          tags: ["stand-firm", "revenue-first"],
+        },
+        {
+          id: "offer-exemptions",
+          label: "Negotiate player exemptions — opt-out for individual brand conflicts",
+          description: "Work with the players individually. If a player has a competing brand deal, we carve them out of the social mandate.",
+          tags: ["offer-exemptions", "player-friendly"],
+        },
+        {
+          id: "renegotiate-social",
+          label: "Go back to NovaTech — reduce social posts to 6, same price",
+          description: "Use the conflict issue as leverage to soften the mandate. Keep the $25M.",
+          tags: ["renegotiate-social", "balanced"],
+        },
+      ],
+    },
+    {
+      id: "terms-performance",
+      prompt: "The owner calls. He's seen the performance-based structure and is angry: 'I need predictable revenue, not a lottery ticket. Either get guaranteed money or kill it.'",
+      context: "Your performance-based counter got a strong reaction from ownership.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "performance-based",
+      options: [
+        {
+          id: "convert-to-base",
+          label: "Convert to a guaranteed base — $15M/yr, 5 years",
+          description: "Meet the owner's predictability requirement. Still $10M/yr below the original ask, but clean.",
+          tags: ["convert-to-base", "owner-aligned"],
+        },
+        {
+          id: "hybrid-structure",
+          label: "Hybrid: $18M base + $5M max upside",
+          description: "Compromise: guaranteed floor with meaningful upside. Pitch it as 'best of both worlds.'",
+          tags: ["hybrid-structure", "balanced"],
+        },
+        {
+          id: "walk-away",
+          label: "Walk away from the deal entirely",
+          description: "If the owner wants guaranteed money and NovaTech wants conditions we can't accept, the deal doesn't work.",
+          tags: ["walk-away", "no-deal"],
+        },
+      ],
+    },
+  ],
+
+  rivalCounter: {
+    triggerTags: ["accept-full", "accept-22m"],
+    message:
+      "COMPETITOR ALERT: Boston just announced a 5-year, $30M/year jersey patch deal with a rival tech company — the new league record. Your NovaTech deal, at $25M or $22M, is no longer the largest in franchise history. The owner is calling. He wants to know why you didn't push for more.",
+    responseRound: {
+      id: "rival-response",
+      prompt: "The owner is upset the Boston deal eclipsed yours. How do you respond?",
+      options: [
+        {
+          id: "defend-deal",
+          label: "Defend the deal — Boston's market is 3× larger",
+          description: "Context matters. Our deal is market-appropriate and the terms protect the culture.",
+          tags: ["defend-deal", "principled"],
+        },
+        {
+          id: "renegotiate-up",
+          label: "Go back to NovaTech — push for $27M using Boston as leverage",
+          description: "Use the competitor announcement as a new data point. The market just moved.",
+          tags: ["renegotiate-up", "aggressive"],
+        },
+        {
+          id: "accept-optics",
+          label: "Accept the optics — focus on long-term culture value",
+          description: "Tell the owner the number isn't everything. Sustainable culture drives long-term revenue better than a headline figure.",
+          tags: ["accept-optics", "culture-first"],
+        },
+      ],
+    },
+  },
+
+  outcomes: [
+    {
+      roundTagCombo: ["accept-full", "stand-firm"],
+      variants: [
+        {
+          probability: 0.50,
+          label: "Deal Closed — Player Discontent",
+          scoreΔ: 6,
+          narrative:
+            "Revenue is up — $25M flows into the balance sheet. Two veterans publicly grumble about the naming rights. Webb requests a trade meeting; you talk him down. The social media posts perform poorly — NovaTech's internal team is frustrated. Year 1 works financially. The culture cost is real.",
+          applyStatus: ["over-luxury-tax", "coach-conflict"],
+        },
+        {
+          probability: 0.50,
+          label: "Deal Closed — Legal Conflict Triggered",
+          scoreΔ: 4,
+          narrative:
+            "Your starting center's competing brand deal creates a legal dispute. His agent threatens breach-of-contract action against the franchise. It resolves in 90 days, but the distraction during the season is damaging. The BRI revenue net is $12.5M/year — not the $25M headline.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["accept-full", "offer-exemptions"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Deal Closed — Player Conflict Managed",
+          scoreΔ: 8,
+          narrative:
+            "The exemption carve-outs resolved the legal conflict and quieted the loudest veterans. NovaTech accepted the modified social terms. Revenue is in. The locker room accepted it as a reasonable compromise. Good execution on a messy situation.",
+          applyStatus: ["over-luxury-tax"],
+        },
+        {
+          probability: 0.30,
+          label: "Deal Closed — Sponsor Satisfaction Low",
+          scoreΔ: 5,
+          narrative:
+            "NovaTech's internal team is frustrated — the exemptions reduced their social reach by 40%. They started early conversations about not renewing in Year 3. The revenue is here now; the future is uncertain.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["negotiate", "accept-22m"],
+      variants: [
+        {
+          probability: 0.80,
+          label: "Deal Closed — Strong Outcome",
+          scoreΔ: 8,
+          narrative:
+            "No naming rights. $22M/year, 8 posts. Players accepted it — the facility stays ours. The social posts are manageable. Net BRI value: ~$11M/year. A genuine win on terms that don't damage the culture.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.20,
+          label: "Deal Closed — Owner Disappointed",
+          scoreΔ: 6,
+          narrative:
+            "$22M vs. $25M — the owner sees $3M/year left on the table. He signs off but makes a note. When the Boston deal headlines come out at $30M, you'll feel this gap.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["negotiate", "hold-20m"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "NovaTech Accepts — Best Terms",
+          scoreΔ: 9,
+          narrative:
+            "They came back at $20.5M and 6 posts. Close enough. No naming rights. Players are satisfied. Net BRI ~$10.3M/year. You negotiated from strength, got what you wanted, and protected the culture. Best outcome.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.40,
+          label: "NovaTech Walks — No Deal",
+          scoreΔ: 3,
+          narrative:
+            "They took their budget to a rival market. The owner is furious. You held too long on a deal that had room to close. No revenue, no deal, no alternative ready.",
+          applyStatus: ["coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["negotiate", "creative-integration"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Organic Integration Deal — Best-in-Class",
+          scoreΔ: 10,
+          narrative:
+            "NovaTech's VP of Marketing loved it. '6 premium organic integrations beat 10 ads every time.' Closed at $21M. No naming rights. Players didn't even notice the posts. NovaTech's CMO is presenting the integration strategy at a marketing conference. This is a case study.",
+          applyStatus: ["high-morale", "analytics-forward"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["reject"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "No Deal — Culture Protected",
+          scoreΔ: 3,
+          narrative:
+            "Players respected it. The owner didn't. You left $12.5M/year in net BRI revenue on the table. The following off-season, the owner declined to cross the luxury tax line to re-sign a key restricted free agent. The roster gap is directly connected to this revenue shortfall.",
+          applyStatus: ["cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["performance-based", "convert-to-base"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Base Deal Closed — Owner Satisfied",
+          scoreΔ: 7,
+          narrative:
+            "$15M/year guaranteed. No facility naming, modified social terms. The owner gets predictability. Net BRI ~$7.5M/year. Not the headline deal, but clean and durable. NovaTech renewed after Year 2.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.35,
+          label: "Base Deal — Sponsor Questions Value",
+          scoreΔ: 5,
+          narrative:
+            "$15M/year — NovaTech's board flagged it as below-market within 18 months. They triggered an exit clause in Year 3. You're back to zero sponsorship revenue with one year of experience negotiating bad deal terms.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["performance-based", "hybrid-structure"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Hybrid Closes — Upside Earned",
+          scoreΔ: 8,
+          narrative:
+            "Team made the playoffs. Triggered $4.5M of the $5M upside. Total Year 1: $22.5M. Owner loves it. NovaTech loved it more — the playoff run made their brand content go viral. Structure works when the team wins.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.45,
+          label: "Hybrid — Team Misses Playoffs, Upside Not Triggered",
+          scoreΔ: 5,
+          narrative:
+            "The base held at $18M. But the $5M upside trigger required a playoff appearance — you finished 9th. NovaTech's board circled the clause and brought it up in Year 2 negotiations. Revenue is below projection.",
+          applyStatus: [],
+        },
+      ],
+    },
+  ],
+
+  defaultOutcome: {
+    roundTagCombo: [],
+    variants: [
+      {
+        probability: 1.0,
+        label: "Deal Decided",
+        scoreΔ: 5,
+        narrative: "A revenue decision was made under complex conditions. The franchise moves forward.",
+        applyStatus: [],
+      },
+    ],
+  },
 };
 
-const expensePressure: LegacyMission = {
+const expensePressure: Mission = {
   id: "expense-pressure",
   missionNumber: 4,
   title: "Expense Pressure",
   department: "TRADE OPERATIONS",
   tagline: "Trade deadline — salary must match.",
   scenario:
-    "It's the trade deadline. You're 3 games out of a playoff spot. A contending rival wants to offload a star wing — $28M this year, one year remaining. To match salary under trade rules, you'd need to send $22M+ (125% + $2M threshold). You have a $12M small forward and a $10M backup center who could be combined. But your Second Apron exposure would trigger if you take on his contract without sending out equal value.",
+    "It's 3 PM on trade deadline day. You're 2.5 games out of a playoff spot. Dallas wants to offload their star wing, Jordan Reeves — $28M this season, one year remaining. He's averaging 26 points and is exactly what your roster is missing. To match salary under CBA trade rules you must send back 125% of his salary plus $2M — meaning at least $22M outbound. You have a $12M small forward and a $10M backup center who can be combined (aggregated) to hit the threshold. But taking on Reeves without sending out equal salary triggers Second Apron exposure. The clock runs out at 3 PM.",
   conceptId: "trade-matching",
-  legacy: true,
-  options: [
+
+  infoCards: [
     {
-      label: "Aggregate both contracts — salary matching via combination",
-      note: "Send $22M out ($12M + $10M combined), take $28M in",
-      tags: ["aggregation", "star-acquisition"],
-      outcome: { scoreΔ: 9, narrative: "Legal trade. Salary aggregation worked perfectly — you stayed just under the Second Apron. The wing arrives with 5 days until the deadline. Team goes on a 7-game win streak. Playoffs locked." },
+      title: "TRADE MATCHING RULES",
+      content:
+        "CBA trade matching rules: when a team is over the salary cap, incoming salary cannot exceed 125% of outgoing salary + $2M. Example: sending out $22M allows you to receive up to $29.5M. Salary aggregation allows combining multiple contracts into one outgoing package. Key restriction: teams over the Second Apron ($189M in the current CBA cycle) face additional limits — they cannot aggregate contracts to take on a player making more than them.",
+      revealDelay: 0,
     },
     {
-      label: "Attach a pick to make the deal work",
-      note: "Add a protected 2nd-round pick to sweeten the return",
-      tags: ["asset-cost", "deal-maker"],
-      outcome: { scoreΔ: 7, narrative: "The pick sweetened the deal and the trade closed. You gave up a future asset, but you're in the playoffs now." },
+      title: "SECOND APRON STATUS",
+      content:
+        "Your current payroll: $186.5M. Second Apron threshold: $189M. Reeves at $28M + current payroll minus outgoing $22M = $192.5M — that puts you $3.5M over the Second Apron. Consequence: you would lose your ability to use the mid-level exception, lose the ability to aggregate in future trades, and your draft pick acquisition rights are restricted for 3 years.",
+      revealDelay: 10,
     },
     {
-      label: "Counter: take back $22M and keep both your players",
-      note: "Propose a different target — request their cheaper backup",
-      tags: ["cap-discipline", "alternative"],
-      outcome: { scoreΔ: 5, narrative: "Counter rejected. They wanted the star wing deal or nothing. You stood pat. Missed the playoffs by 1.5 games." },
+      title: "DALLAS'S MOTIVATION",
+      content:
+        "Dallas wants to clear Reeves' salary to reset their payroll before the off-season. They're in a rebuild. Reeves has asked for a trade — they're complying. Their GM has told two other teams about this deal. There are 4 hours left before the deadline. They need an answer at 2 PM to file the paperwork in time.",
+      revealDelay: 20,
     },
     {
-      label: "Three-team trade — find a third partner to absorb salary",
-      note: "Involve a third team to split the salary load creatively",
-      tags: ["complex-trade", "three-team"],
-      outcome: { scoreΔ: 8, narrative: "Three-team structure worked but took 72 hours to close. The third team got a future first. You got the wing and stayed off the Second Apron." },
+      title: "REEVES MEDICAL FILE — CONFIDENTIAL",
+      content:
+        "Team physician note: Jordan Reeves had a labrum procedure on his left shoulder 14 months ago. Recovery was full per official reports. However, our scout's film review shows he has significantly reduced his pull-up jumper from the left side since the surgery — a shot he hit at 41% previously. Opponents will scheme for this in a playoff series. He's not the same player off the left.",
+      revealDelay: 24,
+      roleOnly: "scout",
     },
   ],
+
+  roles: [
+    {
+      id: "capologist",
+      title: "CAPOLOGIST",
+      description: "You are the authority on CBA trade mechanics and cap exposure.",
+      privateInfo:
+        "Here's the number nobody's saying out loud: if we cross the Second Apron threshold, we lose aggregation rights for 3 years. That means every future trade, we can only send one contract to match salary. If we plan to be buyers at future deadlines, crossing the Second Apron today handicaps us far beyond just this deal. The short-term gain has a very long tail of restrictions.",
+    },
+    {
+      id: "president",
+      title: "TEAM PRESIDENT",
+      description: "You balance win-now pressure with long-term franchise health.",
+      privateInfo:
+        "The owner called me this morning. He said: 'If we miss the playoffs this year by a game or two and you had the chance to make this trade and didn't — that's a bad look. Make the call.' He also said: 'But don't blow up the team for a rental.' Reeves is a one-year rental — he's a free agent this summer. The owner's two sentences are in direct tension with each other.",
+    },
+    {
+      id: "scout",
+      title: "HEAD SCOUT",
+      description: "You evaluate player quality and long-term value.",
+      privateInfo:
+        "Reeves' shoulder. I've watched 40 games this year. He's protecting it. The pull-up from the left is gone — he's steering everything right. A good defensive coordinator in a playoff series will shade him left relentlessly. He'll shoot 4-for-18 in a closeout game and everyone will say the trade was a mistake. I'm not saying don't do it — I'm saying price it accordingly. This is not the same player we saw 18 months ago.",
+    },
+    {
+      id: "analytics",
+      title: "ANALYTICS LEAD",
+      description: "You run win-probability and asset-value models.",
+      privateInfo:
+        "Our playoff probability model: current roster at 34% chance to make the play-in, 12% to advance past the first round. With Reeves added: 71% play-in, 38% first-round advance. The value is significant. But here's the model's other output: Reeves as a free agent this summer projects to receive a 4yr/$108M offer — we cannot afford that if we're over the Second Apron. We get him for 60 regular season games and a playoff run, then lose him for free to cap-space teams. Run the math on whether that's worth 3 years of restricted trade flexibility.",
+    },
+  ],
+
+  rounds: [
+    {
+      id: "direction",
+      prompt: "It's 10 AM. Dallas wants an answer by 2 PM. What is your trade strategy?",
+      options: [
+        {
+          id: "aggregate",
+          label: "Aggregate both contracts — send $22M, take $28M",
+          description: "Combine the $12M SF and $10M backup center. Legal match. Triggers Second Apron exposure. Reeves arrives.",
+          tags: ["aggregate", "star-acquisition"],
+        },
+        {
+          id: "add-pick",
+          label: "Attach a protected 2nd-round pick to a single contract",
+          description: "Send the $12M SF + a pick. Ask Dallas to accept without requiring the backup center. Avoids Second Apron if they take salary back.",
+          tags: ["add-pick", "asset-cost"],
+        },
+        {
+          id: "three-team",
+          label: "Build a three-team trade to split the salary load",
+          description: "Find a third team to absorb some incoming salary, keeping you off the Second Apron.",
+          tags: ["three-team", "complex-trade"],
+        },
+        {
+          id: "stand-pat",
+          label: "Stand pat — decline the deal",
+          description: "The Second Apron cost is too high for a one-year rental. Stay the course with the current roster.",
+          tags: ["stand-pat", "cap-discipline"],
+        },
+      ],
+    },
+    {
+      id: "terms-aggregate",
+      prompt: "League office confirms the salary match is legal. But your capologist flags the Second Apron exposure. Reeves' agent calls — he wants to see a commitment from you before he waives his partial no-trade clause.",
+      context: "Trade is structurally ready. Two decisions remain: accept the Second Apron consequences and confirm Reeves is willing.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "aggregate",
+      options: [
+        {
+          id: "commit-and-close",
+          label: "Commit to Reeves — accept the Second Apron exposure",
+          description: "The playoff run matters more than 3 years of trade restrictions. Win now.",
+          tags: ["commit-and-close", "win-now"],
+        },
+        {
+          id: "conditional-commitment",
+          label: "Commit — but go back to Dallas for a salary sweetener",
+          description: "Ask Dallas to take back a small contract to reduce your net payroll increase and get below the Second Apron.",
+          tags: ["conditional-commitment", "cap-discipline"],
+        },
+        {
+          id: "pull-back",
+          label: "Pull back — Second Apron consequences are too severe",
+          description: "The capologist's numbers changed the calculus. Decline and keep the aggregation rights intact.",
+          tags: ["pull-back", "long-term"],
+        },
+      ],
+    },
+    {
+      id: "terms-three-team",
+      prompt: "You have two potential third teams. Chicago will absorb $5M of Reeves' salary in exchange for your 2nd-round pick. Portland will absorb $8M for a swap of a future first (top-6 protected).",
+      context: "The three-team structure can keep you off the Second Apron, but each option costs an asset.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "three-team",
+      options: [
+        {
+          id: "chicago-partner",
+          label: "Use Chicago — $5M absorbed, costs a 2nd-round pick",
+          description: "Smaller absorb, cheaper cost. You still end up near the Second Apron line but under it.",
+          tags: ["chicago-partner", "asset-cost"],
+        },
+        {
+          id: "portland-partner",
+          label: "Use Portland — $8M absorbed, costs a top-6 protected 1st",
+          description: "Better salary relief, higher cost. The protected first is low-risk but real value if you rebuild.",
+          tags: ["portland-partner", "asset-cost"],
+        },
+        {
+          id: "abandon-three-team",
+          label: "Three-team too complicated — go back to direct trade or stand pat",
+          description: "The paperwork won't clear before 3 PM. Simplify.",
+          tags: ["abandon-three-team", "practical"],
+        },
+      ],
+    },
+  ],
+
+  rivalCounter: {
+    triggerTags: ["aggregate", "three-team"],
+    message:
+      "RIVAL MOVE: Boston just acquired a comparable wing at the deadline — 2 years remaining, $24M/year. They're now the betting favorites to come out of the East. Dallas's GM is texting you: 'One other team just called about Reeves. We need your final answer in 30 minutes, not 2 PM.' The clock just moved up.",
+    responseRound: {
+      id: "rival-response",
+      prompt: "The timeline compressed — 30 minutes. Another team is bidding. Do you accelerate or hold?",
+      options: [
+        {
+          id: "accelerate",
+          label: "Accelerate — file the paperwork now",
+          description: "Don't let a rival steal this. Close immediately.",
+          tags: ["accelerate", "decisive"],
+        },
+        {
+          id: "call-bluff-dallas",
+          label: "Call Dallas's bluff — you don't believe the other team is real",
+          description: "GMs create urgency artificially. Hold the 2 PM deadline.",
+          tags: ["call-bluff-dallas", "composed"],
+        },
+        {
+          id: "increase-offer",
+          label: "Increase your offer — add a pick to beat the rival",
+          description: "If there's real competition, outbid them now before you lose Reeves.",
+          tags: ["increase-offer", "aggressive"],
+        },
+      ],
+    },
+  },
+
+  outcomes: [
+    {
+      roundTagCombo: ["aggregate", "commit-and-close"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Trade Closed — Playoff Run",
+          scoreΔ: 9,
+          narrative:
+            "Reeves arrived with 5 days before the deadline. The team went 11-4 over the final stretch. Made the playoffs as the 5-seed. Lost in 6 in the second round — his shoulder showed in games 4 and 5. But you made the postseason. The Second Apron restrictions start next season.",
+          applyStatus: ["over-luxury-tax"],
+        },
+        {
+          probability: 0.40,
+          label: "Trade Closed — Early Exit",
+          scoreΔ: 6,
+          narrative:
+            "Reeves helped you squeak into the play-in — but his shoulder was a problem in a 3-game elimination. You're out in the first round. The Second Apron consequences begin, and you gave up two solid rotation players for a four-week playoff run that ended in the play-in.",
+          applyStatus: ["over-luxury-tax", "cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["aggregate", "conditional-commitment"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Modified Trade — Under Second Apron",
+          scoreΔ: 9,
+          narrative:
+            "Dallas took back a $4M expiring deal to reduce the net salary increase. You landed under the Second Apron. Reeves came, the team made the playoffs, and your trade flexibility is preserved. Best structural outcome on this path.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.35,
+          label: "Dallas Refused — Deal Collapsed",
+          scoreΔ: 4,
+          narrative:
+            "Dallas wouldn't take back salary. They had no reason to complicate a simple dump. The conditional counter killed the deal. You stood pat — missed playoffs by a game.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["aggregate", "pull-back"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Stand Pat — Aggregation Rights Preserved",
+          scoreΔ: 5,
+          narrative:
+            "You protected the long-term cap position. The current roster missed the playoffs by 1.5 games. The fanbase and owner are frustrated. The capologist was right about the Second Apron — whether the cost was worth it depends on what you do with those trade rights next summer.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["three-team", "chicago-partner"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Three-Team Closes — Under Second Apron",
+          scoreΔ: 8,
+          narrative:
+            "Chicago absorbed the $5M. You landed $1M under the Second Apron. Reeves arrived in time. You made the playoffs. A 2nd-round pick cost you the deal — but you preserved aggregation rights for future deadlines. Smart structure.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.30,
+          label: "Paperwork Didn't Clear",
+          scoreΔ: 3,
+          narrative:
+            "Three-team trades require league office review. It didn't clear before the 3 PM deadline. All three teams missed the window. Reeves stays in Dallas. You miss the playoffs.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["three-team", "portland-partner"],
+      variants: [
+        {
+          probability: 0.75,
+          label: "Three-Team Closes — Protected First Sent",
+          scoreΔ: 9,
+          narrative:
+            "Portland took the top-6 protected first. The protection makes it low-risk — you finished 5th this year, above the trigger. Reeves arrived. Playoffs made. The protected pick conveys years from now when you're likely in full contention. Outstanding deal structure.",
+          applyStatus: ["trade-assets-rich"],
+        },
+        {
+          probability: 0.25,
+          label: "Protection Triggers — Pick Conveys Early",
+          scoreΔ: 6,
+          narrative:
+            "You finished 7th — outside top 6. The protected pick conveyed immediately to Portland. You traded a legitimate lottery pick for a rental. The trade worked on the court; the asset cost was real.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["add-pick"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Pick Attached — Dallas Accepts",
+          scoreΔ: 7,
+          narrative:
+            "Dallas took the $12M SF + a protected 2nd-round pick. They didn't need the backup center. The pick sweetened it. You avoided Second Apron exposure. Reeves arrived. Playoffs made. One asset spent.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.45,
+          label: "Dallas Declined — Needs Full Match",
+          scoreΔ: 4,
+          narrative:
+            "Dallas was trying to shed salary, not acquire picks. They needed the matching salary out, not a pick in. Counter rejected. You missed the playoffs by a game and still have both your role players.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["stand-pat"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Standing Pat — Future Preserved",
+          scoreΔ: 5,
+          narrative:
+            "You kept the aggregation rights. Missed the playoffs by 1.5 games. The owner questioned the decision for 6 weeks, then acknowledged the Second Apron logic. Next summer, you used the aggregation rights to acquire a different star on a multi-year deal. The patience paid off — eventually.",
+          applyStatus: [],
+        },
+      ],
+    },
+  ],
+
+  defaultOutcome: {
+    roundTagCombo: [],
+    variants: [
+      {
+        probability: 1.0,
+        label: "Decision Made Under Pressure",
+        scoreΔ: 5,
+        narrative: "The deadline passed. The front office made a call.",
+        applyStatus: [],
+      },
+    ],
+  },
 };
 
 const statsLineup: LegacyMission = {
