@@ -139,3 +139,200 @@ body::before {
 .pulse-gold {
   animation: pulse-gold 2s ease-in-out infinite;
 }
+
+/* ── Info card cinematic reveal ───────────────────────────────────────── */
+@keyframes cardReveal {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.97); filter: blur(4px); }
+  60%  { opacity: 1; transform: translateY(-2px) scale(1.005); filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.card-reveal {
+  animation: cardReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Role card — private glow ─────────────────────────────────────────── */
+@keyframes roleGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.2), 0 0 12px rgba(201, 168, 76, 0); }
+  50%       { box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.6), 0 0 20px rgba(201, 168, 76, 0.12); }
+}
+
+.role-card-active {
+  animation: roleGlow 3s ease-in-out infinite;
+}
+
+/* ── Rival counter — urgent flash ─────────────────────────────────────── */
+@keyframes rivalFlash {
+  0%   { background-color: rgba(239, 68, 68, 0); }
+  15%  { background-color: rgba(239, 68, 68, 0.08); }
+  30%  { background-color: rgba(239, 68, 68, 0); }
+  45%  { background-color: rgba(239, 68, 68, 0.08); }
+  100% { background-color: rgba(239, 68, 68, 0); }
+}
+
+.rival-alert {
+  animation: rivalFlash 1.4s ease-out;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-left: 3px solid #ef4444;
+}
+
+/* ── Breaking news ticker ─────────────────────────────────────────────── */
+@keyframes ticker {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.ticker-text {
+  display: inline-block;
+  animation: ticker 18s linear infinite;
+  white-space: nowrap;
+}
+
+.ticker-bar {
+  overflow: hidden;
+  background: #ef4444;
+  color: #fff;
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 0;
+}
+
+/* ── HQ floor map ─────────────────────────────────────────────────────── */
+.hq-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto;
+  gap: 12px;
+}
+
+.hq-room {
+  @apply bsc-card p-3 cursor-pointer transition-all duration-200 relative;
+  min-height: 88px;
+}
+
+.hq-room:hover:not(.hq-room-locked) {
+  border-color: rgba(201, 168, 76, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(201, 168, 76, 0.08);
+}
+
+.hq-room-unlocked {
+  border-color: rgba(201, 168, 76, 0.3);
+}
+
+.hq-room-active {
+  border-color: #c9a84c;
+  background: rgba(201, 168, 76, 0.04);
+}
+
+.hq-room-completed {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.03);
+}
+
+.hq-room-locked {
+  border-color: #1e2435;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Walking avatar ───────────────────────────────────────────────────── */
+@keyframes walkRight {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  50%       { transform: translateX(6px) scaleX(1); }
+}
+
+@keyframes walkLeft {
+  0%, 100% { transform: translateX(0) scaleX(-1); }
+  50%       { transform: translateX(-6px) scaleX(-1); }
+}
+
+.avatar-walk {
+  animation: walkRight 0.4s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes avatarMove {
+  from { left: var(--avatar-from-x); top: var(--avatar-from-y); }
+  to   { left: var(--avatar-to-x);   top: var(--avatar-to-y); }
+}
+
+.avatar-moving {
+  animation: avatarMove 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Status effect badges ─────────────────────────────────────────────── */
+.status-positive {
+  @apply bsc-badge bg-[#c9a84c]/15 text-[#c9a84c] border border-[#c9a84c]/30;
+}
+
+.status-negative {
+  @apply bsc-badge bg-[#ef4444]/10 text-[#ef4444]/80 border border-[#ef4444]/25;
+}
+
+/* ── Round transition wipe ────────────────────────────────────────────── */
+@keyframes roundWipe {
+  0%   { clip-path: inset(0 100% 0 0); opacity: 0; }
+  100% { clip-path: inset(0 0% 0 0);   opacity: 1; }
+}
+
+.round-enter {
+  animation: roundWipe 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Outcome score pop ────────────────────────────────────────────────── */
+@keyframes scorePop {
+  0%   { transform: scale(0.8); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+.score-pop {
+  animation: scorePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Scanline intensity on modals ─────────────────────────────────────── */
+.cinematic-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.06) 3px,
+    rgba(0, 0, 0, 0.06) 4px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Phase progress dots ──────────────────────────────────────────────── */
+.phase-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1e2435;
+  border: 1px solid #1e2435;
+  transition: all 0.2s;
+}
+
+.phase-dot.done  { background: #22c55e; border-color: #22c55e; }
+.phase-dot.active { background: #c9a84c; border-color: #c9a84c; box-shadow: 0 0 8px rgba(201,168,76,0.5); }
+
+/* ── Private info reveal (role-only cards) ────────────────────────────── */
+@keyframes privateReveal {
+  0%   { opacity: 0; transform: scaleY(0.85) translateY(-8px); filter: blur(6px); }
+  100% { opacity: 1; transform: scaleY(1) translateY(0);       filter: blur(0); }
+}
+
+.private-reveal {
+  animation: privateReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top center;
+}
+
+/* ── Utility: letter-spacing wide ────────────────────────────────────── */
+.tracking-widest { letter-spacing: 0.15em; }

@@ -41,6 +41,11 @@ model Team {
   completedAt    DateTime?
   lastProgressAt DateTime  @default(now())
 
+  completedMissions  String  @default("[]")
+  teamStatus         String  @default("[]")
+  roleAssignments    String  @default("{}")
+  missionRoundState  String  @default("{}")
+
   students         Student[]
   votes            Vote[]
   missionProgress  MissionProgress[]
@@ -73,10 +78,11 @@ model Vote {
   studentId   String
   student     Student  @relation(fields: [studentId], references: [id])
   missionId   String
+  roundId     String   @default("final")
   optionIndex Int
   createdAt   DateTime @default(now())
 
-  @@unique([teamId, missionId, studentId])
+  @@unique([teamId, missionId, studentId, roundId])
 }
 
 model MissionProgress {
