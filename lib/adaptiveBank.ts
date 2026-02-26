@@ -57,13 +57,6 @@ type AdaptiveQuestionStore = {
 const DIFFICULTY_LEVELS: DifficultyLevel[] = [1, 2, 3, 4];
 const QUESTION_VARIANTS = [1, 2] as const;
 
-const DIFFICULTY_CONTEXT: Record<DifficultyLevel, string> = {
-  1: "basic rules check",
-  2: "team planning decision",
-  3: "tradeoff-heavy decision",
-  4: "high-pressure executive decision",
-};
-
 function countSyllables(word: string): number {
   const cleaned = word.toLowerCase().replace(/[^a-z]/g, "");
   if (!cleaned) return 0;
@@ -91,53 +84,46 @@ function toHumanTerm(termId: string): string {
   return termId.replace(/-/g, " ");
 }
 
-function buildCorrectOption(seed: AdaptiveConceptSeed, objectiveId: string, difficulty: DifficultyLevel): string {
-  if (difficulty === 1) {
-    return `Use ${objectiveId.replace(
-      /-/g,
-      " "
-    )} rules first, then check cap impact and timeline before finalizing this ${seed.conceptId} move.`;
-  }
-  if (difficulty === 2) {
-    return `Apply ${objectiveId.replace(
-      /-/g,
-      " "
-    )} with cap and timeline context before committing to one team plan.`;
-  }
-  if (difficulty === 3) {
-    return `Balance ${objectiveId.replace(
-      /-/g,
-      " "
-    )} against short-term pressure while protecting long-term flexibility.`;
-  }
-  return `Use ${objectiveId.replace(
-    /-/g,
-    " "
-  )} to choose the move with strongest multi-year risk and flexibility control.`;
+function conceptLabel(conceptId: string): string {
+  return conceptId
+    .split("-")
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
-function buildDistractor(tag: string, termId: string, focus: string): string {
+function buildCorrectOption(
+  objectiveFocus: string,
+  termId: string,
+  difficulty: DifficultyLevel
+): string {
+  const term = toHumanTerm(termId);
+  if (difficulty === 1) {
+    return `Start with the core ${term} rule, then use it to choose the move that best fits ${objectiveFocus}.`;
+  }
+  if (difficulty === 2) {
+    return `Compare the options, then apply ${term} with cap room and timeline context before you commit.`;
+  }
+  if (difficulty === 3) {
+    return `Weigh the short-term gain against long-term flexibility, then apply ${term} to pick the better balance.`;
+  }
+  return `Stress-test best and worst outcomes, then use ${term} to choose the plan with the strongest multi-year control.`;
+}
+
+function buildDistractor(
+  tag: string,
+  termId: string,
+  focus: string,
+  slot: number
+): string {
   const humanTerm = toHumanTerm(termId);
   const misconception = tag.replace(/-/g, " ");
-  if (tag.includes("always")) {
-    return `Always choose the biggest immediate move and ignore ${humanTerm}; this assumes ${misconception} and ignores long-term cap and roster tradeoffs.`;
+  if (slot === 0) {
+    return `A common mistake is to treat ${humanTerm} as optional and assume ${misconception}, which weakens ${focus}.`;
   }
-  if (tag.includes("never")) {
-    return `Never adjust for ${humanTerm}; this assumes ${misconception} and ignores real team constraints.`;
+  if (slot === 1) {
+    return `A tempting shortcut is to use one metric and assume ${misconception}, but that leaves out full team context.`;
   }
-  if (tag.includes("myth") || tag.includes("is-soft")) {
-    return `Treat ${humanTerm} as a minor suggestion; this assumes ${misconception} and ignores penalties teams still face.`;
-  }
-  if (tag.includes("only")) {
-    return `Only use ${humanTerm} late in the season; this assumes ${misconception} and misses early planning tradeoffs.`;
-  }
-  if (tag.includes("irrelevant")) {
-    return `Ignore ${humanTerm} and ${focus}; this assumes ${misconception} and removes key evidence from the decision.`;
-  }
-  if (tag.includes("fixed")) {
-    return `${humanTerm} is fixed every year; this assumes ${misconception} and skips annual context updates.`;
-  }
-  return `Use a shortcut instead of ${humanTerm}; this assumes ${misconception} and skips a full risk check.`;
+  return `Under pressure, teams may chase a quick fix and assume ${misconception}, even when ${humanTerm} says to wait.`;
 }
 
 function buildQuestionStem(
@@ -146,7 +132,25 @@ function buildQuestionStem(
   difficulty: DifficultyLevel,
   variant: number
 ): string {
-  return `In a ${DIFFICULTY_CONTEXT[difficulty]} (${variant}/2) for ${seed.conceptId}, which choice best applies ${objectiveFocus}?`;
+  const concept = conceptLabel(seed.conceptId);
+  if (difficulty === 1) {
+    return variant === 1
+      ? `In a quick ${concept} rules huddle, the team asks what should guide ${objectiveFocus}. Which answer is best?`
+      : `Before a game, your coach asks for a simple check on ${objectiveFocus}. Which statement is most accurate?`;
+  }
+  if (difficulty === 2) {
+    return variant === 1
+      ? `Your front office is choosing a plan around ${objectiveFocus}. Which move is the strongest next step?`
+      : `You are writing a planning memo on ${objectiveFocus}. Which recommendation should the team follow?`;
+  }
+  if (difficulty === 3) {
+    return variant === 1
+      ? `Ownership wants fast results, but next year still matters. For ${objectiveFocus}, which path best balances both?`
+      : `You are reviewing a risky package tied to ${objectiveFocus}. Which decision process is most sound?`;
+  }
+  return variant === 1
+    ? `At deadline hour, pressure is high and options are tight. For ${objectiveFocus}, which decision protects now and later?`
+    : `In a high-stakes meeting, you must defend one strategy for ${objectiveFocus}. Which strategy is strongest under uncertainty?`;
 }
 
 function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestionSeed[] {
@@ -155,9 +159,9 @@ function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestion
     DIFFICULTY_LEVELS.forEach((difficulty) => {
       QUESTION_VARIANTS.forEach((variant) => {
         const stem = buildQuestionStem(seed, objective.focus, difficulty, variant);
-        const correctOption = buildCorrectOption(seed, objective.objectiveId, difficulty);
-        const distractors = objective.misconceptionTags.map((tag) => ({
-          text: buildDistractor(tag, objective.termId, objective.focus),
+        const correctOption = buildCorrectOption(objective.focus, objective.termId, difficulty);
+        const distractors = objective.misconceptionTags.map((tag, slot) => ({
+          text: buildDistractor(tag, objective.termId, objective.focus, slot),
           tag,
         }));
         const correctIndex = ((objectiveIndex + difficulty + variant) % 4) as 0 | 1 | 2 | 3;
@@ -261,11 +265,6 @@ export async function ensureAdaptiveQuestionBankForConcept(
 ): Promise<void> {
   const questions = getAdaptiveQuestionBankForConcept(conceptId);
   if (questions.length === 0) return;
-
-  const existingCount = await store.adaptiveQuestion.count({
-    where: { conceptId },
-  });
-  if (existingCount >= questions.length) return;
 
   for (const question of questions) {
     const record = toAdaptiveQuestionRecord(question);
