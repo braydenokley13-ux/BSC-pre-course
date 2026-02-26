@@ -14,6 +14,18 @@ export interface Role {
   privateInfo: string;
 }
 
+export interface OptionMutation {
+  ifStatus: string;           // apply when team has this status
+  labelSuffix?: string;       // appended to label e.g. "⚠ REPEATER RISK"
+  descriptionPrefix?: string; // prepended to description with context
+  blocksThis?: boolean;       // hide this option entirely
+}
+
+export interface ScenarioInjection {
+  requiredStatus: string; // apply when team has this status
+  prependText: string;    // prepended to mission scenario
+}
+
 export interface RoundOption {
   id: string;
   label: string;
@@ -21,6 +33,7 @@ export interface RoundOption {
   tags: string[];
   blockedByStatus?: string;
   requiresStatus?: string;
+  mutations?: OptionMutation[]; // status-driven patches applied server-side
 }
 
 export interface MissionRound {
@@ -59,6 +72,7 @@ export interface Mission {
   department: string;
   tagline: string;
   scenario: string;
+  scenarioInjections?: ScenarioInjection[]; // status-driven context prepended to scenario
   infoCards: InfoCard[];
   roles: Role[];
   rounds: MissionRound[];
@@ -79,6 +93,7 @@ const capCrunch: Mission = {
   scenario:
     "Your franchise point guard, Marcus Webb, has one year left on his deal and has made two All-Star teams. His agent is demanding a 3-year, $48M extension — which pushes your $168M payroll $14M over the luxury tax line. LA and Miami have cleared cap space. Webb's agent wants an answer in 48 hours.",
   conceptId: "luxury-tax",
+  // Mission 1 has no injections — it's the first mission, no prior status
 
   infoCards: [
     {
@@ -150,6 +165,13 @@ const capCrunch: Mission = {
           label: "Sign Webb at full terms",
           description: "Commit fully — 3yr/$48M, lock up the franchise cornerstone. Accept the luxury tax bill.",
           tags: ["sign-max", "win-now"],
+          mutations: [
+            {
+              ifStatus: "over-luxury-tax",
+              labelSuffix: " ⚠ SECOND TAX YEAR",
+              descriptionPrefix: "WARNING: You're already over the tax line. This triggers repeater territory next season. ",
+            },
+          ],
         },
         {
           id: "negotiate",
@@ -162,6 +184,13 @@ const capCrunch: Mission = {
           label: "Explore a trade",
           description: "Gauge Webb's trade value before committing. Two contenders have expressed informal interest.",
           tags: ["explore-trade", "rebuild"],
+          mutations: [
+            {
+              ifStatus: "rebuild-mode",
+              labelSuffix: " ★ REBUILD PATH",
+              descriptionPrefix: "Your rebuild mandate makes this the logical play. ",
+            },
+          ],
         },
         {
           id: "call-bluff",
@@ -505,6 +534,24 @@ const contractChoice: Mission = {
   tagline: "Supermax eligibility — one week to decide.",
   scenario:
     "Your young star Darius Cole has made two All-Star teams on his rookie deal and is now eligible for a Designated Player Supermax Extension — 35% of the cap for 5 years, worth $210M+. His agent is leaking interest to two cap-space teams. He has a player option in Year 5 of any extension. What do you offer?",
+  scenarioInjections: [
+    {
+      requiredStatus: "star-retained",
+      prependText: "Webb's extension is locked in — now you need to figure out Cole's future. With Webb already under max money, the cap math is brutal. ",
+    },
+    {
+      requiredStatus: "over-luxury-tax",
+      prependText: "You're already over the luxury tax line. A supermax for Cole would push you toward repeater territory for three straight seasons. ",
+    },
+    {
+      requiredStatus: "rebuild-mode",
+      prependText: "You're in rebuild mode. Cole is your most valuable asset — but he's also your best young player. This decision defines the rebuild's ceiling. ",
+    },
+    {
+      requiredStatus: "high-morale",
+      prependText: "Team morale is high right now — Cole is happy and wants to stay. You have leverage in this negotiation. ",
+    },
+  ],
   conceptId: "extensions-options",
 
   infoCards: [
@@ -576,12 +623,30 @@ const contractChoice: Mission = {
           label: "Offer the full Supermax immediately",
           description: "35% of cap, 5 years, fully guaranteed. Maximum commitment to your franchise cornerstone.",
           tags: ["offer-supermax", "star-retention"],
+          mutations: [
+            {
+              ifStatus: "over-luxury-tax",
+              labelSuffix: " ⚠ REPEATER RISK",
+              descriptionPrefix: "WARNING: You're already over the tax line. A supermax pushes you into repeater territory for 3+ seasons — penalties escalate to $2.50/$1. ",
+            },
+            {
+              ifStatus: "star-retained",
+              descriptionPrefix: "Webb is already locked up at $16M/year. Adding a Cole supermax gives you two max players and very little roster flexibility. ",
+            },
+          ],
         },
         {
           id: "team-friendly",
           label: "Propose a team-friendly extension",
           description: "30% of cap, 5 years. Saves $34M. You'll need to sell Cole on the 'team-first' framing.",
           tags: ["team-friendly", "cost-controlled"],
+          mutations: [
+            {
+              ifStatus: "cap-space-limited",
+              labelSuffix: " ★ CAP RELIEF OPTION",
+              descriptionPrefix: "With your cap already strained, the $34M in savings is the difference between competing and being stuck. ",
+            },
+          ],
         },
         {
           id: "qualifying-offer",
@@ -594,6 +659,17 @@ const contractChoice: Mission = {
           label: "Orchestrate a sign-and-trade",
           description: "Maximize return assets. Cole signs with a new team through you. You get picks + players.",
           tags: ["sign-and-trade", "rebuild"],
+          mutations: [
+            {
+              ifStatus: "rebuild-mode",
+              labelSuffix: " ★ REBUILD ACCELERATOR",
+              descriptionPrefix: "Your rebuild mandate makes this the logical choice — assets now over commitment. ",
+            },
+            {
+              ifStatus: "trade-assets-rich",
+              descriptionPrefix: "You already have pick capital. Adding Cole's return could give you the best asset base in the league. ",
+            },
+          ],
         },
       ],
     },
@@ -918,6 +994,24 @@ const revenueMix: Mission = {
   tagline: "Largest sponsorship in franchise history.",
   scenario:
     "NovaTech, a global consumer electronics company, has submitted a formal proposal: a 5-year jersey patch deal worth $25M/year — the largest in franchise history. Conditions: they want naming rights to your practice facility, 10 mandated social media posts per month from the team account, and first right of refusal on any future arena naming rights. Under the CBA's BRI rules, ~50% of incremental local revenue flows into the shared pool. The owner wants maximum local dollars. Players are already grumbling about the social media clause.",
+  scenarioInjections: [
+    {
+      requiredStatus: "high-morale",
+      prependText: "The locker room is buzzing right now — players are happy and the culture is good. A tone-deaf sponsorship deal could undermine everything you've built. Use that goodwill as leverage. ",
+    },
+    {
+      requiredStatus: "rebuild-mode",
+      prependText: "You're in rebuild mode. Revenue stability is now existential — your payroll is shrinking but your operating costs aren't. A bad deal here could set the franchise back years. ",
+    },
+    {
+      requiredStatus: "cap-space-limited",
+      prependText: "Your cap flexibility is already constrained. NovaTech's deal is one of the few tools you have to generate revenue without touching the roster. ",
+    },
+    {
+      requiredStatus: "star-retained",
+      prependText: "Webb's name is worth money to NovaTech — they specifically mentioned his marketability in their pitch. That's leverage you should use. ",
+    },
+  ],
   conceptId: "bri-revenue",
 
   infoCards: [
@@ -1307,6 +1401,24 @@ const expensePressure: Mission = {
   tagline: "Trade deadline — salary must match.",
   scenario:
     "It's 3 PM on trade deadline day. You're 2.5 games out of a playoff spot. Dallas wants to offload their star wing, Jordan Reeves — $28M this season, one year remaining. He's averaging 26 points and is exactly what your roster is missing. To match salary under CBA trade rules you must send back 125% of his salary plus $2M — meaning at least $22M outbound. You have a $12M small forward and a $10M backup center who can be combined (aggregated) to hit the threshold. But taking on Reeves without sending out equal salary triggers Second Apron exposure. The clock runs out at 3 PM.",
+  scenarioInjections: [
+    {
+      requiredStatus: "over-luxury-tax",
+      prependText: "You're already over the luxury tax line. Absorbing Reeves' $28M without matching salary moves you into Second Apron territory — you lose the right to use mid-level exceptions for three years and can't aggregate contracts in future trades. ",
+    },
+    {
+      requiredStatus: "trade-assets-rich",
+      prependText: "You have pick capital from prior trades. This is your moment to weaponize those assets — Dallas is desperate and you have what they want. ",
+    },
+    {
+      requiredStatus: "rebuild-mode",
+      prependText: "You're rebuilding — does a one-year rental on a $28M wing make sense? Unless you see a clear playoff path, every dollar and pick you spend now delays the rebuild. ",
+    },
+    {
+      requiredStatus: "star-retained",
+      prependText: "With Webb locked in, Reeves would give you a true two-man front office story to sell to free agents. The combination could push you from fringe contender to genuine threat. ",
+    },
+  ],
   conceptId: "trade-matching",
 
   infoCards: [
@@ -1641,6 +1753,24 @@ const statsLineup: Mission = {
   tagline: "The model says bench the starters.",
   scenario:
     "Your analytics team has identified a five-man bench lineup with a +12.4 net rating over 214 possessions this season — the third-best lineup combination in the entire league by this measure. Your starting five's net rating over the same period: +3.1. The gap is not noise. But your head coach, Marcus Hill — a 22-year veteran with two championship rings — calls advanced metrics 'box score fiction invented by people who never laced up.' He has the locker room's trust. You control the front office. Someone has to give.",
+  scenarioInjections: [
+    {
+      requiredStatus: "analytics-forward",
+      prependText: "You've already committed to analytics culture in this organization. This decision will determine whether that commitment holds under pressure — or collapses when it gets hard. ",
+    },
+    {
+      requiredStatus: "coach-conflict",
+      prependText: "Your relationship with the coaching staff is already strained from a previous disagreement. Another analytics-driven push could be the breaking point. Tread carefully. ",
+    },
+    {
+      requiredStatus: "high-morale",
+      prependText: "The locker room trusts you right now. Players are bought in. That capital is your shield if you need to make an uncomfortable call. ",
+    },
+    {
+      requiredStatus: "star-retained",
+      prependText: "Webb has publicly said he 'doesn't care about the numbers as long as we win.' He's a traditionalist. Any analytics push will need to be sold carefully to the locker room. ",
+    },
+  ],
   conceptId: "analytics",
 
   infoCards: [
@@ -2017,6 +2147,24 @@ const matchupAdjust: Mission = {
   tagline: "Franchise player showing fatigue signs.",
   scenario:
     "Your franchise player, DeShawn Morris — 24 years old, averaging 31.4 points on 38.2 minutes per game — is showing measurable fatigue signs. Fourth-quarter shooting: down 4.8% over the last 12 games. The medical team has flagged 'bilateral plantar fasciitis risk and soft tissue stress indicators' — not a confirmed injury, but a clear warning. Playoffs are 11 games away. The fanbase is selling out every game. The coach wants him on the floor. Morris himself says he's fine. What do you do?",
+  scenarioInjections: [
+    {
+      requiredStatus: "star-retained",
+      prependText: "Webb's long-term contract means you've already committed to building around a cornerstone player. A soft tissue injury now doesn't just end the season — it potentially ends your title window for two years. Every minute he plays carries franchise-level risk. ",
+    },
+    {
+      requiredStatus: "coach-conflict",
+      prependText: "Your relationship with the coaching staff is already strained. The coach has been vocal about 'trusting his players' and resents front office health mandates. A load management decision will be fought at every step. ",
+    },
+    {
+      requiredStatus: "high-morale",
+      prependText: "Team morale is excellent right now. The players trust the process. That goodwill gives you political cover to make an unpopular but smart call — if you use it. ",
+    },
+    {
+      requiredStatus: "analytics-forward",
+      prependText: "Your analytics culture has built credibility with the medical team. Their injury models have 94% accuracy on soft tissue risk at this usage level. The data is clear — the question is whether you act on it. ",
+    },
+  ],
   conceptId: "roster-health",
 
   infoCards: [
@@ -2346,6 +2494,24 @@ const draftTable: Mission = {
   tagline: "10 minutes on the clock at #6.",
   scenario:
     "It's draft night. You hold the #6 pick. The war room is split. Your scouting department loves Mateo Silva — a 19-year-old Brazilian wing who spent two years in the Euroleague. Polished, NBA-ready, professional, ceiling probably a 15-ppg starter. Your analytics model, with 94% confidence, projects Damien Cole — a 20-year-old guard from a mid-major — as a top-15 player by Year 3. Scouts rank Cole #14. The model ranks him #4. You have 10 minutes before you're on the clock. One bad pick at #6 can define a franchise for a decade.",
+  scenarioInjections: [
+    {
+      requiredStatus: "rebuild-mode",
+      prependText: "You're in rebuild mode. This pick is your centerpiece — not a complement to a star, but the foundation you're building from. The wrong choice here sets the rebuild back three years. ",
+    },
+    {
+      requiredStatus: "analytics-forward",
+      prependText: "Your analytics culture has established credibility. The model's track record is strong. The question isn't whether to trust data — it's how much you trust it under Draft Night pressure. ",
+    },
+    {
+      requiredStatus: "trade-assets-rich",
+      prependText: "You have draft capital stockpiled. A trade-up or trade-down is genuinely on the table — you're not forced to stay at #6. Other teams are calling. ",
+    },
+    {
+      requiredStatus: "star-retained",
+      prependText: "With Webb locked in, this pick needs to complement an established star — not become one independently. Fit matters as much as ceiling. ",
+    },
+  ],
   conceptId: "rookie-scale",
 
   infoCards: [
@@ -2667,6 +2833,32 @@ const finalGmCall: Mission = {
   tagline: "The owner wants your three-year plan.",
   scenario:
     "End of season. The owner has called a private meeting in the Ownership Suite. Your team narrowly missed the playoffs — lost the final play-in game by 4 points. You have one All-Star under contract (2 years remaining), two first-round picks in your vault, and a 14-man roster with 4 rotation-caliber players. The league is in transition — 7 of the last 10 finalists were built through analytics-forward drafting, not star free agency. The owner asks: 'Give me your three-year vision. What does this franchise look like in Year 3?' Your answer defines everything — staff, philosophy, budget, and your own job security.",
+  scenarioInjections: [
+    {
+      requiredStatus: "star-retained",
+      prependText: "Webb's contract — the deal you made in the Cap Room — is the north star of your three-year plan. Every decision flows from protecting and building around him. The owner knows what you have. Now he wants to know what you do with it. ",
+    },
+    {
+      requiredStatus: "analytics-forward",
+      prependText: "You've built an analytics culture inside this organization. Your data infrastructure, your model-driven decisions, your coaching philosophy — it's all on the line in this room. Defend it or evolve it. ",
+    },
+    {
+      requiredStatus: "rebuild-mode",
+      prependText: "You gave up stars for assets. You traded short-term performance for long-term equity. Now you have to show the owner the rebuild is working — and that you have a clear path to the other side. ",
+    },
+    {
+      requiredStatus: "over-luxury-tax",
+      prependText: "The luxury tax bills have been real. The owner has paid them. Now he's asking whether it was worth it — and whether you have a plan to avoid the repeater penalties that loom. ",
+    },
+    {
+      requiredStatus: "coach-conflict",
+      prependText: "The friction with the coaching staff has leaked into the press. The owner is aware of it. He's going to ask about it, directly or indirectly. You need a position on leadership stability. ",
+    },
+    {
+      requiredStatus: "high-morale",
+      prependText: "Player morale has been a strength under your tenure. The locker room trusts you. That culture is a real asset the owner can see in practice — use it as evidence of your leadership. ",
+    },
+  ],
   conceptId: "front-office-philosophy",
 
   infoCards: [
@@ -2738,24 +2930,73 @@ const finalGmCall: Mission = {
           label: "Controlled rebuild — accumulate assets, compete in Year 3",
           description: "Trade picks for veterans? No. Build through the draft, clear bad contracts, let the young core lead. Competitive by Year 3.",
           tags: ["controlled-rebuild", "patient"],
+          mutations: [
+            {
+              ifStatus: "rebuild-mode",
+              labelSuffix: " ★ HONOR YOUR PATH",
+              descriptionPrefix: "You've already made the hard trades to get here. Staying the course is the honest answer. ",
+            },
+            {
+              ifStatus: "star-retained",
+              descriptionPrefix: "NOTE: A rebuild vision is hard to square with Webb's prime years still on the books. You'll need to address the contradiction. ",
+            },
+          ],
         },
         {
           id: "hybrid-build",
           label: "Hybrid — extend Webb, add analytics-sourced players via draft",
           description: "Keep Webb, use the picks intelligently, invest in a modern analytics infrastructure. Compete every year.",
           tags: ["hybrid-build", "balanced"],
+          mutations: [
+            {
+              ifStatus: "star-retained",
+              labelSuffix: " ★ CONTINUITY PLAY",
+              descriptionPrefix: "You built around Webb in the Cap Room. Now you complete the picture around him. This is the natural continuation of that bet. ",
+            },
+            {
+              ifStatus: "analytics-forward",
+              descriptionPrefix: "Your analytics culture is already in place. This path is the fullest expression of everything you've built. ",
+            },
+          ],
         },
         {
           id: "win-now",
           label: "Win now — max free agent pursuit, trade picks for veterans",
           description: "Go all-in while Webb is in his prime. Trade the picks. Sign a max free agent. Year 1 contention.",
           tags: ["win-now", "aggressive"],
+          mutations: [
+            {
+              ifStatus: "over-luxury-tax",
+              labelSuffix: " ⚠ CAP CONSTRAINTS",
+              descriptionPrefix: "WARNING: You're already over the luxury tax. Going all-in means crossing into Second Apron territory — you lose future trade flexibility permanently. ",
+            },
+            {
+              ifStatus: "star-retained",
+              labelSuffix: " ★ STRIKE WHILE WEBB IS PRIME",
+              descriptionPrefix: "Webb's window is open. This is the case for urgency. Use his prime years now. ",
+            },
+            {
+              ifStatus: "trade-assets-rich",
+              descriptionPrefix: "You have pick capital to spend. The win-now path has actual fuel behind it this time. ",
+            },
+          ],
         },
         {
           id: "analytics-transformation",
           label: "Full analytics transformation — rebuild decision-making from the ground up",
           description: "Invest in analytics infrastructure as the primary competitive advantage. Fewer emotions, more models.",
           tags: ["analytics-transformation", "systemic"],
+          mutations: [
+            {
+              ifStatus: "analytics-forward",
+              labelSuffix: " ★ DOUBLE DOWN",
+              descriptionPrefix: "You've already been moving in this direction. This is the full commitment — no hedging. ",
+            },
+            {
+              ifStatus: "coach-conflict",
+              descriptionPrefix: "NOTE: A full analytics transformation will require resolving the coaching friction first. The two visions are incompatible. ",
+            },
+          ],
         },
       ],
     },

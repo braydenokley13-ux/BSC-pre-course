@@ -6,6 +6,8 @@ import {
   getMissionById,
   isLegacyMission,
   Mission,
+  MissionRound,
+  RoundOption,
   FinalOutcome,
   OutcomeVariant,
 } from "@/lib/missions";
@@ -76,6 +78,26 @@ export async function POST(req: NextRequest) {
 
   const team = await prisma.team.findUnique({ where: { id: student.teamId } });
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
+
+  // Helper: apply status-driven option mutations before sending to client
+  const teamStatus: string[] = JSON.parse(team.teamStatus ?? "[]");
+  function applyMutations(round: MissionRound): MissionRound {
+    const patchedOptions: RoundOption[] = round.options
+      .map((opt) => {
+        if (!opt.mutations) return opt;
+        let patched = { ...opt };
+        for (const mut of opt.mutations) {
+          if (teamStatus.includes(mut.ifStatus)) {
+            if (mut.blocksThis) return null;
+            if (mut.labelSuffix) patched = { ...patched, label: patched.label + mut.labelSuffix };
+            if (mut.descriptionPrefix) patched = { ...patched, description: mut.descriptionPrefix + patched.description };
+          }
+        }
+        return patched;
+      })
+      .filter(Boolean) as RoundOption[];
+    return { ...round, options: patchedOptions };
+  }
 
   const mission = getMissionById(missionId);
   if (!mission || isLegacyMission(mission)) {
@@ -183,7 +205,8 @@ export async function POST(req: NextRequest) {
       data: { missionRoundState: JSON.stringify(newState) },
     });
 
-    const nextRound = richMission.rounds.find((r) => r.id === nextRoundId);
+    const rawNextRound = richMission.rounds.find((r) => r.id === nextRoundId);
+    const nextRound = rawNextRound ? applyMutations(rawNextRound) : undefined;
     return NextResponse.json({
       roundId,
       winningOptionId,

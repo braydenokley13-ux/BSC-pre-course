@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type MissionPhase =
   | "loading"
@@ -59,7 +60,24 @@ interface ResolveResult {
   isGameComplete?: boolean;
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Framer Motion variants ─────────────────────────────────────────────────────
+
+const staggerContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+
+const slideFromRight: Variants = {
+  hidden: { opacity: 0, x: 32 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.28, ease: "easeOut" as const } },
+};
+
+const scalePopIn: Variants = {
+  hidden: { scale: 0, opacity: 0 },
+  show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 320, damping: 16 } },
+};
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
 
 function RoleTag({ title }: { title: string }) {
   return (
@@ -86,27 +104,66 @@ function InfoCardReveal({
     return () => clearTimeout(t);
   }, [delay]);
 
-  if (!visible) {
-    return (
-      <div className="bsc-card p-3 opacity-30 border-dashed">
-        <p className="font-mono text-xs text-[#6b7280] animate-pulse">Incoming briefing…</p>
-      </div>
-    );
-  }
   return (
-    <div className={`card-reveal bsc-card p-4 ${isRoleRestricted ? "role-card-active" : ""}`}>
-      {isRoleRestricted && (
-        <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">
-          ◈ Role-Restricted — Your Eyes Only
-        </p>
+    <AnimatePresence mode="wait">
+      {!visible ? (
+        <motion.div
+          key="pending"
+          initial={{ opacity: 0.3 }}
+          animate={{ opacity: [0.3, 0.5, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+          exit={{ opacity: 0, transition: { duration: 0.15 } }}
+          className="bsc-card p-3 border-dashed"
+        >
+          <div className="flex items-center gap-2">
+            <motion.div
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+              className="w-1.5 h-1.5 rounded-full bg-[#c9a84c]/50"
+            />
+            <p className="font-mono text-xs text-[#6b7280]">Incoming briefing…</p>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="revealed"
+          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className={`bsc-card p-4 ${isRoleRestricted ? "role-card-active border-[#c9a84c]/30" : ""}`}
+        >
+          {isRoleRestricted && (
+            <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">
+              ◈ Role-Restricted — Your Eyes Only
+            </p>
+          )}
+          <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">{title}</p>
+          <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{content}</p>
+        </motion.div>
       )}
-      <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">{title}</p>
-      <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{content}</p>
+    </AnimatePresence>
+  );
+}
+
+// ── Pulsing dots ───────────────────────────────────────────────────────────────
+
+function PulsingDots({ color = "#c9a84c" }: { color?: string }) {
+  return (
+    <div className="flex items-center justify-center gap-1">
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: color }}
+          animate={{ scale: [1, 1.6, 1], opacity: [0.4, 1, 0.4] }}
+          transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2, ease: "easeInOut" }}
+        />
+      ))}
     </div>
   );
 }
 
-// ── Main inner component ──────────────────────────────────────────────────────
+// ── Main inner component ───────────────────────────────────────────────────────
 
 function PlayInner() {
   const router = useRouter();
@@ -153,7 +210,7 @@ function PlayInner() {
       setCurrentRound(data.currentRound);
       setPhase("briefing");
     } catch {
-      missionStarted.current = false; // allow retry on refresh
+      missionStarted.current = false;
       setError("Network error starting mission");
       setPhase("error");
     }
@@ -169,16 +226,13 @@ function PlayInner() {
 
       const rsm = data.missionRoundState;
 
-      // Need to start the mission?
       if (rsm?.missionId !== missionId && !missionStarted.current) {
         await startMission();
         return;
       }
 
-      // Already resolved — nothing to do in poll (outcome phase handles it)
       if (rsm?.isResolved && rsm?.missionId === missionId) return;
 
-      // Auto-resolve when all active members have voted
       if (phase === "waiting" || phase === "rival-waiting") {
         const roundId =
           phase === "rival-waiting" ? "rival-response" : (rsm?.currentRoundId ?? "");
@@ -281,7 +335,7 @@ function PlayInner() {
     router.push("/hq");
   }
 
-  // ── Guards ────────────────────────────────────────────────────────────────
+  // ── Guards ─────────────────────────────────────────────────────────────────
 
   if (!missionId || !mission || isLegacy) {
     return (
@@ -290,20 +344,31 @@ function PlayInner() {
       </div>
     );
   }
+
   if (phase === "error") {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <p className="text-[#ef4444] font-mono text-sm mb-4">{error}</p>
+        <div className="text-center space-y-4">
+          <p className="text-[#ef4444] font-mono text-sm">{error}</p>
           <button className="bsc-btn-ghost" onClick={() => router.push("/hq")}>← Back to HQ</button>
         </div>
       </div>
     );
   }
+
   if (phase === "loading" || !teamState) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#6b7280] font-mono text-sm animate-pulse">Entering the building…</p>
+        <div className="text-center space-y-3">
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+            transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+            className="text-[#c9a84c] font-mono text-3xl"
+          >
+            ◈
+          </motion.div>
+          <p className="text-[#6b7280] font-mono text-sm">Entering the building…</p>
+        </div>
       </div>
     );
   }
@@ -317,296 +382,565 @@ function PlayInner() {
   const conceptTitle =
     CONCEPT_CARDS.find((c) => c.id === richMission.conceptId)?.title ?? richMission.conceptId;
 
-  // ── Briefing ──────────────────────────────────────────────────────────────
+  // Vote tally for current active round
+  const activeRound = (phase === "rival-voting" || phase === "rival-waiting") ? rivalRound : currentRound;
+  const voteTally = activeRound
+    ? activeRound.options.map((_, i) => teamState.votes.filter((v) => v.optionIndex === i).length)
+    : [];
+  const totalVotes = teamState.votes.length;
+  const votePct = (count: number) => totalVotes > 0 ? (count / totalVotes) * 100 : 0;
 
-  if (phase === "briefing") {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in">
-        <div className="flex items-center gap-3 mb-5">
-          <button className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb]" onClick={() => router.push("/hq")}>
-            ← HQ
-          </button>
-          <span className="text-[#1e2435]">|</span>
-          <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.department}</span>
-          <span className="text-[#1e2435]">|</span>
-          <span className="text-[#e5e7eb] font-mono text-sm font-bold">{richMission.title}</span>
-        </div>
+  const votedIds = teamState.votes.map((v) => v.studentId);
+  const activeIds = members.filter((m) => m.active).map((m) => m.id);
+  const votedCount = activeIds.filter((id) => votedIds.includes(id)).length;
+  const canReveal = votedCount >= activeCount && activeCount > 0;
 
-        <div className="bsc-card p-5 mb-4">
-          <p className="bsc-section-title">Situation</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{richMission.scenario}</p>
-        </div>
+  // Stable phase key so voting→waiting doesn't re-animate options
+  const phaseKey =
+    phase === "waiting" ? "voting"
+    : phase === "rival-waiting" ? "rival-voting"
+    : phase;
 
-        {myRole && (
-          <div className="bsc-card p-4 mb-4 role-card-active border-[#c9a84c]/30">
-            <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-2">Your Role</p>
-            <p className="font-mono text-sm font-bold text-[#e5e7eb] mb-1">{myRole.title}</p>
-            <p className="font-mono text-xs text-[#6b7280] mb-3">{myRole.description}</p>
-            <div className="border-t border-[#c9a84c]/20 pt-3 private-reveal">
-              <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">◈ Private Intelligence</p>
-              <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{myRole.privateInfo}</p>
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          {members.map((m) => (
-            <span
-              key={m.id}
-              className={`font-mono text-[10px] px-2 py-0.5 rounded border ${
-                m.id === me.id ? "border-[#c9a84c] text-[#c9a84c]"
-                : m.active ? "border-[#22c55e]/30 text-[#22c55e]"
-                : "border-[#1e2435] text-[#6b7280]"
-              }`}
-            >
-              {m.nickname}
-              {m.role && <span className="opacity-60 ml-1">({m.role})</span>}
-              {m.id === me.id && " ●"}
-            </span>
-          ))}
-        </div>
-
-        <div className="space-y-3 mb-5">
-          {myInfoCards.map((card) => (
-            <InfoCardReveal
-              key={card.title}
-              title={card.title}
-              content={card.content}
-              delay={card.revealDelay}
-              isRoleRestricted={!!card.roleOnly}
-            />
-          ))}
-        </div>
-
-        <button
-          className="bsc-btn-gold w-full py-3"
-          onClick={() => { if (currentRound) setPhase("voting"); }}
-          disabled={!currentRound}
-        >
-          {currentRound ? "I've Read the Briefing — Begin Voting →" : "Preparing mission…"}
-        </button>
-      </div>
-    );
-  }
-
-  // ── Voting / waiting ──────────────────────────────────────────────────────
-
-  if ((phase === "voting" || phase === "waiting") && currentRound) {
-    const votedIds = teamState.votes.map((v) => v.studentId);
-    const activeIds = members.filter((m) => m.active).map((m) => m.id);
-    const votedCount = activeIds.filter((id) => votedIds.includes(id)).length;
-    const canReveal = votedCount >= activeCount && activeCount > 0;
-
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in round-enter">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <button className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb]" onClick={() => setPhase("briefing")}>← Briefing</button>
-            <span className="text-[#1e2435]">|</span>
-            <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {myRole && <RoleTag title={myRole.title} />}
-            <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
-          </div>
-        </div>
-
-        <div className="bsc-card p-4 mb-4">
-          <p className="bsc-section-title">Decision Point</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{currentRound.prompt}</p>
-          {currentRound.context && (
-            <p className="font-mono text-xs text-[#6b7280] mt-2 leading-relaxed border-t border-[#1e2435] pt-2">
-              {currentRound.context}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-3 mb-5">
-          {currentRound.options.map((opt, i) => {
-            const isSelected = selectedOptionIdx === i;
-            const disabled = phase === "waiting";
-            return (
-              <button
-                key={opt.id}
-                className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${disabled ? "cursor-default" : ""}`}
-                onClick={() => !disabled && void handleVote(i)}
-                disabled={disabled}
-              >
-                <div className="flex items-start gap-3">
-                  <span className={`flex-shrink-0 w-6 h-6 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${isSelected ? "border-[#c9a84c] bg-[#c9a84c] text-black" : "border-[#1e2435] text-[#6b7280]"}`}>
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <div>
-                    <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
-                    <p className="font-mono text-xs text-[#6b7280] mt-0.5 leading-relaxed">{opt.description}</p>
-                    {opt.requiresStatus && (
-                      <p className="font-mono text-[10px] text-[#c9a84c] mt-1">
-                        Requires: {STATUS_EFFECTS[opt.requiresStatus]?.label ?? opt.requiresStatus}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {phase === "waiting" && (
-          <div className="text-center">
-            <p className="text-[#6b7280] font-mono text-xs animate-pulse mb-3">
-              {votedCount}/{activeCount} votes in — waiting for teammates…
-            </p>
-            {canReveal && (
-              <button className="bsc-btn-gold" onClick={() => void handleResolveRound(currentRound.id)} disabled={resolving}>
-                {resolving ? "Counting…" : "Reveal Results →"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Rival alert ───────────────────────────────────────────────────────────
-
-  if (phase === "rival-alert") {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in">
-        <div className="ticker-bar mb-4">
-          <span className="ticker-text">⚡ BREAKING — LEAGUE DEVELOPMENT ALERT &nbsp;&nbsp;&nbsp; ⚡ BREAKING — LEAGUE DEVELOPMENT ALERT</span>
-        </div>
-        <div className="rival-alert bsc-card p-5 mb-5">
-          <p className="text-[10px] font-mono tracking-widest uppercase text-[#ef4444] mb-2">Rival Move Detected</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalMessage}</p>
-        </div>
-        {rivalRound && (
-          <button className="bsc-btn-gold w-full py-3" onClick={() => { setCurrentRound(rivalRound); setSelectedOptionIdx(null); setPhase("rival-voting"); }}>
-            Respond →
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  // ── Rival voting / waiting ────────────────────────────────────────────────
-
-  if ((phase === "rival-voting" || phase === "rival-waiting") && rivalRound) {
-    const votedIds = teamState.votes.map((v) => v.studentId);
-    const activeIds = members.filter((m) => m.active).map((m) => m.id);
-    const votedCount = activeIds.filter((id) => votedIds.includes(id)).length;
-    const canReveal = votedCount >= activeCount && activeCount > 0;
-
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in round-enter">
-        <div className="ticker-bar mb-4">
-          <span className="ticker-text">RIVAL RESPONSE REQUIRED — FRONT OFFICE DECISION PENDING</span>
-        </div>
-        <div className="flex items-center justify-between mb-5">
-          <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
-          <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
-        </div>
-        <div className="bsc-card p-4 mb-4">
-          <p className="bsc-section-title">How do you respond?</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalRound.prompt}</p>
-        </div>
-        <div className="space-y-3 mb-5">
-          {rivalRound.options.map((opt, i) => {
-            const isSelected = selectedOptionIdx === i;
-            const disabled = phase === "rival-waiting";
-            return (
-              <button
-                key={opt.id}
-                className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${disabled ? "cursor-default" : ""}`}
-                onClick={() => !disabled && void handleRivalVote(i)}
-                disabled={disabled}
-              >
-                <div className="flex items-start gap-3">
-                  <span className={`flex-shrink-0 w-6 h-6 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${isSelected ? "border-[#c9a84c] bg-[#c9a84c] text-black" : "border-[#1e2435] text-[#6b7280]"}`}>
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <div>
-                    <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
-                    <p className="font-mono text-xs text-[#6b7280] mt-0.5 leading-relaxed">{opt.description}</p>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        {phase === "rival-waiting" && (
-          <div className="text-center">
-            <p className="text-[#6b7280] font-mono text-xs animate-pulse mb-3">{votedCount}/{activeCount} responses in…</p>
-            {canReveal && (
-              <button className="bsc-btn-gold" onClick={() => void handleResolveRound("rival-response")} disabled={resolving}>
-                {resolving ? "Processing…" : "Confirm Response →"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Outcome ───────────────────────────────────────────────────────────────
-
-  if (phase === "outcome" && resolveResult?.outcome) {
-    const { outcome } = resolveResult;
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-fade-in">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
-          <span className="text-[#1e2435]">|</span>
-          <span className="bsc-badge-green">Mission Complete</span>
-        </div>
-
-        <div className="bsc-card p-5 mb-4 border-[#22c55e]/30">
-          <p className="text-[10px] font-mono tracking-widest uppercase text-[#22c55e] mb-2">Outcome</p>
-          <p className="font-mono text-sm font-bold text-[#e5e7eb] mb-3">{outcome.label}</p>
-          <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{outcome.narrative}</p>
-        </div>
-
-        <div className="bsc-card p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">Points Earned</p>
-              <p className="score-pop text-[#22c55e] font-mono text-2xl font-bold">+{outcome.scoreΔ}</p>
-            </div>
-            {outcome.applyStatus.length > 0 && (
-              <div>
-                <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">Status Applied</p>
-                <div className="flex flex-wrap gap-1 justify-end">
-                  {outcome.applyStatus.map((sid) => {
-                    const eff = STATUS_EFFECTS[sid];
-                    return eff ? (
-                      <span key={sid} className={`text-[10px] font-mono px-2 py-0.5 rounded border ${eff.positive ? "bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/30" : "bg-[#ef4444]/10 text-[#ef4444]/70 border-[#ef4444]/25"}`} title={eff.description}>
-                        {eff.icon} {eff.label}
-                      </span>
-                    ) : null;
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <button className="bsc-btn-gold w-full py-3 mb-2" onClick={handleContinue}>
-          {resolveResult.isGameComplete ? "Claim Your Score →" : `Unlock Concept — ${conceptTitle} →`}
-        </button>
-        <button className="bsc-btn-ghost w-full py-2 text-xs" onClick={() => router.push("/hq")}>
-          Return to HQ
-        </button>
-      </div>
-    );
-  }
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <p className="text-[#6b7280] font-mono text-sm animate-pulse">Loading…</p>
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={phaseKey}
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -18 }}
+        transition={{ duration: 0.32, ease: "easeOut" }}
+        className="max-w-3xl mx-auto px-4 py-6"
+      >
+        {/* ── BRIEFING ─────────────────────────────────────────────────────── */}
+        {phase === "briefing" && (
+          <div>
+            {/* Breadcrumb */}
+            <motion.div
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center gap-3 mb-5"
+            >
+              <button
+                className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb] transition-colors"
+                onClick={() => router.push("/hq")}
+              >
+                ← HQ
+              </button>
+              <span className="text-[#1a2030]">|</span>
+              <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.department}</span>
+              <span className="text-[#1a2030]">|</span>
+              <span className="text-[#e5e7eb] font-mono text-sm font-bold">{richMission.title}</span>
+            </motion.div>
+
+            {/* Scenario */}
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="bsc-card p-5 mb-4 spotlight"
+            >
+              <p className="bsc-section-title">Situation</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{richMission.scenario}</p>
+            </motion.div>
+
+            {/* Role card — flip reveal */}
+            {myRole && (
+              <motion.div
+                initial={{ opacity: 0, rotateX: 80, transformPerspective: 800 }}
+                animate={{ opacity: 1, rotateX: 0 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 180, damping: 22 }}
+                className="bsc-card p-4 mb-4 role-card-active border-[#c9a84c]/30"
+              >
+                <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-2">Your Role</p>
+                <p className="font-mono text-sm font-bold text-[#e5e7eb] mb-1">{myRole.title}</p>
+                <p className="font-mono text-xs text-[#6b7280] mb-3">{myRole.description}</p>
+                <div className="border-t border-[#c9a84c]/20 pt-3">
+                  <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-70">◈ Private Intelligence</p>
+                  <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed">{myRole.privateInfo}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Team roster pills */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.28 }}
+              className="flex flex-wrap gap-2 mb-4"
+            >
+              {members.map((m, i) => (
+                <motion.span
+                  key={m.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.32 + i * 0.06 }}
+                  className={`font-mono text-[10px] px-2 py-0.5 rounded border ${
+                    m.id === me.id
+                      ? "border-[#c9a84c] text-[#c9a84c]"
+                      : m.active
+                      ? "border-[#22c55e]/30 text-[#22c55e]"
+                      : "border-[#1a2030] text-[#6b7280]"
+                  }`}
+                >
+                  {m.nickname}
+                  {m.role && <span className="opacity-60 ml-1">({m.role})</span>}
+                  {m.id === me.id && " ●"}
+                </motion.span>
+              ))}
+            </motion.div>
+
+            {/* Info cards */}
+            <div className="space-y-3 mb-5">
+              {myInfoCards.map((card) => (
+                <InfoCardReveal
+                  key={card.title}
+                  title={card.title}
+                  content={card.content}
+                  delay={card.revealDelay}
+                  isRoleRestricted={!!card.roleOnly}
+                />
+              ))}
+            </div>
+
+            {/* CTA */}
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              className="bsc-btn-gold w-full py-3"
+              onClick={() => { if (currentRound) setPhase("voting"); }}
+              disabled={!currentRound}
+            >
+              {currentRound ? "I've Read the Briefing — Begin Voting →" : "Preparing mission…"}
+            </motion.button>
+          </div>
+        )}
+
+        {/* ── VOTING / WAITING ──────────────────────────────────────────────── */}
+        {(phase === "voting" || phase === "waiting") && currentRound && (
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb] transition-colors"
+                  onClick={() => setPhase("briefing")}
+                >
+                  ← Briefing
+                </button>
+                <span className="text-[#1a2030]">|</span>
+                <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {myRole && <RoleTag title={myRole.title} />}
+                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+              </div>
+            </div>
+
+            {/* Decision prompt */}
+            <div className="bsc-card p-5 mb-5 spotlight">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[#c9a84c] font-mono text-[10px] tracking-widest">⚡ DECISION POINT</span>
+                <div className="flex-1 h-px bg-[#c9a84c]/20" />
+              </div>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{currentRound.prompt}</p>
+              {currentRound.context && (
+                <p className="font-mono text-xs text-[#6b7280] mt-3 leading-relaxed border-t border-[#1a2030] pt-3">
+                  {currentRound.context}
+                </p>
+              )}
+            </div>
+
+            {/* Option cards — staggered from right */}
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="space-y-3 mb-5"
+            >
+              {currentRound.options.map((opt, i) => {
+                const isSelected = selectedOptionIdx === i;
+                const isOther = selectedOptionIdx !== null && !isSelected;
+                const disabled = phase === "waiting";
+                const thisVotes = voteTally[i] ?? 0;
+                const thisPct = votePct(thisVotes);
+
+                return (
+                  <motion.button
+                    key={opt.id}
+                    variants={slideFromRight}
+                    animate={{ opacity: isOther ? 0.32 : 1, scale: isSelected ? 1.015 : 1 }}
+                    whileHover={!disabled ? { scale: isSelected ? 1.015 : 1.02 } : {}}
+                    whileTap={!disabled ? { scale: 0.985 } : {}}
+                    transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
+                    className={`mission-option text-left w-full ${isSelected ? "selected" : ""} ${disabled && !isSelected ? "cursor-default" : ""}`}
+                    onClick={() => !disabled && void handleVote(i)}
+                    disabled={disabled}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5 transition-colors duration-150 ${
+                          isSelected
+                            ? "border-[#c9a84c] bg-[#c9a84c] text-black font-bold"
+                            : "border-[#1a2030] text-[#6b7280]"
+                        }`}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-sm text-[#e5e7eb] leading-snug">{opt.label}</p>
+                        <p className="font-mono text-xs text-[#6b7280] mt-1 leading-relaxed">{opt.description}</p>
+                        {opt.requiresStatus && (
+                          <p className="font-mono text-[10px] text-[#c9a84c] mt-1">
+                            Requires: {STATUS_EFFECTS[opt.requiresStatus]?.label ?? opt.requiresStatus}
+                          </p>
+                        )}
+                        {/* Live tally bar */}
+                        {(phase === "waiting" || thisVotes > 0) && (
+                          <div className="mt-2.5">
+                            <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
+                              <motion.div
+                                className={`h-full rounded-full ${isSelected ? "bg-[#c9a84c]" : "bg-[#2a3050]"}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${thisPct}%` }}
+                                transition={{ type: "spring", stiffness: 110, damping: 22 }}
+                              />
+                            </div>
+                            <p className="font-mono text-[10px] text-[#6b7280] mt-1">
+                              {thisVotes} vote{thisVotes !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+
+            {/* Waiting state */}
+            {phase === "waiting" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center space-y-3"
+              >
+                <PulsingDots />
+                <p className="text-[#6b7280] font-mono text-xs">
+                  {votedCount}/{activeCount} votes in — waiting for teammates…
+                </p>
+                {canReveal && (
+                  <motion.button
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="bsc-btn-gold px-8 py-2"
+                    onClick={() => void handleResolveRound(currentRound.id)}
+                    disabled={resolving}
+                  >
+                    {resolving ? "Counting votes…" : "Reveal Results →"}
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* ── RIVAL ALERT ───────────────────────────────────────────────────── */}
+        {phase === "rival-alert" && (
+          <div>
+            <motion.div
+              initial={{ y: -40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              className="ticker-bar mb-5"
+            >
+              <span className="ticker-text">⚡ BREAKING — LEAGUE DEVELOPMENT ALERT &nbsp;&nbsp;&nbsp; ⚡ BREAKING — LEAGUE DEVELOPMENT ALERT</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.18, type: "spring", stiffness: 200, damping: 20 }}
+              className="bsc-card p-6 mb-5 border-[#ef4444]/40"
+              style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(239,68,68,0.06) 0%, transparent 70%)" }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <motion.span
+                  animate={{ opacity: [1, 0.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.1 }}
+                  className="w-2 h-2 rounded-full bg-[#ef4444]"
+                />
+                <p className="text-[10px] font-mono tracking-widest uppercase text-[#ef4444]">Rival Move Detected</p>
+              </div>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalMessage}</p>
+            </motion.div>
+
+            {rivalRound && (
+              <motion.button
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bsc-btn-gold w-full py-3"
+                onClick={() => {
+                  setCurrentRound(rivalRound);
+                  setSelectedOptionIdx(null);
+                  setPhase("rival-voting");
+                }}
+              >
+                Respond →
+              </motion.button>
+            )}
+          </div>
+        )}
+
+        {/* ── RIVAL VOTING / WAITING ────────────────────────────────────────── */}
+        {(phase === "rival-voting" || phase === "rival-waiting") && rivalRound && (
+          <div>
+            <motion.div
+              initial={{ y: -24, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="ticker-bar mb-5"
+            >
+              <span className="ticker-text">RIVAL RESPONSE REQUIRED — FRONT OFFICE DECISION PENDING</span>
+            </motion.div>
+
+            <div className="flex items-center justify-between mb-5">
+              <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
+              <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+            </div>
+
+            <div className="bsc-card p-5 mb-5 border-[#ef4444]/20">
+              <p className="bsc-section-title" style={{ color: "#ef4444" }}>How do you respond?</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalRound.prompt}</p>
+            </div>
+
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="space-y-3 mb-5"
+            >
+              {rivalRound.options.map((opt, i) => {
+                const isSelected = selectedOptionIdx === i;
+                const isOther = selectedOptionIdx !== null && !isSelected;
+                const disabled = phase === "rival-waiting";
+                const thisVotes = voteTally[i] ?? 0;
+                const thisPct = votePct(thisVotes);
+
+                return (
+                  <motion.button
+                    key={opt.id}
+                    variants={slideFromRight}
+                    animate={{ opacity: isOther ? 0.32 : 1, scale: isSelected ? 1.015 : 1 }}
+                    whileHover={!disabled ? { scale: 1.02 } : {}}
+                    whileTap={!disabled ? { scale: 0.985 } : {}}
+                    transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
+                    className={`mission-option text-left w-full border-[#ef4444]/20 ${
+                      isSelected ? "border-[#ef4444]/60 bg-[#ef4444]/5" : ""
+                    } ${disabled && !isSelected ? "cursor-default" : ""}`}
+                    onClick={() => !disabled && void handleRivalVote(i)}
+                    disabled={disabled}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${
+                          isSelected
+                            ? "border-[#ef4444] bg-[#ef4444] text-white"
+                            : "border-[#1a2030] text-[#6b7280]"
+                        }`}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-sm text-[#e5e7eb]">{opt.label}</p>
+                        <p className="font-mono text-xs text-[#6b7280] mt-1 leading-relaxed">{opt.description}</p>
+                        {(phase === "rival-waiting" || thisVotes > 0) && (
+                          <div className="mt-2.5">
+                            <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full rounded-full bg-[#ef4444]/50"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${thisPct}%` }}
+                                transition={{ type: "spring", stiffness: 110, damping: 22 }}
+                              />
+                            </div>
+                            <p className="font-mono text-[10px] text-[#6b7280] mt-1">
+                              {thisVotes} vote{thisVotes !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+
+            {phase === "rival-waiting" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center space-y-3"
+              >
+                <PulsingDots color="#ef4444" />
+                <p className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} responses in…</p>
+                {canReveal && (
+                  <motion.button
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="bsc-btn-gold px-8 py-2"
+                    onClick={() => void handleResolveRound("rival-response")}
+                    disabled={resolving}
+                  >
+                    {resolving ? "Processing…" : "Confirm Response →"}
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* ── OUTCOME ───────────────────────────────────────────────────────── */}
+        {phase === "outcome" && resolveResult?.outcome && (
+          <div>
+            {/* Mission complete header */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-3 mb-6"
+            >
+              <span className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">{richMission.title}</span>
+              <span className="text-[#1a2030]">|</span>
+              <motion.span
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25 }}
+                className="bsc-badge-green"
+              >
+                Mission Complete
+              </motion.span>
+            </motion.div>
+
+            {/* Score hero */}
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 }}
+              className="bsc-card p-7 mb-4 text-center border-[#22c55e]/25"
+            >
+              <motion.p
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.32, type: "spring", stiffness: 300, damping: 14 }}
+                className={`font-mono text-6xl font-bold mb-2 leading-none ${
+                  resolveResult.outcome.scoreΔ >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"
+                }`}
+              >
+                {resolveResult.outcome.scoreΔ >= 0 ? "+" : ""}{resolveResult.outcome.scoreΔ}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.52 }}
+                className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-4"
+              >
+                Points Earned
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.62 }}
+                className="font-mono text-base font-bold text-[#e5e7eb]"
+              >
+                {resolveResult.outcome.label}
+              </motion.p>
+            </motion.div>
+
+            {/* Narrative */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.78 }}
+              className="bsc-card p-5 mb-4"
+            >
+              <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-2">Outcome</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{resolveResult.outcome.narrative}</p>
+            </motion.div>
+
+            {/* Status badges */}
+            {resolveResult.outcome.applyStatus.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.0 }}
+                className="bsc-card p-4 mb-4"
+              >
+                <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-3">Status Applied</p>
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  className="flex flex-wrap gap-2"
+                >
+                  {resolveResult.outcome.applyStatus.map((sid) => {
+                    const eff = STATUS_EFFECTS[sid];
+                    return eff ? (
+                      <motion.span
+                        key={sid}
+                        variants={scalePopIn}
+                        className={`text-xs font-mono px-3 py-1 rounded border ${
+                          eff.positive
+                            ? "bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/30"
+                            : "bg-[#ef4444]/10 text-[#ef4444]/80 border-[#ef4444]/25"
+                        }`}
+                        title={eff.description}
+                      >
+                        {eff.icon} {eff.label}
+                      </motion.span>
+                    ) : null;
+                  })}
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* Continue actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.18 }}
+              className="space-y-2"
+            >
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bsc-btn-gold w-full py-3"
+                onClick={handleContinue}
+              >
+                {resolveResult.isGameComplete ? "Claim Your Score →" : `Unlock Concept — ${conceptTitle} →`}
+              </motion.button>
+              <button className="bsc-btn-ghost w-full py-2 text-xs" onClick={() => router.push("/hq")}>
+                Return to HQ
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
-// ── Suspense wrapper ──────────────────────────────────────────────────────────
+// ── Suspense wrapper ───────────────────────────────────────────────────────────
 
 export default function PlayPage() {
   return (
