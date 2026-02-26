@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { CONCEPT_CARDS } from "@/lib/concepts";
 
 interface TeamState {
-  team: { name: string; badges: string[]; score: number; missionIndex: number };
+  team: { name: string; badges: string[]; score: number; missionIndex: number; completedMissions?: string[] };
   me: { nickname: string };
+  gameComplete?: boolean;
 }
 
 export default function CompletePage() {
@@ -21,8 +22,8 @@ export default function CompletePage() {
       const res = await fetch("/api/team/state", { credentials: "include" });
       if (res.status === 401) { router.replace("/join"); return; }
       const data = await res.json();
-      if (!data.team?.completedAt && data.team?.missionIndex < 8) {
-        router.replace("/play");
+      if (!data.team?.completedAt && !data.gameComplete) {
+        router.replace("/hq");
         return;
       }
       setState(data);
@@ -68,7 +69,7 @@ export default function CompletePage() {
           {state.me.nickname} · Team {state.team.name}
         </p>
         <p className="text-[#6b7280] font-mono text-sm mt-1">
-          8 missions completed · {badges.length} concepts unlocked · {state.team.score} pts
+          {(state.team.completedMissions ?? []).length} missions completed · {badges.length} concepts unlocked · {state.team.score} pts
         </p>
       </div>
 

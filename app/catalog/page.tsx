@@ -56,7 +56,7 @@ function CatalogContent() {
   }
 
   function handleContinue() {
-    router.push("/play");
+    router.push("/hq");
   }
 
   return (
