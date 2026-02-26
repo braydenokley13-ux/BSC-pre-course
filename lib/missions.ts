@@ -2338,83 +2338,708 @@ const matchupAdjust: Mission = {
   },
 };
 
-const draftTable: LegacyMission = {
+const draftTable: Mission = {
   id: "draft-table",
   missionNumber: 7,
   title: "Draft Table",
   department: "DRAFT WAR ROOM",
   tagline: "10 minutes on the clock at #6.",
   scenario:
-    "You hold the #6 pick in the draft. Your scouting department loves a 19-year-old overseas wing — polished, safe, NBA-ready. Your analytics model projects a 20-year-old guard from a mid-major as a top-15 player by Year 3, based on shot quality, movement patterns, and off-ball activity. Scouts rate him #14. The model rates him #4. You have 10 minutes on the clock.",
+    "It's draft night. You hold the #6 pick. The war room is split. Your scouting department loves Mateo Silva — a 19-year-old Brazilian wing who spent two years in the Euroleague. Polished, NBA-ready, professional, ceiling probably a 15-ppg starter. Your analytics model, with 94% confidence, projects Damien Cole — a 20-year-old guard from a mid-major — as a top-15 player by Year 3. Scouts rank Cole #14. The model ranks him #4. You have 10 minutes before you're on the clock. One bad pick at #6 can define a franchise for a decade.",
   conceptId: "rookie-scale",
-  legacy: true,
-  options: [
+
+  infoCards: [
     {
-      label: "Trust the scouts — take the consensus #6 wing",
-      note: "Safe pick with clear NBA skill set",
-      tags: ["scout-consensus", "safe-pick"],
-      outcome: { scoreΔ: 7, narrative: "The wing is exactly what scouts projected — solid starter by Year 2, never a star." },
+      title: "SCOUTING REPORT — MATEO SILVA (#6 CONSENSUS)",
+      content:
+        "Age: 19. Euroleague stats: 16.2 pts, 5.8 reb, 2.1 ast on 47% FG. NBA comparison: defensive-minded 3-and-D wing with legitimate All-Defense upside. Three NBA scouts independently listed him as their #5-7 prospect. Medical clearance: clean. Character: high — disciplined, team-first, professional. Ceiling: 15-17 ppg starter, defensive anchor. Floor: rotation player. Probability of becoming an All-Star: 12%. Probability of 10+ year NBA career: 88%.",
+      revealDelay: 0,
     },
     {
-      label: "Trade down — swap #6 for #12 plus a future first",
-      note: "More assets, still competitive range",
-      tags: ["asset-accumulation", "trade-down"],
-      outcome: { scoreΔ: 6, narrative: "Traded down. The future first became a Top 10 pick two years later. The rebuild has real momentum." },
+      title: "ANALYTICS REPORT — DAMIEN COLE (MODEL RANK #4)",
+      content:
+        "Age: 20. Mid-major stats: 28.4 pts, 6.1 ast, 47.2% FG, 41.8% 3P on 7.4 attempts. Model inputs: shot quality (95th percentile), off-ball movement efficiency (97th percentile), pick-and-roll decision-making (91st percentile). Model output: 94% confidence in top-15 player by Year 3. Scout consensus rank: #14. Sample-size note: mid-major competition is a significant limitation — model adjusts, but uncertainty range is wide.",
+      revealDelay: 12,
     },
     {
-      label: "Trust the model — take the analytics darling at #6",
-      note: "High variance: projected top-15 player or bust",
-      tags: ["analytics-pick", "high-upside"],
-      outcome: { scoreΔ: 9, narrative: "The model was right. Year 3: All-Star. His shot quality and off-ball movement translated exactly as predicted." },
+      title: "TRADE OFFER — LIVE",
+      content:
+        "Memphis just called: they'll give us #12 + their 2026 first-round pick (top-8 protected) for #6. That's two lottery-range assets instead of one. If we trade down to #12, both Cole and Silva will be available. If we stay at #6, we control the pick but lose the extra asset.",
+      revealDelay: 20,
     },
     {
-      label: "Swing on a raw project — 18-year-old international flier",
-      note: "Lowest probability, highest upside ceiling",
-      tags: ["project-pick", "high-ceiling"],
-      outcome: { scoreΔ: 4, narrative: "The project needed two more years overseas. By Year 5, you'll know if the patience was justified." },
+      title: "CONTRACT SCALE — FOR YOUR REFERENCE",
+      content:
+        "Rookie scale at #6: Year 1 base ~$9.8M (120% of scale), Years 2-3 escalate ~8%/year. Team controls Years 1-4 via standard rookie scale. Team option in Year 3 and Year 4. Max rookie extension eligibility at Year 4 completion. Cost-controlled talent for 4 years. A franchise cornerstone pick here is the most efficient salary spend in basketball.",
+      revealDelay: 24,
+      roleOnly: "capologist",
     },
   ],
+
+  roles: [
+    {
+      id: "scout",
+      title: "HEAD SCOUT",
+      description: "You've seen Cole and Silva play in person. You trust your eyes.",
+      privateInfo:
+        "I've watched Cole 12 times this year. The production is real — but mid-major competition is a legitimate concern. Three of his top 20 games came against teams that are D-League level defensively. When we arranged an elite-level workout, his quickness against NBA-caliber defenders dropped noticeably. I still think he's a good player — I just don't think he's top-5 in this draft. The analytics model didn't watch those workouts. I did.",
+    },
+    {
+      id: "analytics",
+      title: "ANALYTICS LEAD",
+      description: "You built the player projection model. You understand what the data says.",
+      privateInfo:
+        "The Cole model output is our strongest recommendation in three years. The shot quality and off-ball efficiency metrics are consistent across every level of competition we can measure — those skills transfer. The mid-major concern is real but overstated: our model adjusts for competition level. What I can't model is a prospect's response to NBA pressure, coaching systems, and injury. Those are human variables. The model says Cole — but someone in that room has to own the non-model risks.",
+    },
+    {
+      id: "capologist",
+      title: "CAPOLOGIST",
+      description: "You manage the salary cap. Draft picks are your best cost-controlled assets.",
+      privateInfo:
+        "The Memphis trade offer is the most interesting part of this decision. If we trade to #12 and Cole is still there, we pick him AND keep the Memphis 2026 first. Two assets instead of one at essentially the same cost. The risk: Cole gets taken before 12. Teams with picks at 7, 9, and 11 are all potential Cole suitors if word gets out that our model likes him. The trade window closes when we're on the clock.",
+    },
+    {
+      id: "president",
+      title: "TEAM PRESIDENT",
+      description: "You interface with ownership and manage the franchise's long-term direction.",
+      privateInfo:
+        "The owner told me before the draft: 'I want a player the fans will love. I don't want another rotation player.' That rules out the safe ceiling of Mateo Silva in his mind. He's read about Cole — the analytics darling narrative. He wants the bold pick. But if Cole is a bust, the owner's instinct will be to blame the analytics team, not himself. That's the political reality. The bold pick needs to be the right bold pick.",
+    },
+  ],
+
+  rounds: [
+    {
+      id: "direction",
+      prompt: "You have 10 minutes. The war room is waiting. What is your draft strategy?",
+      options: [
+        {
+          id: "take-silva",
+          label: "Take Mateo Silva at #6 — scout consensus, NBA-ready",
+          description: "Trust the scouts. 88% chance of a 10-year career. Reliable, professional, proven at a high level.",
+          tags: ["take-silva", "scout-consensus"],
+        },
+        {
+          id: "take-cole",
+          label: "Take Damien Cole at #6 — trust the model",
+          description: "The analytics case is the strongest we've had in years. High variance but top-15 upside.",
+          tags: ["take-cole", "analytics-pick"],
+        },
+        {
+          id: "trade-down",
+          label: "Accept Memphis's trade — #12 + protected 2026 first",
+          description: "Two assets instead of one. Gamble that Cole or Silva will still be there at 12.",
+          tags: ["trade-down", "asset-accumulation"],
+        },
+        {
+          id: "trade-up",
+          label: "Call teams 1-5 — try to move up for Cole",
+          description: "If the model is right, Cole at #6 is already a steal. Moving up to #3-4 locks him in.",
+          tags: ["trade-up", "aggressive"],
+        },
+      ],
+    },
+    {
+      id: "terms-cole",
+      prompt: "The analytics team presents one more data point: Cole's 3-point percentage this year came almost entirely from the left corner — 89 of his 143 made threes. His shot chart shows a weak right-wing number (31%). Is this a flaw or a fixable habit?",
+      context: "Your analytics lead has flagged a shot chart pattern just before the pick.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "take-cole",
+      options: [
+        {
+          id: "proceed-cole",
+          label: "Proceed — the shot chart pattern is fixable with NBA coaching",
+          description: "The model accounts for this. Skill refinement is part of development. Take Cole.",
+          tags: ["proceed-cole", "analytics-trust"],
+        },
+        {
+          id: "pivot-silva",
+          label: "Last-second pivot — take Silva instead",
+          description: "The shot chart pattern changes your confidence. Lock in the safer pick.",
+          tags: ["pivot-silva", "scout-deference"],
+        },
+        {
+          id: "call-trade-now",
+          label: "Call Memphis now — trade to #12 with this new info",
+          description: "New information changes the calculus. Take the two assets, evaluate at 12.",
+          tags: ["call-trade-now", "asset-accumulation"],
+        },
+      ],
+    },
+    {
+      id: "terms-trade",
+      prompt: "Memphis accepts. You're now at #12. Cole is still on the board — but so are two other teams between you and Cole (picks 10 and 11). Both teams are reportedly interested in guards.",
+      context: "You traded down. Cole is available but potentially not for long.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "trade-down",
+      options: [
+        {
+          id: "take-cole-at-12",
+          label: "Take Cole at #12 — the model still says take him",
+          description: "If he's there at 12, it means everyone passed. Or everyone's wrong. Take him.",
+          tags: ["take-cole-at-12", "analytics-pick"],
+        },
+        {
+          id: "take-silva-at-12",
+          label: "Take Silva at #12 — he's probably still there and the value holds",
+          description: "Safe pick at lower cost. Three assets in the vault (Silva + Memphis 2026 first).",
+          tags: ["take-silva-at-12", "scout-consensus"],
+        },
+        {
+          id: "best-available",
+          label: "Best available at #12 — whoever the board says at that moment",
+          description: "Trust the big board. Don't force either player — take the best value at that pick.",
+          tags: ["best-available", "disciplined"],
+        },
+      ],
+    },
+  ],
+
+  rivalCounter: {
+    triggerTags: ["take-cole", "trade-up"],
+    message:
+      "WAR ROOM ALERT: Golden State just moved up to #5 — one pick ahead of you. Our intel: they're targeting Cole. You have 6 minutes left on the clock and Golden State is filing the trade paperwork now. If Cole is their target, he's gone before you pick.",
+    responseRound: {
+      id: "rival-response",
+      prompt: "Golden State is at #5 and may be targeting Cole. How do you respond?",
+      options: [
+        {
+          id: "call-gs-bluff",
+          label: "Call it a bluff — stay at #6, trust Cole will be there",
+          description: "GMs create smoke. Golden State needed a different position. Stay calm.",
+          tags: ["call-gs-bluff", "composed"],
+        },
+        {
+          id: "emergency-trade-up",
+          label: "Emergency call to #4 — offer our 2026 first to jump Golden State",
+          description: "If Cole is worth #4, that's still a steal at the model's valuation.",
+          tags: ["emergency-trade-up", "aggressive"],
+        },
+        {
+          id: "pivot-silva-gs",
+          label: "Pivot to Silva — Cole risk is now even higher",
+          description: "If Golden State wants Cole, either they know something we don't, or the pick gets more expensive to move up for. Take Silva at 6.",
+          tags: ["pivot-silva-gs", "risk-averse"],
+        },
+      ],
+    },
+  },
+
+  outcomes: [
+    {
+      roundTagCombo: ["take-silva"],
+      variants: [
+        {
+          probability: 0.80,
+          label: "Silva — Reliable Starter",
+          scoreΔ: 7,
+          narrative:
+            "Year 1: 11 points, 4 rebounds, solid defense. Year 2: earned a starting spot. Year 3: 15 points, 2nd-team All-Defense. Exactly what the scouts projected. Cole went #9 — averaged 22 in Year 3 and made the All-Star team. The safe pick was good. The model was also right.",
+          applyStatus: ["scout-trusted"],
+        },
+        {
+          probability: 0.20,
+          label: "Silva — Injury Derails Trajectory",
+          scoreΔ: 4,
+          narrative:
+            "ACL in Year 2. He came back in Year 3 but wasn't the same player. The scouts were right about his profile — the injury risk they couldn't project was the variable that mattered. Cole, taken at #9, averaged 24 in Year 3.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["take-cole", "proceed-cole"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Model Right — Cole Becomes a Star",
+          scoreΔ: 10,
+          narrative:
+            "Year 1: 16 points, learning the system. Year 2: 22 points, 7 assists, first All-Star selection. The shot chart flaw was corrected by November. The model was right. The scouts will recalibrate. This pick defines the franchise for a decade.",
+          applyStatus: ["analytics-forward", "high-morale"],
+        },
+        {
+          probability: 0.40,
+          label: "Model Miss — Cole Averages Out",
+          scoreΔ: 4,
+          narrative:
+            "The shot chart issue wasn't fixable. The right-wing jumper never developed. He's a solid 16-ppg player — not a bust, not a star. The scouts' range of outcomes was more accurate than the model's top-15 projection. Silva, taken at #9 by Memphis, made his first All-Star game in Year 3.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["take-cole", "pivot-silva"],
+      variants: [
+        {
+          probability: 0.75,
+          label: "Silva — Last-Second Wisdom",
+          scoreΔ: 7,
+          narrative:
+            "You pivoted at the last second. Silva went out and proved the scouts right. Cole, taken at #11, developed into a very good player — but the shot chart concern proved real, and his ceiling was 18 ppg, not top-15. Your pivot may have been right.",
+          applyStatus: ["scout-trusted"],
+        },
+        {
+          probability: 0.25,
+          label: "Model Was Right — Regret Follows",
+          scoreΔ: 3,
+          narrative:
+            "Cole became an All-Star at #11. The shot chart concern that triggered the pivot was fixed by his NBA shooting coach in October. You watched him develop every year from the bench. The model had it right.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trade-down", "take-cole-at-12"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Cole at #12 — Two Assets Plus a Star",
+          scoreΔ: 10,
+          narrative:
+            "Cole fell to 12. The model was validated. Year 3 All-Star. You also have the Memphis 2026 first, which landed top 8 and hit the protection. Two real assets in the vault. This is how you build a dynasty.",
+          applyStatus: ["analytics-forward", "trade-assets-rich"],
+        },
+        {
+          probability: 0.45,
+          label: "Cole Gone Before #12",
+          scoreΔ: 5,
+          narrative:
+            "Portland took Cole at #10. You ended up with your best available at 12 — a solid pick, not a star. Memphis first is still in the vault. You got two solid assets for the price of giving up a potential franchise pick.",
+          applyStatus: ["trade-assets-rich"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trade-down", "take-silva-at-12"],
+      variants: [
+        {
+          probability: 1.0,
+          label: "Silva at #12 — Three Assets Total",
+          scoreΔ: 8,
+          narrative:
+            "Silva was still there at 12. You got him at a discount and kept the Memphis future first. Three assets total (Silva + Memphis 2026 first that you already had). A solid rebuilding haul. Silva becomes a starter. The future first hits at pick 7.",
+          applyStatus: ["trade-assets-rich", "scout-trusted"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["trade-up", "emergency-trade-up"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Moved Up — Secured Cole",
+          scoreΔ: 9,
+          narrative:
+            "The move to #4 worked. Cole went to you. Golden State had been targeting a center at #5 — the Cole bluff was real. You gave up a future first but secured the model's top target. Year 3 All-Star. The cost was real but proportionate.",
+          applyStatus: ["analytics-forward"],
+        },
+        {
+          probability: 0.30,
+          label: "Moved Up — Cole Wasn't Golden State's Target",
+          scoreΔ: 6,
+          narrative:
+            "Golden State took a center. Cole would have been there at #6. You paid a future first to jump one spot unnecessarily. Cole became a star — the pick was right, the execution cost extra.",
+          applyStatus: ["analytics-forward"],
+        },
+      ],
+    },
+  ],
+
+  defaultOutcome: {
+    roundTagCombo: [],
+    variants: [
+      {
+        probability: 1.0,
+        label: "Pick Made",
+        scoreΔ: 6,
+        narrative: "The clock ran out. The pick was filed. The draft room waits for the result.",
+        applyStatus: [],
+      },
+    ],
+  },
 };
 
-const finalGmCall: LegacyMission = {
+const finalGmCall: Mission = {
   id: "final-gm-call",
   missionNumber: 8,
   title: "Final GM Call",
   department: "OWNERSHIP SUITE",
   tagline: "The owner wants your three-year plan.",
   scenario:
-    "End of the season. Your owner sits across from you and asks the question that defines your tenure: 'What's the plan for the next three years?' You have one All-Star under contract, two first-round picks, and a roster that narrowly missed the playoffs. The league is in transition — younger teams are winning with analytics-forward rosters. What do you tell the owner?",
+    "End of season. The owner has called a private meeting in the Ownership Suite. Your team narrowly missed the playoffs — lost the final play-in game by 4 points. You have one All-Star under contract (2 years remaining), two first-round picks in your vault, and a 14-man roster with 4 rotation-caliber players. The league is in transition — 7 of the last 10 finalists were built through analytics-forward drafting, not star free agency. The owner asks: 'Give me your three-year vision. What does this franchise look like in Year 3?' Your answer defines everything — staff, philosophy, budget, and your own job security.",
   conceptId: "front-office-philosophy",
-  legacy: true,
-  options: [
+
+  infoCards: [
     {
-      label: "Controlled rebuild — cap discipline over the next two years",
-      note: "Accumulate picks, clear bad contracts, let the young players lead",
-      tags: ["rebuild", "cap-flexibility"],
-      outcome: { scoreΔ: 7, narrative: "The rebuild plan worked. Three years of discipline. By Year 3: three cost-controlled players, two firsts, and cap space to land a free agent." },
+      title: "FRANCHISE ASSET INVENTORY",
+      content:
+        "Under contract: Marcus Webb (All-Star PG, 2 years/$48M remaining). Picks: own 2026 first (top-4 protected) + Memphis 2026 first (unprotected). Cap space: $8M available below the tax line. Young players on rookie deals: 2 rotation-caliber, 2 developmental. Current payroll: $148M. Luxury tax line: $171M. You have $23M of tax headroom for free agent additions.",
+      revealDelay: 0,
     },
     {
-      label: "Blend scouting and data — build a hybrid front office model",
-      note: "Invest in analytics while retaining elite scout relationships",
-      tags: ["balanced-philosophy", "process-driven"],
-      outcome: { scoreΔ: 9, narrative: "Best answer. Hired a head of research, retained top scouts. Three years later: two analytically-sourced All-Stars, zero wasted contracts." },
+      title: "LEAGUE LANDSCAPE",
+      content:
+        "Last 10 Finals participants — how they were built: 7 via analytics-forward drafting and development; 2 via superstar free agency (both required 3+ years of prior rebuilding to have cap space); 1 via trade (assets accumulated over 4 years of rebuild). The era of 'star free agency as primary strategy' has a 20% success rate in the current CBA. The era of 'draft and develop' has a 70% Finals appearance rate when executed with patience.",
+      revealDelay: 12,
     },
     {
-      label: "Win now — star talent over system and structure",
-      note: "Pursue a max free agent immediately, trade picks for veterans",
-      tags: ["win-now", "star-chasing"],
-      outcome: { scoreΔ: 5, narrative: "You swung for a max free agent. He chose another team. Year 3: mediocre roster, no picks, no exit." },
+      title: "OWNER'S STATED PRIORITIES",
+      content:
+        "Owner's opening statement: '1. I want a playoff team every year Webb is here — that's the non-negotiable. 2. I want to understand how decisions are made in this building — analytics, scouting, both? 3. I want a plan that doesn't blow up if one thing goes wrong.' He did not mention a spending ceiling in this meeting. That's notable.",
+      revealDelay: 20,
     },
     {
-      label: "Full analytics transformation — rebuild around model-driven decisions",
-      note: "Replace traditional scouting with data-first processes entirely",
-      tags: ["analytics-first", "organizational-change"],
-      outcome: { scoreΔ: 7, narrative: "Polarizing decision. Half the scouts resigned. The model found three undervalued players. Year 3: working, but fragile without human context." },
+      title: "COMPETITIVE INTELLIGENCE — RESTRICTED",
+      content:
+        "Two rival GMs have been given permission to pursue Webb in a sign-and-trade when his contract expires. One has a war chest of 3 future firsts. Our leverage: we're the only team that can offer him a supermax extension — $47.6M/year — before he hits free agency. If we extend Webb now at supermax, we control his career for 5 more years. If we let him reach free agency, we lose that leverage permanently. The owner doesn't know the extension window closes in 60 days.",
+      revealDelay: 24,
+      roleOnly: "president",
     },
   ],
+
+  roles: [
+    {
+      id: "gm",
+      title: "GENERAL MANAGER",
+      description: "This is your vision. You're presenting to the owner.",
+      privateInfo:
+        "Here's what I know that the owner doesn't: my job security is directly tied to Year 1 performance, not Year 3. If I pitch a rebuild, I'm likely gone in Year 2 when we're at the bottom of the standings — even if the rebuild is the right call. My incentive is to pitch 'win now' even if the long-term answer is patience. I need to be honest with myself about whether my plan serves the franchise or my contract.",
+    },
+    {
+      id: "president",
+      title: "TEAM PRESIDENT",
+      description: "You have the owner's long-term trust. You're in this meeting to support or challenge the GM.",
+      privateInfo:
+        "The Webb supermax window closes in 60 days. If the GM's three-year plan involves Webb leaving or being traded, we need to have that conversation with the owner today — not in 61 days when the option is gone. Whatever vision the GM pitches, the Webb extension question has to be answered as part of this meeting.",
+    },
+    {
+      id: "analytics",
+      title: "ANALYTICS LEAD",
+      description: "You model long-term competitive outcomes.",
+      privateInfo:
+        "I've run three-year playoff probability models for each strategic path. Rebuild path (trade Webb, accumulate assets): 18% Year 1 playoff, 45% Year 2, 72% Year 3. Hybrid path (extend Webb, add analytics-sourced players): 62% Year 1, 68% Year 2, 71% Year 3. Win-now path (trade picks for veterans): 74% Year 1, 52% Year 2, 31% Year 3. The hybrid path has the most consistent floor. The win-now path wins the first year and deteriorates. The rebuild path is painful but lands in the same place as hybrid by Year 3.",
+    },
+    {
+      id: "capologist",
+      title: "CAPOLOGIST",
+      description: "You model the financial implications of each path.",
+      privateInfo:
+        "The rebuild path generates $40M+ in cap flexibility by Year 2 — enough to pursue any free agent in the league. The hybrid path keeps us in the luxury tax vicinity but preserves Webb's prime years. The win-now path crosses the Second Apron in Year 1 if we pursue veterans with our picks — which eliminates our ability to aggregate future trades. Financially, win-now is the most expensive path and the least recoverable if it fails.",
+    },
+  ],
+
+  rounds: [
+    {
+      id: "direction",
+      prompt: "The owner is waiting for your three-year vision. What is your answer?",
+      options: [
+        {
+          id: "controlled-rebuild",
+          label: "Controlled rebuild — accumulate assets, compete in Year 3",
+          description: "Trade picks for veterans? No. Build through the draft, clear bad contracts, let the young core lead. Competitive by Year 3.",
+          tags: ["controlled-rebuild", "patient"],
+        },
+        {
+          id: "hybrid-build",
+          label: "Hybrid — extend Webb, add analytics-sourced players via draft",
+          description: "Keep Webb, use the picks intelligently, invest in a modern analytics infrastructure. Compete every year.",
+          tags: ["hybrid-build", "balanced"],
+        },
+        {
+          id: "win-now",
+          label: "Win now — max free agent pursuit, trade picks for veterans",
+          description: "Go all-in while Webb is in his prime. Trade the picks. Sign a max free agent. Year 1 contention.",
+          tags: ["win-now", "aggressive"],
+        },
+        {
+          id: "analytics-transformation",
+          label: "Full analytics transformation — rebuild decision-making from the ground up",
+          description: "Invest in analytics infrastructure as the primary competitive advantage. Fewer emotions, more models.",
+          tags: ["analytics-transformation", "systemic"],
+        },
+      ],
+    },
+    {
+      id: "terms-rebuild",
+      prompt: "The owner responds: 'A rebuild means Webb walks when his contract is up. He's the face of this franchise. How do you retain him or replace him?' The president flags: the supermax extension window closes in 60 days.",
+      context: "The rebuild vision has a Webb-shaped problem.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "controlled-rebuild",
+      options: [
+        {
+          id: "extend-webb-rebuild",
+          label: "Extend Webb now — rebuild around him as the core",
+          description: "Supermax extension before the window closes. He's the rebuild anchor. Build the roster around him.",
+          tags: ["extend-webb-rebuild", "star-anchor"],
+        },
+        {
+          id: "trade-webb",
+          label: "Trade Webb — maximum asset return, full rebuild",
+          description: "If you're rebuilding, get assets for Webb before he hits free agency and walks for nothing.",
+          tags: ["trade-webb", "full-rebuild"],
+        },
+        {
+          id: "let-window-close",
+          label: "Let the extension window close — negotiate as a free agent",
+          description: "No supermax. Negotiate a market deal when he's a free agent. Retain cap flexibility.",
+          tags: ["let-window-close", "cap-flexibility"],
+        },
+      ],
+    },
+    {
+      id: "terms-hybrid",
+      prompt: "The owner asks: 'What does the analytics investment look like specifically? Are we replacing scouts or adding to them?' You need to define the model.",
+      context: "The hybrid vision requires defining the organizational structure.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "hybrid-build",
+      options: [
+        {
+          id: "analytics-plus-scouts",
+          label: "Analytics and scouting together — parallel tracks, equal authority",
+          description: "Two inputs, no hierarchy. Both have veto power on major decisions. Conflict is productive.",
+          tags: ["analytics-plus-scouts", "dual-model"],
+        },
+        {
+          id: "analytics-primary",
+          label: "Analytics as primary — scouts as context layer",
+          description: "Model makes the call. Scouts add qualitative nuance. Analytics leads all major decisions.",
+          tags: ["analytics-primary", "data-driven"],
+        },
+        {
+          id: "scouts-primary",
+          label: "Scouts as primary — analytics as verification",
+          description: "Traditional evaluation leads. Analytics validates or challenges. Human judgement at the center.",
+          tags: ["scouts-primary", "traditional"],
+        },
+      ],
+    },
+    {
+      id: "terms-win-now",
+      prompt: "The capologist flags: trading both picks + pursuing a max free agent puts you over the Second Apron in Year 1. You lose aggregation rights for 3 years. The analytics lead's model shows a 31% playoff probability by Year 3 on this path.",
+      context: "The win-now vision has serious long-term structural costs.",
+      dependsOnRoundId: "direction",
+      dependsOnTag: "win-now",
+      options: [
+        {
+          id: "accept-second-apron",
+          label: "Accept the Second Apron — win now is the mandate",
+          description: "The owner said playoffs every year Webb is here. That's the priority. Execute the plan.",
+          tags: ["accept-second-apron", "short-term"],
+        },
+        {
+          id: "modify-win-now",
+          label: "Modify the plan — trade one pick, keep the other",
+          description: "Half-measure. Stay off the Second Apron. Less immediate firepower but some future preserved.",
+          tags: ["modify-win-now", "balanced"],
+        },
+        {
+          id: "pivot-from-win-now",
+          label: "Pivot — the capologist's math changed your mind",
+          description: "You present a modified hybrid vision. The win-now path is too expensive for too short a window.",
+          tags: ["pivot-from-win-now", "analytical"],
+        },
+      ],
+    },
+  ],
+
+  rivalCounter: {
+    triggerTags: ["win-now", "hybrid-build"],
+    message:
+      "LEAGUE NEWS: Boston just completed a blockbuster sign-and-trade, landing a second max player — their core is locked for 5 years. Three other top-8 teams have made significant off-season moves. Your local beat reporter publishes: 'While rivals improve, [Your Franchise] is still searching for a three-year direction.' The owner forwards you the article with one word: 'Respond.'",
+    responseRound: {
+      id: "rival-response",
+      prompt: "Rival moves are accelerating the timeline. The owner wants a response to the media narrative. What do you do?",
+      options: [
+        {
+          id: "accelerate-plan",
+          label: "Accelerate the plan — announce a major move to change the narrative",
+          description: "Trade the unprotected Memphis first for a win-now piece. Show the market you're moving.",
+          tags: ["accelerate-plan", "reactive"],
+        },
+        {
+          id: "stay-the-course",
+          label: "Stay the course — communicate the plan clearly and resist pressure",
+          description: "Reactive decisions are how you end up with bad contracts. Trust the three-year vision.",
+          tags: ["stay-the-course", "disciplined"],
+        },
+        {
+          id: "owner-press-conference",
+          label: "Have the owner speak — organizational stability message",
+          description: "The owner publicly endorses the plan. Front office credibility is re-established via his authority.",
+          tags: ["owner-press-conference", "aligned"],
+        },
+      ],
+    },
+  },
+
+  outcomes: [
+    {
+      roundTagCombo: ["controlled-rebuild", "trade-webb"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Full Rebuild — Hits by Year 3",
+          scoreΔ: 8,
+          narrative:
+            "Webb went to LA via sign-and-trade — three unprotected firsts back. Two seasons of pain. Year 3: you have 4 cost-controlled players, cap space, and three lottery picks in the vault. A free agent max target chose you because of the clarity of the vision. The city forgave the rebuild. The plan worked.",
+          applyStatus: ["trade-assets-rich", "rebuild-mode"],
+        },
+        {
+          probability: 0.35,
+          label: "Rebuild — Slower Than Projected",
+          scoreΔ: 4,
+          narrative:
+            "Webb left. The picks underperformed. Year 3: still rebuilding. The GM who pitched this vision was let go after Year 2. His successor inherited the assets and eventually made it work — in Year 5, not Year 3.",
+          applyStatus: ["rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["controlled-rebuild", "extend-webb-rebuild"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Webb Extended — Rebuilding With a Star",
+          scoreΔ: 8,
+          narrative:
+            "Extended Webb before the window closed. Built around him — analytics-sourced picks, cost-controlled talent. Year 3: playoff team with Webb as the veteran anchor and two young stars around him. Best of both worlds.",
+          applyStatus: ["star-retained", "high-morale"],
+        },
+        {
+          probability: 0.30,
+          label: "Webb Extended — Rebuilding Stalls",
+          scoreΔ: 5,
+          narrative:
+            "Extended Webb but the picks didn't hit. He's unhappy playing on a non-competitive team. Year 3: he's requesting a trade. The supermax extension becomes a trade asset, not a cornerstone.",
+          applyStatus: ["star-retained", "coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["hybrid-build", "analytics-plus-scouts"],
+      variants: [
+        {
+          probability: 0.75,
+          label: "Hybrid Model — Sustainable Contention",
+          scoreΔ: 10,
+          narrative:
+            "The dual-authority structure created productive friction. Analytics found two undervalued players. Scouts validated them. Webb was extended and anchored the system. Year 3: 2nd seed in the conference. Two analytically-sourced All-Stars. Zero wasted contracts. This is what a well-run franchise looks like.",
+          applyStatus: ["analytics-forward", "scout-trusted", "high-morale"],
+        },
+        {
+          probability: 0.25,
+          label: "Hybrid Model — Decision Paralysis",
+          scoreΔ: 6,
+          narrative:
+            "Parallel authority created paralysis on two key decisions — both scouts and analytics disagreed on the same player, and no one had the authority to decide. Missed a deadline. Lost a free agent. Year 3: competitive but underachieving for the talent assembled.",
+          applyStatus: ["analytics-forward"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["hybrid-build", "analytics-primary"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Analytics-Primary — Clear Decision Structure",
+          scoreΔ: 9,
+          narrative:
+            "Clear authority made decisions fast. The model identified two All-Star caliber players that scouts had underrated. Year 3: most efficient offense in the league. Webb extended. Young core flourishing. The scouts who stayed became the model's best critics — the tension made both sides better.",
+          applyStatus: ["analytics-forward", "high-morale"],
+        },
+        {
+          probability: 0.30,
+          label: "Analytics-Primary — Scouts Resign",
+          scoreΔ: 5,
+          narrative:
+            "The primary designation felt like a demotion to the scouting staff. Three elite scouts left within 6 months. The model performed — but lost the qualitative layer that caught non-model risks. One analytics-sourced pick was a character issue that pure metrics couldn't flag.",
+          applyStatus: ["analytics-forward", "coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["win-now", "accept-second-apron"],
+      variants: [
+        {
+          probability: 0.40,
+          label: "Win Now — Championship Run",
+          scoreΔ: 9,
+          narrative:
+            "Year 1: traded both picks, signed a max free agent. Made the Finals. Lost in 6. The city forgave the second-apron restrictions because of the run. Year 3: rebuilding with no picks and restricted trade rights. The window was real — you used it.",
+          applyStatus: ["over-luxury-tax"],
+        },
+        {
+          probability: 0.60,
+          label: "Win Now — No Ring, No Assets",
+          scoreΔ: 2,
+          narrative:
+            "Year 1: picked up, got to the second round, lost. Year 2: Webb aged, the max free agent regressed, and you had no picks to retool. Year 3: lottery team with a $180M payroll and Second Apron restrictions. No exit.",
+          applyStatus: ["over-luxury-tax", "rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["win-now", "modify-win-now"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Modified Win-Now — Sustainable Pressure",
+          scoreΔ: 7,
+          narrative:
+            "Traded one pick, kept the other. Stayed off the Second Apron. Missed on the max free agent but signed a quality $20M player. Year 1: 5th seed. Year 3: still competitive with one pick remaining and manageable cap. Not a championship run — a durable playoff team.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.40,
+          label: "Half Measure — No Championship, Less Assets",
+          scoreΔ: 4,
+          narrative:
+            "Not aggressive enough for a real run, not disciplined enough for a true rebuild. Year 3: mediocre roster in the middle of nothing. The worst outcome: neither vision executed.",
+          applyStatus: ["cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["analytics-transformation"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Analytics-Forward — Three-Year Build",
+          scoreΔ: 8,
+          narrative:
+            "Invested $4M in analytics infrastructure. Replaced two traditional scouts with data scientists. The model found three undervalued players other teams passed on. Year 3: most efficient offense in the league. Webb happy, young core thriving. The scouts who remained became the model's best critics.",
+          applyStatus: ["analytics-forward", "high-morale"],
+        },
+        {
+          probability: 0.45,
+          label: "Analytics-Forward — Cultural Fracture",
+          scoreΔ: 4,
+          narrative:
+            "The transformation was too fast. Half the scouting staff resigned in protest. The model performed — but lost the qualitative layer that scouts provide. Two analytically-sourced picks had undisclosed character concerns that the model couldn't flag. Year 3: rebuilding again.",
+          applyStatus: ["analytics-forward", "coach-conflict"],
+        },
+      ],
+    },
+  ],
+
+  defaultOutcome: {
+    roundTagCombo: [],
+    variants: [
+      {
+        probability: 1.0,
+        label: "Vision Delivered",
+        scoreΔ: 6,
+        narrative:
+          "The three-year plan was presented. The owner approved. The franchise moves forward with a defined philosophy.",
+        applyStatus: [],
+      },
+    ],
+  },
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
+// All 8 missions are now fully upgraded — LegacyMission type is retained
+// only for backward-compat shims in legacy API routes.
 
 export type AnyMission = Mission | LegacyMission;
 
