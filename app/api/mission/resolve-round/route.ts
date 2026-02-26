@@ -110,6 +110,7 @@ export async function POST(req: NextRequest) {
     : richMission.rounds.find((r) => r.id === roundId);
 
   if (!roundDef) return NextResponse.json({ error: "Round definition not found" }, { status: 400 });
+  if (roundDef.options.length === 0) return NextResponse.json({ error: "Round has no options" }, { status: 500 });
 
   const tally = new Array(roundDef.options.length).fill(0) as number[];
   for (const v of votes) {

@@ -13,6 +13,7 @@ interface TeamState {
   me: { id: string; nickname: string };
   members: Member[];
   activeCount: number;
+  completedMissions?: string[];
 }
 
 export default function LobbyPage() {

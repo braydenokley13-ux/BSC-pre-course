@@ -153,6 +153,7 @@ function PlayInner() {
       setCurrentRound(data.currentRound);
       setPhase("briefing");
     } catch {
+      missionStarted.current = false; // allow retry on refresh
       setError("Network error starting mission");
       setPhase("error");
     }

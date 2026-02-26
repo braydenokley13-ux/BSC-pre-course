@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkTeacherPassword } from "@/lib/auth";
-import { MISSIONS } from "@/lib/missions";
+import { MISSIONS, isLegacyMission, Mission } from "@/lib/missions";
 
 function toCSV(rows: Record<string, string | number | boolean | null>[]): string {
   if (rows.length === 0) return "";
@@ -89,14 +89,19 @@ export async function GET(req: NextRequest) {
     for (const vote of team.votes) {
       const student = team.students.find((s) => s.id === vote.studentId);
       const mission = MISSIONS.find((m) => m.id === vote.missionId);
+      const richMission = mission && !isLegacyMission(mission) ? (mission as Mission) : null;
+      const round =
+        richMission?.rounds.find((r) => r.id === vote.roundId) ??
+        (vote.roundId === "rival-response" ? richMission?.rivalCounter?.responseRound : undefined);
+      const optionLabel = round?.options[vote.optionIndex]?.label ?? "";
       rows.push({
         Team: team.name,
         Nickname: student?.nickname ?? "Unknown",
         MissionId: vote.missionId,
         MissionTitle: mission?.title ?? "",
+        RoundId: vote.roundId,
         OptionSelected: vote.optionIndex,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        OptionLabel: (mission as any)?.options?.[vote.optionIndex]?.label ?? "",
+        OptionLabel: optionLabel,
         VotedAt: vote.createdAt.toISOString(),
       });
     }

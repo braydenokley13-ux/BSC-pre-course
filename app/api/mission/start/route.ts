@@ -56,9 +56,11 @@ export async function POST(req: NextRequest) {
   const richMission = mission as Mission;
 
   // Assign roles to active students (active = lastSeen within 90s)
+  // Fall back to all students if nobody has a recent ping (e.g. solo tester)
   const now = new Date();
   const cutoff = new Date(now.getTime() - 90_000);
-  const activeStudents = team.students.filter((s) => s.lastSeenAt >= cutoff);
+  const recentStudents = team.students.filter((s) => s.lastSeenAt >= cutoff);
+  const activeStudents = recentStudents.length > 0 ? recentStudents : team.students;
 
   const roles = shuffle(richMission.roles.map((r) => r.id));
   const roleAssignments: Record<string, string> = {};
