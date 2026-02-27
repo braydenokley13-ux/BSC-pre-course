@@ -900,7 +900,7 @@ function PlayInner() {
                     <circle cx="16" cy="16" r="13" fill="none" stroke="#1a2030" strokeWidth="3" />
                     <circle
                       cx="16" cy="16" r="13" fill="none"
-                      stroke={timerSec > 30 ? "#ef4444" : timerSec > 10 ? "#f97316" : "#ef4444"}
+                      stroke={timerSec > 30 ? "#c9a84c" : timerSec > 10 ? "#f97316" : "#ef4444"}
                       strokeWidth="3" strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 13}`}
                       strokeDashoffset={`${2 * Math.PI * 13 * (1 - timerSec / RIVAL_TIMER_SECS)}`}
@@ -908,7 +908,8 @@ function PlayInner() {
                     />
                   </svg>
                   <span
-                    className="absolute inset-0 flex items-center justify-center font-mono text-[9px] text-[#ef4444]"
+                    className="absolute inset-0 flex items-center justify-center font-mono text-[9px]"
+                    style={{ color: timerSec > 30 ? "#c9a84c" : timerSec > 10 ? "#f97316" : "#ef4444" }}
                   >
                     {timerSec}
                   </span>

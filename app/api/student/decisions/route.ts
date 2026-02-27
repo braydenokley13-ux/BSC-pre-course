@@ -37,10 +37,10 @@ export async function GET(req: NextRequest) {
   }
 
   // Fetch team's completed mission progress
-  const progressRows = await prisma.missionProgress.findMany({
+  const progressRows = (await prisma.missionProgress.findMany({
     where: { teamId: student.teamId, sessionId: student.sessionId },
     select: { missionId: true, stateJson: true, outcome: true },
-  });
+  })) as Array<{ missionId: string; stateJson: string; outcome: number }>;
   const progressMap = new Map(progressRows.map((p) => [p.missionId, p]));
 
   const decisions: Array<{
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     votedWithTeam: boolean;
   }> = [];
 
-  for (const [missionId, vote] of firstVoteByMission.entries()) {
+  for (const [missionId, vote] of Array.from(firstVoteByMission.entries())) {
     const mission = getMissionById(missionId);
     if (!mission) continue;
 
