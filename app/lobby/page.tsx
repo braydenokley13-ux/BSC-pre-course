@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAvatar } from "@/lib/nbaAvatars";
@@ -11,8 +11,13 @@ interface Member {
   avatarId?: string;
 }
 
+const TEAM_COLOR_MAP: Record<string, string> = {
+  blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
+  green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
+};
+
 interface TeamState {
-  team: { id: string; name: string; joinCode: string; missionIndex: number; completedAt: string | null };
+  team: { id: string; name: string; joinCode: string; color?: string; missionIndex: number; completedAt: string | null };
   me: { id: string; nickname: string };
   members: Member[];
   activeCount: number;
@@ -36,6 +41,8 @@ export default function LobbyPage() {
   const [prevCount, setPrevCount] = useState(0);
   const [counting, setCounting] = useState(false);
   const [countNum, setCountNum] = useState(3);
+  const [showReveal, setShowReveal] = useState(false);
+  const hasRevealedRef = useRef(false);
 
   const fetchState = useCallback(async () => {
     try {
@@ -61,6 +68,13 @@ export default function LobbyPage() {
     const id = setInterval(fetchState, 5000);
     return () => clearInterval(id);
   }, [fetchState]);
+
+  useEffect(() => {
+    if (!state || hasRevealedRef.current) return;
+    hasRevealedRef.current = true;
+    setShowReveal(true);
+    setTimeout(() => setShowReveal(false), 2400);
+  }, [state]);
 
   if (error) {
     return (
@@ -103,8 +117,41 @@ export default function LobbyPage() {
     setTimeout(tick, 700);
   }
 
+  const teamColor = state ? (TEAM_COLOR_MAP[state.team.color ?? ""] ?? "#c9a84c") : "#c9a84c";
+
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
+      {/* Team reveal overlay */}
+      <AnimatePresence>
+        {showReveal && state && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020408]"
+          >
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              className="font-mono text-xs tracking-[0.3em] text-[#c9a84c] uppercase mb-4"
+            >
+              Your Team Is
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.5 }}
+              className="font-mono font-bold text-5xl tracking-widest"
+              style={{ color: teamColor }}
+            >
+              {state.team.name}
+            </motion.h1>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Team header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

@@ -10,6 +10,14 @@ interface TeamState {
   gameComplete?: boolean;
 }
 
+interface DecisionEntry {
+  missionId: string;
+  missionTitle: string;
+  studentOptionLabel: string;
+  teamOptionLabel: string;
+  votedWithTeam: boolean;
+}
+
 interface LeaderboardEntry {
   rank: number;
   teamId: string;
@@ -116,10 +124,14 @@ export default function CompletePage() {
   const router = useRouter();
   const [state, setState] = useState<TeamState | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [decisions, setDecisions] = useState<DecisionEntry[]>([]);
+  const [votedWithTeamCount, setVotedWithTeamCount] = useState(0);
   const [claimCode, setClaimCode] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const confettiFiredRef = useRef(false);
+  const confettiContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -140,8 +152,18 @@ export default function CompletePage() {
         setLeaderboard(data.leaderboard);
       } catch { /* silent */ }
     }
+    async function loadDecisions() {
+      try {
+        const res = await fetch("/api/student/decisions", { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json() as { decisions: DecisionEntry[]; votedWithTeamCount: number };
+        setDecisions(data.decisions);
+        setVotedWithTeamCount(data.votedWithTeamCount);
+      } catch { /* silent */ }
+    }
     void load();
     void loadLeaderboard();
+    void loadDecisions();
   }, [router]);
 
   async function handleSubmit() {
@@ -167,6 +189,35 @@ export default function CompletePage() {
     }
   }
 
+  // Fire confetti once when podium becomes visible
+  useEffect(() => {
+    if (confettiFiredRef.current || leaderboard.length < 2 || !confettiContainerRef.current) return;
+    confettiFiredRef.current = true;
+    const container = confettiContainerRef.current;
+    const colors = ["#c9a84c", "#22c55e", "#e5e7eb", "#3b82f6", "#ef4444"];
+    for (let i = 0; i < 55; i++) {
+      const piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const drift = (Math.random() - 0.5) * 320;
+      const fall = 80 + Math.random() * 60;
+      const spin = Math.random() * 720;
+      const duration = 1.8 + Math.random() * 1.0;
+      const left = 20 + Math.random() * 60; // % of viewport width
+      piece.style.cssText = `
+        left: ${left}vw;
+        background: ${color};
+        --fall-y: ${fall}vh;
+        --drift-x: ${drift}px;
+        --spin: ${spin}deg;
+        --duration: ${duration}s;
+        animation-delay: ${Math.random() * 0.4}s;
+      `;
+      container.appendChild(piece);
+    }
+    setTimeout(() => { if (container) container.innerHTML = ""; }, 3500);
+  }, [leaderboard]);
+
   if (!state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -186,8 +237,15 @@ export default function CompletePage() {
   const myEntry = leaderboard.find((e) => e.isCurrentTeam);
   const topThree = leaderboard.slice(0, 3);
 
+  const totalDecisions = decisions.length;
+  const ratio = totalDecisions > 0 ? votedWithTeamCount / totalDecisions : 0;
+  const styleLabel = ratio > 0.75 ? "Team Player" : ratio >= 0.5 ? "Consensus Builder" : "Independent Thinker";
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
+      {/* Confetti container */}
+      <div ref={confettiContainerRef} className="pointer-events-none" />
+
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -284,11 +342,46 @@ export default function CompletePage() {
         </motion.div>
       )}
 
+      {/* ── Decision Log ──────────────────────────────────────────────────── */}
+      {decisions.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: myEntry ? 1.25 : 0.95 }}
+          className="bsc-card p-6 mb-5"
+        >
+          <p className="bsc-section-title mb-4">Your Decision Log</p>
+          <div className="space-y-0">
+            {decisions.map((d) => (
+              <div
+                key={d.missionId}
+                className="flex items-center gap-2 py-2 border-b border-[#1a2030] last:border-0"
+              >
+                <span className="font-mono text-[10px] text-[#6b7280] w-24 flex-shrink-0 truncate">{d.missionTitle}</span>
+                <span className="flex-1 font-mono text-xs text-[#e5e7eb] truncate">{d.studentOptionLabel}</span>
+                <span
+                  className={`font-mono text-xs font-bold w-5 text-center flex-shrink-0 ${d.votedWithTeam ? "text-[#22c55e]" : "text-[#c9a84c]"}`}
+                >
+                  {d.votedWithTeam ? "✓" : "✗"}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 pt-3 border-t border-[#1a2030] flex items-center justify-between">
+            <p className="font-mono text-xs text-[#6b7280]">Voted with your team</p>
+            <div className="text-right">
+              <p className="font-mono text-sm font-bold text-[#c9a84c]">{votedWithTeamCount}/{totalDecisions}</p>
+              <p className="font-mono text-[10px] text-[#6b7280]">{styleLabel}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Badge grid */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: myEntry ? 1.3 : 0.9 }}
+        transition={{ delay: myEntry ? 1.4 : 1.1 }}
         className="bsc-card p-6 mb-5"
       >
         <p className="bsc-section-title mb-4">Concept Badges Earned</p>
@@ -301,7 +394,7 @@ export default function CompletePage() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{
-                  delay: (myEntry ? 1.4 : 1.0) + i * 0.08,
+                  delay: (myEntry ? 1.55 : 1.15) + i * 0.08,
                   type: "spring",
                   stiffness: 280,
                   damping: 18,
@@ -325,7 +418,7 @@ export default function CompletePage() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: myEntry ? 1.5 : 1.1 }}
+        transition={{ delay: myEntry ? 1.65 : 1.25 }}
         className="bsc-card p-6 text-center"
       >
         <p className="bsc-section-title">Claim Code</p>

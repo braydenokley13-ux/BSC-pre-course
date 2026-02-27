@@ -13,6 +13,20 @@ const TEAM_COLOR_MAP: Record<string, string> = {
   green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
 };
 
+// ── Idle league banter (shown when no real rival events yet) ─────────────────
+const LEAGUE_BANTER = [
+  "Lakers GM spotted at Starbucks reviewing spreadsheets at 2am.",
+  "Celtics front office declines comment on mystery trade call.",
+  "Warriors analytics department argues over parking spot allocations.",
+  "Nuggets GM posts cryptic emoji — league on high alert.",
+  "Knicks reportedly very confident about something. Details unclear.",
+  "Heat GM seen power-walking through airport. Sources: unrelated.",
+  "League office reminds all GMs: the deadline is real this time.",
+  "Bucks front office reportedly 'vibing.' No other details available.",
+  "76ers GM cited for excessive use of the phrase 'trust the process.'",
+  "Spurs front office described as 'suspiciously calm.' Insiders worried.",
+];
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface TeamInfo {
   id: string;
@@ -258,6 +272,7 @@ export default function HQPage() {
   const [badgeToast, setBadgeToast] = useState<string | null>(null);
   const [rivalEvents, setRivalEvents] = useState<Array<{ message: string; teamColor: string }>>([]);
   const [rivalPopup, setRivalPopup] = useState<{ message: string; teamColor: string } | null>(null);
+  const [banterIdx, setBanterIdx] = useState(0);
   const prevBadgesRef = useRef<string[]>([]);
   const prevRivalCountRef = useRef(0);
 
@@ -313,6 +328,11 @@ export default function HQPage() {
     }
     void fetchRivals();
     const id = setInterval(() => void fetchRivals(), 15000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setBanterIdx((i) => (i + 1) % LEAGUE_BANTER.length), 8000);
     return () => clearInterval(id);
   }, []);
 
@@ -654,16 +674,29 @@ export default function HQPage() {
       </AnimatePresence>
 
       {/* ── Rival ticker strip ───────────────────────────────────────────── */}
-      {rivalEvents.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 ticker-bar" style={{ background: "#0d1117", borderTop: "1px solid #1a2030" }}>
-          <span className="ticker-text text-[#c9a84c]">
-            {"LEAGUE WIRE  ·  "}
-            {rivalEvents.map((e) => e.message).join("   ·   ")}
-            {"   ·   LEAGUE WIRE  ·  "}
-            {rivalEvents.map((e) => e.message).join("   ·   ")}
-          </span>
-        </div>
-      )}
+      <div className="fixed bottom-0 left-0 right-0 z-40 ticker-bar" style={{ background: "#0d1117", borderTop: "1px solid #1a2030" }}>
+        <span className="ticker-text text-[#c9a84c]">
+          {rivalEvents.length > 0 ? (
+            <>
+              {"LEAGUE WIRE  ·  "}
+              {rivalEvents.map((e) => e.message).join("   ·   ")}
+              {"   ·   LEAGUE WIRE  ·  "}
+              {rivalEvents.map((e) => e.message).join("   ·   ")}
+            </>
+          ) : (
+            <>
+              {"LEAGUE WIRE  ·  "}
+              {LEAGUE_BANTER[banterIdx]}
+              {"   ·   "}
+              {LEAGUE_BANTER[(banterIdx + 1) % LEAGUE_BANTER.length]}
+              {"   ·   LEAGUE WIRE  ·  "}
+              {LEAGUE_BANTER[banterIdx]}
+              {"   ·   "}
+              {LEAGUE_BANTER[(banterIdx + 1) % LEAGUE_BANTER.length]}
+            </>
+          )}
+        </span>
+      </div>
     </div>
   );
 }
