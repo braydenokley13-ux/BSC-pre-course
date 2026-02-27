@@ -1,3 +1,4 @@
+export {};
 import { getAdaptiveQuestionBank, getAdaptiveConceptSeeds } from "../lib/adaptiveBank";
 
 const questions = getAdaptiveQuestionBank();

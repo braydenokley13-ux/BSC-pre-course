@@ -1,3 +1,4 @@
+export {};
 const bcrypt = require("bcryptjs") as { hash(value: string, rounds: number): Promise<string> };
 
 async function main() {

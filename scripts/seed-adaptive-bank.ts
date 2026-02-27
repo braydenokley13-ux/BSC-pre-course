@@ -1,3 +1,4 @@
+export {};
 import { PrismaClient } from "@prisma/client";
 import { getAdaptiveQuestionBank, toAdaptiveQuestionRecord } from "../lib/adaptiveBank";
 

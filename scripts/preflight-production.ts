@@ -1,3 +1,4 @@
+export {};
 function fail(message: string): never {
   console.error(`[prod-preflight] FAIL: ${message}`);
   process.exit(1);
