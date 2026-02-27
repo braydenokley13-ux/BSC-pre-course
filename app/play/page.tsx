@@ -79,6 +79,13 @@ const scalePopIn: Variants = {
   show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 320, damping: 16 } },
 };
 
+// ── Color map (color name → hex, matches team.color stored values) ─────────────
+
+const TEAM_COLOR_MAP: Record<string, string> = {
+  blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
+  green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
+};
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function RoleTag({ title }: { title: string }) {
@@ -888,7 +895,7 @@ function PlayInner() {
                 <div className="flex items-center gap-2 mb-1.5">
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ background: rivalPopup.teamColor === "gold" ? "#c9a84c" : rivalPopup.teamColor }}
+                    style={{ background: TEAM_COLOR_MAP[rivalPopup.teamColor] ?? rivalPopup.teamColor }}
                   />
                   <p className="text-[9px] font-mono tracking-widest uppercase text-[#6b7280]">League Wire</p>
                 </div>

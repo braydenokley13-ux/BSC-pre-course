@@ -11,7 +11,6 @@ interface RivalEvent {
 }
 
 export async function GET(req: NextRequest) {
-  void req;
   const student = await getStudentFromRequest(req);
   if (!student) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
