@@ -124,6 +124,7 @@ export default function CompletePage() {
   const router = useRouter();
   const [state, setState] = useState<TeamState | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardLoaded, setLeaderboardLoaded] = useState(false);
   const [decisions, setDecisions] = useState<DecisionEntry[]>([]);
   const [votedWithTeamCount, setVotedWithTeamCount] = useState(0);
   const [claimCode, setClaimCode] = useState<string | null>(null);
@@ -150,7 +151,9 @@ export default function CompletePage() {
         if (!res.ok) return;
         const data = await res.json() as { leaderboard: LeaderboardEntry[] };
         setLeaderboard(data.leaderboard);
+        setLeaderboardLoaded(true);
       } catch { /* silent */ }
+      finally { setLeaderboardLoaded(true); }
     }
     async function loadDecisions() {
       try {
@@ -291,7 +294,17 @@ export default function CompletePage() {
       </motion.div>
 
       {/* ── Podium ────────────────────────────────────────────────────────── */}
-      {topThree.length >= 2 && (
+      {!leaderboardLoaded && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="bsc-card p-6 mb-5 text-center"
+        >
+          <p className="font-mono text-xs text-[#6b7280] animate-pulse">Loading league standings...</p>
+        </motion.div>
+      )}
+      {leaderboardLoaded && topThree.length >= 2 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -322,6 +335,16 @@ export default function CompletePage() {
       )}
 
       {/* ── GM Identity card ──────────────────────────────────────────────── */}
+      {!myEntry && !leaderboardLoaded && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1 }}
+          className="bsc-card p-6 mb-5 text-center"
+        >
+          <p className="font-mono text-xs text-[#6b7280] animate-pulse">Loading your GM profile...</p>
+        </motion.div>
+      )}
       {myEntry && (
         <motion.div
           initial={{ opacity: 0, y: 16, scale: 0.97 }}

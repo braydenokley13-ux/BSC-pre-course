@@ -436,6 +436,12 @@ export default function TeacherDashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AnimatePresence>
+            {feed.teams.length === 0 && (
+              <div className="bsc-card p-6 text-center col-span-full">
+                <p className="font-mono text-sm text-[#6b7280]">No teams have joined this session yet.</p>
+                <p className="font-mono text-xs text-[#374151] mt-1">Share the join code with students to get started.</p>
+              </div>
+            )}
             {feed.teams.map((team, index) => {
               const actionInFlight = inFlightByTeam[team.id] ?? null;
               return (

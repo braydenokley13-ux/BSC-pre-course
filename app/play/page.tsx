@@ -695,7 +695,7 @@ function PlayInner() {
               </div>
               <div className="flex items-center gap-3">
                 {myRole && <RoleTag title={myRole.title} />}
-                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} student{activeCount !== 1 ? "s" : ""} voted</span>
                 {/* Countdown ring */}
                 <div className="relative w-8 h-8 flex-shrink-0">
                   <svg viewBox="0 0 32 32" className="w-8 h-8 -rotate-90">
@@ -893,14 +893,14 @@ function PlayInner() {
             <div className="flex items-center justify-between mb-5">
               <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
               <div className="flex items-center gap-3">
-                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} student{activeCount !== 1 ? "s" : ""} voted</span>
                 {/* Rival countdown ring */}
                 <div className="relative w-8 h-8 flex-shrink-0">
                   <svg viewBox="0 0 32 32" className="w-8 h-8 -rotate-90">
                     <circle cx="16" cy="16" r="13" fill="none" stroke="#1a2030" strokeWidth="3" />
                     <circle
                       cx="16" cy="16" r="13" fill="none"
-                      stroke={timerSec > 30 ? "#ef4444" : timerSec > 10 ? "#f97316" : "#ef4444"}
+                      stroke={timerSec > 30 ? "#c9a84c" : timerSec > 10 ? "#f97316" : "#ef4444"}
                       strokeWidth="3" strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 13}`}
                       strokeDashoffset={`${2 * Math.PI * 13 * (1 - timerSec / RIVAL_TIMER_SECS)}`}
@@ -908,7 +908,8 @@ function PlayInner() {
                     />
                   </svg>
                   <span
-                    className="absolute inset-0 flex items-center justify-center font-mono text-[9px] text-[#ef4444]"
+                    className="absolute inset-0 flex items-center justify-center font-mono text-[9px]"
+                    style={{ color: timerSec > 30 ? "#c9a84c" : timerSec > 10 ? "#f97316" : "#ef4444" }}
                   >
                     {timerSec}
                   </span>
