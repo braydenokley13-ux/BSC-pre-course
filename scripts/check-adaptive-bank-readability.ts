@@ -1,3 +1,4 @@
+export {};
 import { getAdaptiveQuestionBank } from "../lib/adaptiveBank";
 
 const MIN_GRADE = 6.0;
