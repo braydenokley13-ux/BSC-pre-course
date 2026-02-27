@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { GlossaryGroup } from "@/lib/concepts";
+import { TRACK_101_GLOSSARY_OVERRIDES } from "@/lib/track101Content";
 
 interface GlossaryPanelProps {
   groups: GlossaryGroup[];
@@ -9,6 +10,7 @@ interface GlossaryPanelProps {
   title?: string;
   initiallyOpen?: boolean;
   onTermSelect?: (termId: string) => void;
+  track?: string;
 }
 
 export function GlossaryPanel({
@@ -17,19 +19,33 @@ export function GlossaryPanel({
   title,
   initiallyOpen = false,
   onTermSelect,
+  track = "201",
 }: GlossaryPanelProps) {
   const [open, setOpen] = useState(initiallyOpen);
   const [query, setQuery] = useState("");
 
+  // Apply Track 101 simplified definitions when needed
+  const resolvedGroups = useMemo(() => {
+    if (track !== "101") return groups;
+    return groups.map((group) => ({
+      ...group,
+      terms: group.terms.map((term) => {
+        const override = TRACK_101_GLOSSARY_OVERRIDES[term.id];
+        if (!override) return term;
+        return { ...term, def: override.def, why: override.why };
+      }),
+    }));
+  }, [groups, track]);
+
   const total = useMemo(
-    () => groups.reduce((sum, group) => sum + group.terms.length, 0),
-    [groups]
+    () => resolvedGroups.reduce((sum, group) => sum + group.terms.length, 0),
+    [resolvedGroups]
   );
 
   const normalized = query.trim().toLowerCase();
 
   const filtered = useMemo(() => {
-    return groups
+    return resolvedGroups
       .map((group) => ({
         ...group,
         terms: group.terms.filter((term) => {
@@ -39,7 +55,7 @@ export function GlossaryPanel({
         }),
       }))
       .filter((group) => group.terms.length > 0);
-  }, [groups, normalized]);
+  }, [resolvedGroups, normalized]);
 
   const heading = title ?? `Game Glossary (${total})`;
 

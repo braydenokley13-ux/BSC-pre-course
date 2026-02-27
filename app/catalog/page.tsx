@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { CONCEPT_CARDS, GLOSSARY_TERMS } from "@/lib/concepts";
+import { GlossaryPanel } from "@/components/GlossaryPanel";
 
 type CheckPhase = "card" | "adaptive" | "result";
 
@@ -93,7 +94,14 @@ function CatalogContent() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAdaptive, setLoadingAdaptive] = useState(false);
   const [error, setError] = useState("");
-  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [track, setTrack] = useState("201");
+
+  useEffect(() => {
+    fetch("/api/team/state", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => { if (d?.track) setTrack(d.track as string); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setPhase("card");
@@ -443,68 +451,12 @@ function CatalogContent() {
           </AnimatePresence>
         </div>
 
-        <div className="w-56 flex-shrink-0 hidden xl:block">
-          <div className="bsc-card sticky top-[80px] max-h-[80vh] overflow-y-auto">
-            <button
-              className="flex items-center justify-between w-full px-4 py-3 border-b border-[#1a2030]"
-              onClick={() => setGlossaryOpen(!glossaryOpen)}
-            >
-              <span className="font-mono text-[10px] tracking-widest uppercase text-[#6b7280]">Cap Glossary</span>
-              <motion.span
-                animate={{ rotate: glossaryOpen ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-[#6b7280] text-xs"
-              >
-                ▼
-              </motion.span>
-            </button>
-
-            <AnimatePresence>
-              {!glossaryOpen ? (
-                <motion.div
-                  key="closed"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="px-4 py-3"
-                >
-                  <p className="text-[#6b7280] font-mono text-xs leading-relaxed">
-                    30 terms across cap rules, contracts, trades, and analytics.
-                  </p>
-                  <button
-                    onClick={() => setGlossaryOpen(true)}
-                    className="text-[#c9a84c] font-mono text-xs mt-2 hover:underline"
-                  >
-                    Expand →
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="open"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="px-3 py-2"
-                >
-                  {GLOSSARY_TERMS.map((group) => (
-                    <div key={group.group} className="mb-3">
-                      <p className="font-mono text-[10px] text-[#c9a84c] tracking-widest uppercase mb-1">
-                        {group.group}
-                      </p>
-                      <div className="space-y-1">
-                        {group.terms.slice(0, 4).map((term) => (
-                          <div key={term.id} className="border border-[#1a2030] rounded px-2 py-1">
-                            <p className="text-[#e5e7eb] font-mono text-[11px]">{term.term}</p>
-                            <p className="text-[#6b7280] font-mono text-[10px] leading-snug">{term.def}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+        <div className="w-56 flex-shrink-0 hidden xl:block sticky top-[80px] max-h-[80vh] overflow-y-auto">
+          <GlossaryPanel
+            groups={GLOSSARY_TERMS}
+            track={track}
+            title={`Cap Glossary${track === "101" ? " (Track 101)" : ""}`}
+          />
         </div>
       </div>
     </div>

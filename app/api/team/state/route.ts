@@ -49,7 +49,8 @@ export async function GET(req: NextRequest) {
   const team = await prisma.team.findUnique({
     where: { id: student.teamId },
     include: {
-      students: { select: { id: true, nickname: true, lastSeenAt: true } },
+      students: { select: { id: true, nickname: true, avatarId: true, lastSeenAt: true } },
+      session: { select: { track: true } },
     },
   });
 
@@ -110,10 +111,12 @@ export async function GET(req: NextRequest) {
   const myRole = roleAssignments[student.id] ?? null;
 
   return NextResponse.json({
+    track: team.session?.track ?? "201",
     team: {
       id: team.id,
       name: team.name,
       joinCode: team.joinCode,
+      color: team.color,
       missionIndex: team.missionIndex,
       currentNodeId,
       branchState,
@@ -129,12 +132,14 @@ export async function GET(req: NextRequest) {
       id: student.id,
       nickname: student.nickname,
       role: myRole,
+      avatarId: student.avatarId,
     },
     members: team.students.map((s) => {
       const roleId = roleAssignments[s.id] ?? null;
       return {
         id: s.id,
         nickname: s.nickname,
+        avatarId: s.avatarId,
         active: s.lastSeenAt >= activeCutoff,
         role: roleId,
       };

@@ -8,9 +8,10 @@ import { FEATURE_STUDENT_RECOVERY_V1 } from "@/lib/features";
 import { recordTeamEvent } from "@/lib/teamEvents";
 
 export async function POST(req: NextRequest) {
-  const { nickname, joinCode } = (await req.json()) as {
+  const { nickname, joinCode, avatarId } = (await req.json()) as {
     nickname: string;
     joinCode: string;
+    avatarId?: string;
   };
 
   if (!nickname?.trim() || !joinCode?.trim()) {
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
       sessionId: team.sessionId,
       teamId: team.id,
       nickname: normalizedNickname,
+      avatarId: avatarId?.trim() || "hawks",
       token,
       recoveryCodeHash,
       recoveryCodeUpdatedAt: recoveryCode ? new Date() : null,

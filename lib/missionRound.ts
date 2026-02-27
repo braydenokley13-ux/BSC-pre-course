@@ -494,6 +494,7 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
     payload: {
       source: input.eventSource ?? "student",
       missionId: input.missionId,
+      missionTitle: richMission.title,
       scoreDelta: variant.scoreΔ,
       conceptId: richMission.conceptId,
     },

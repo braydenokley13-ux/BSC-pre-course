@@ -5,6 +5,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
+import { TRACK_101_MISSION_OVERRIDES } from "@/lib/track101Content";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,8 +30,9 @@ interface MissionRoundState {
   isResolved?: boolean;
 }
 interface TeamStateResponse {
-  team: { id: string; name: string; score: number };
-  me: { id: string; nickname: string; role: string | null };
+  track?: string;
+  team: { id: string; name: string; score: number; color?: string };
+  me: { id: string; nickname: string; role: string | null; avatarId?: string };
   members: MemberInfo[];
   activeCount: number;
   missionRoundState: MissionRoundState;
@@ -76,6 +78,63 @@ const scalePopIn: Variants = {
   hidden: { scale: 0, opacity: 0 },
   show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 320, damping: 16 } },
 };
+
+// ── Color map (color name → hex, matches team.color stored values) ─────────────
+
+const TEAM_COLOR_MAP: Record<string, string> = {
+  blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
+  green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
+};
+
+// ── Voting timer constants ──────────────────────────────────────────────────────
+const VOTE_TIMER_SECS = 90;
+const RIVAL_TIMER_SECS = 60;
+
+// ── Score pop crowd reaction ────────────────────────────────────────────────────
+function getCrowdReaction(delta: number): string {
+  if (delta >= 15) return "🏟️ The crowd erupts!";
+  if (delta >= 10) return "👏 Strong move, GM.";
+  if (delta >= 5)  return "📰 Solid headline tomorrow.";
+  if (delta === 0) return "🤷 Jury's still out.";
+  if (delta >= -5) return "😬 Tough look in the press.";
+  return "😤 The fanbase is not happy.";
+}
+
+// ── Breaking news headline after outcome ────────────────────────────────────────
+const TAG_HEADLINES: Record<string, string> = {
+  aggressive:    "AGGRESSIVE MOVE SHAKES UP LEAGUE",
+  conservative:  "GM PLAYS IT SAFE — ANALYSTS DIVIDED",
+  "data-driven": "ANALYTICS DESK VINDICATED",
+  culture:       "LOCKER ROOM CHEMISTRY PRIORITIZED",
+  rebuild:       "TEARDOWN BEGINS — FANS REACT",
+  "star-power":  "MARQUEE SIGNING ROCKS OFFSEASON",
+  flexibility:   "GM KEEPS OPTIONS OPEN",
+  risk:          "HIGH-STAKES BET ON FUTURE",
+  balanced:      "CALCULATED APPROACH EARNS PRAISE",
+  creative:      "UNCONVENTIONAL MOVE SURPRISES LEAGUE",
+};
+
+function getBroadcastHeadline(teamName: string, tags: string[]): string {
+  for (const tag of tags) {
+    const h = TAG_HEADLINES[tag];
+    if (h) return `${teamName.toUpperCase()} FRONT OFFICE: ${h}`;
+  }
+  return `${teamName.toUpperCase()} GM MAKES A MOVE`;
+}
+
+// ── Idle rival ticker banter ────────────────────────────────────────────────────
+const LEAGUE_BANTER = [
+  "Lakers GM spotted at Starbucks reviewing spreadsheets at 2am.",
+  "Celtics front office declines comment on mystery trade call.",
+  "Warriors analytics department argues over parking spot allocations.",
+  "Nuggets GM posts cryptic emoji — league on high alert.",
+  "Knicks reportedly very confident about something. Details unclear.",
+  "Heat GM seen power-walking through airport. Sources: unrelated.",
+  "League office reminds all GMs: the deadline is real this time.",
+  "Bucks front office reportedly 'vibing.' No other details available.",
+  "76ers GM cited for excessive use of the phrase 'trust the process.'",
+  "Spurs front office described as 'suspiciously calm.' Insiders worried.",
+];
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -182,6 +241,14 @@ function PlayInner() {
   const [rivalRound, setRivalRound] = useState<MissionRound | null>(null);
   const [resolving, setResolving] = useState(false);
   const [error, setError] = useState("");
+  const [showScorePop, setShowScorePop] = useState(false);
+  const [rivalEvents, setRivalEvents] = useState<Array<{ message: string; teamColor: string }>>([]);
+  const [rivalPopup, setRivalPopup] = useState<{ message: string; teamColor: string } | null>(null);
+  const [timerSec, setTimerSec] = useState(VOTE_TIMER_SECS);
+  const [headline, setHeadline] = useState("");
+  const [showHeadline, setShowHeadline] = useState(false);
+  const [banterIdx, setBanterIdx] = useState(0);
+  const prevRivalCountRef = useRef(0);
   const missionStarted = useRef(false);
   const resolvedRef = useRef<string>("");
 
@@ -260,6 +327,56 @@ function PlayInner() {
     return () => clearInterval(id);
   }, [fetchState]);
 
+  // Poll rival events every 12 seconds
+  useEffect(() => {
+    async function fetchRivals() {
+      try {
+        const res = await fetch("/api/session/rivals", { credentials: "include" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { rivals: Array<{ message: string; teamColor: string }> };
+        if (data.rivals.length > prevRivalCountRef.current && prevRivalCountRef.current > 0) {
+          const newest = data.rivals[0];
+          setRivalPopup(newest);
+          setTimeout(() => setRivalPopup(null), 3500);
+        }
+        prevRivalCountRef.current = data.rivals.length;
+        setRivalEvents(data.rivals);
+      } catch { /* silent */ }
+    }
+    void fetchRivals();
+    const id = setInterval(() => void fetchRivals(), 12000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Voting countdown timer
+  useEffect(() => {
+    if (phase !== "voting" && phase !== "rival-voting") return;
+    const limit = phase === "rival-voting" ? RIVAL_TIMER_SECS : VOTE_TIMER_SECS;
+    setTimerSec(limit);
+    const tick = setInterval(() => {
+      setTimerSec((s) => {
+        if (s <= 1) {
+          clearInterval(tick);
+          // auto-resolve when timer expires
+          void handleResolveRound(
+            phase === "rival-voting" ? "rival-response" : currentRound?.id ?? "",
+            true
+          );
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  // Idle banter ticker rotation
+  useEffect(() => {
+    const id = setInterval(() => setBanterIdx((i) => (i + 1) % LEAGUE_BANTER.length), 8000);
+    return () => clearInterval(id);
+  }, []);
+
   async function handleVote(optionIdx: number) {
     if (!currentRound) return;
     setSelectedOptionIdx(optionIdx);
@@ -295,14 +412,14 @@ function PlayInner() {
     }
   }
 
-  async function handleResolveRound(roundId: string) {
+  async function handleResolveRound(roundId: string, timedOut = false) {
     if (resolving) return;
     setResolving(true);
     try {
       const res = await fetch("/api/mission/resolve-round", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ missionId, roundId }),
+        body: JSON.stringify({ missionId, roundId, ...(timedOut && { timedOut: true }) }),
         credentials: "include",
       });
       const data: ResolveResult = await res.json();
@@ -315,7 +432,19 @@ function PlayInner() {
         setPhase("rival-alert");
         return;
       }
-      if (data.isComplete) { setPhase("outcome"); return; }
+      if (data.isComplete) {
+        if ((data.outcome?.scoreΔ ?? 0) > 0) {
+          setShowScorePop(true);
+          setTimeout(() => setShowScorePop(false), 2000);
+        }
+        // Set breaking news headline from winning tags
+        const teamName = teamState?.team?.name ?? "Front Office";
+        setHeadline(getBroadcastHeadline(teamName, data.winningTags ?? []));
+        setShowHeadline(true);
+        setTimeout(() => setShowHeadline(false), 4000);
+        setPhase("outcome");
+        return;
+      }
       if (data.nextRound) {
         setCurrentRound(data.nextRound);
         setSelectedOptionIdx(null);
@@ -373,7 +502,35 @@ function PlayInner() {
     );
   }
 
-  const richMission = mission as Mission;
+  const rawMission = mission as Mission;
+  // Apply Track 101 content overrides when session is on the beginner track
+  const track = teamState.track ?? "201";
+  const t101 = track === "101" ? TRACK_101_MISSION_OVERRIDES[rawMission.id] : null;
+  const richMission: Mission = t101
+    ? {
+        ...rawMission,
+        ...(t101.tagline ? { tagline: t101.tagline } : {}),
+        scenario: t101.scenario ?? rawMission.scenario,
+        infoCards: rawMission.infoCards.map((card) => ({
+          ...card,
+          content: t101.infoCardSimplifications?.[card.title] ?? card.content,
+        })),
+        rounds: rawMission.rounds.map((round) => {
+          const rs = t101.roundSimplifications?.[round.id];
+          if (!rs) return round;
+          return {
+            ...round,
+            ...(rs.prompt ? { prompt: rs.prompt } : {}),
+            ...(rs.context ? { context: rs.context } : {}),
+            options: round.options.map((opt) => ({
+              ...opt,
+              description: rs.options?.[opt.id] ?? opt.description,
+            })),
+          };
+        }),
+      }
+    : rawMission;
+
   const { me, members, activeCount } = teamState;
   const myRole = richMission.roles.find((r) => r.id === me.role) ?? null;
   const myInfoCards = richMission.infoCards.filter(
@@ -539,6 +696,26 @@ function PlayInner() {
               <div className="flex items-center gap-3">
                 {myRole && <RoleTag title={myRole.title} />}
                 <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+                {/* Countdown ring */}
+                <div className="relative w-8 h-8 flex-shrink-0">
+                  <svg viewBox="0 0 32 32" className="w-8 h-8 -rotate-90">
+                    <circle cx="16" cy="16" r="13" fill="none" stroke="#1a2030" strokeWidth="3" />
+                    <circle
+                      cx="16" cy="16" r="13" fill="none"
+                      stroke={timerSec > 45 ? "#c9a84c" : timerSec > 15 ? "#f97316" : "#ef4444"}
+                      strokeWidth="3" strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 13}`}
+                      strokeDashoffset={`${2 * Math.PI * 13 * (1 - timerSec / VOTE_TIMER_SECS)}`}
+                      style={{ transition: "stroke-dashoffset 0.9s linear, stroke 0.3s" }}
+                    />
+                  </svg>
+                  <span
+                    className="absolute inset-0 flex items-center justify-center font-mono text-[9px]"
+                    style={{ color: timerSec > 45 ? "#c9a84c" : timerSec > 15 ? "#f97316" : "#ef4444" }}
+                  >
+                    {timerSec}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -715,7 +892,28 @@ function PlayInner() {
 
             <div className="flex items-center justify-between mb-5">
               <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
-              <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+                {/* Rival countdown ring */}
+                <div className="relative w-8 h-8 flex-shrink-0">
+                  <svg viewBox="0 0 32 32" className="w-8 h-8 -rotate-90">
+                    <circle cx="16" cy="16" r="13" fill="none" stroke="#1a2030" strokeWidth="3" />
+                    <circle
+                      cx="16" cy="16" r="13" fill="none"
+                      stroke={timerSec > 30 ? "#ef4444" : timerSec > 10 ? "#f97316" : "#ef4444"}
+                      strokeWidth="3" strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 13}`}
+                      strokeDashoffset={`${2 * Math.PI * 13 * (1 - timerSec / RIVAL_TIMER_SECS)}`}
+                      style={{ transition: "stroke-dashoffset 0.9s linear, stroke 0.3s" }}
+                    />
+                  </svg>
+                  <span
+                    className="absolute inset-0 flex items-center justify-center font-mono text-[9px] text-[#ef4444]"
+                  >
+                    {timerSec}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="bsc-card p-5 mb-5 border-[#ef4444]/20">
@@ -811,9 +1009,97 @@ function PlayInner() {
           </div>
         )}
 
+        {/* ── RIVAL POPUP ───────────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {rivalPopup && (
+            <motion.div
+              key="rival-popup"
+              initial={{ opacity: 0, x: 80, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 80, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              className="fixed bottom-16 right-4 z-50 max-w-[260px] pointer-events-none"
+            >
+              <div className="bsc-card p-3 border-[#c9a84c]/40" style={{ background: "rgba(10,12,18,0.95)" }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ background: TEAM_COLOR_MAP[rivalPopup.teamColor] ?? rivalPopup.teamColor }}
+                  />
+                  <p className="text-[9px] font-mono tracking-widest uppercase text-[#6b7280]">League Wire</p>
+                </div>
+                <p className="font-mono text-xs text-[#e5e7eb] leading-snug">{rivalPopup.message}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── RIVAL TICKER (voting/waiting/outcome phases) ───────────────────── */}
+        {(phase === "voting" || phase === "waiting" || phase === "outcome") && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 ticker-bar" style={{ background: "#0d1117", borderTop: "1px solid #1a2030" }}>
+            {rivalEvents.length > 0 ? (
+              <span className="ticker-text text-[#c9a84c]">
+                {"LEAGUE WIRE  ·  "}
+                {rivalEvents.map((e) => e.message).join("   ·   ")}
+                {"   ·   LEAGUE WIRE  ·  "}
+                {rivalEvents.map((e) => e.message).join("   ·   ")}
+              </span>
+            ) : (
+              <span className="ticker-text text-[#4b5563]">
+                {"LEAGUE WIRE  ·  "}
+                {LEAGUE_BANTER[banterIdx]}
+                {"   ·   "}
+                {LEAGUE_BANTER[(banterIdx + 1) % LEAGUE_BANTER.length]}
+                {"   ·   LEAGUE WIRE  ·  "}
+                {LEAGUE_BANTER[banterIdx]}
+                {"   ·   "}
+                {LEAGUE_BANTER[(banterIdx + 1) % LEAGUE_BANTER.length]}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── SCORE POP OVERLAY ─────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {showScorePop && resolveResult?.outcome && resolveResult.outcome.scoreΔ > 0 && (
+            <motion.div
+              key="score-pop"
+              initial={{ opacity: 0, y: 20, scale: 0.7 }}
+              animate={{ opacity: 1, y: -60, scale: 1.4 }}
+              exit={{ opacity: 0, y: -120, scale: 0.9 }}
+              transition={{ duration: 1.6, ease: "easeOut" }}
+              className="fixed top-1/3 left-1/2 -translate-x-1/2 pointer-events-none z-50 select-none text-center"
+            >
+              <div className="font-mono font-bold text-5xl text-[#22c55e] drop-shadow-lg">
+                +{resolveResult.outcome.scoreΔ}
+              </div>
+              <div className="font-mono text-sm text-[#22c55e]/80 mt-1">
+                {getCrowdReaction(resolveResult.outcome.scoreΔ)}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* ── OUTCOME ───────────────────────────────────────────────────────── */}
         {phase === "outcome" && resolveResult?.outcome && (
           <div>
+            {/* Breaking news headline */}
+            <AnimatePresence>
+              {showHeadline && headline && (
+                <motion.div
+                  key="headline"
+                  initial={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  className="ticker-bar mb-4"
+                >
+                  <span className="ticker-text text-[#c9a84c] font-bold">
+                    {`⚡ BREAKING: ${headline}   ·   ⚡ BREAKING: ${headline}`}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Mission complete header */}
             <motion.div
               initial={{ opacity: 0 }}

@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     missionId?: string;
     roundId?: string;
+    timedOut?: boolean;
   };
   const missionId = body.missionId?.trim();
   const roundId = body.roundId?.trim();
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     sessionId: student.sessionId,
     missionId,
     roundId,
-    allowNoVotes: false,
+    allowNoVotes: body.timedOut === true,
     eventSource: "student",
   });
 
