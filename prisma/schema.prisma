@@ -16,6 +16,7 @@ model Session {
   title          String
   teacherKeyHash String
   status         String    @default("active")
+  track          String    @default("201")
   createdAt      DateTime  @default(now())
   archivedAt     DateTime?
 
@@ -42,6 +43,7 @@ model Team {
   branchStateJson String   @default("{\"capFlex\":0,\"starPower\":0,\"dataTrust\":0,\"culture\":0,\"riskHeat\":0}")
   runoffStateJson String?
   badges         String    @default("[]")
+  color          String    @default("blue")
   score          Int       @default(0)
   claimCode      String?
   completedAt    DateTime?
@@ -70,6 +72,7 @@ model Student {
   teamId     String
   team       Team     @relation(fields: [teamId], references: [id])
   nickname   String
+  avatarId   String   @default("hawks")
   token      String   @unique
   recoveryCodeHash String?
   recoveryCodeUpdatedAt DateTime?

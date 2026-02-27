@@ -5,6 +5,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
+import { TRACK_101_MISSION_OVERRIDES } from "@/lib/track101Content";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,8 +30,9 @@ interface MissionRoundState {
   isResolved?: boolean;
 }
 interface TeamStateResponse {
-  team: { id: string; name: string; score: number };
-  me: { id: string; nickname: string; role: string | null };
+  track?: string;
+  team: { id: string; name: string; score: number; color?: string };
+  me: { id: string; nickname: string; role: string | null; avatarId?: string };
   members: MemberInfo[];
   activeCount: number;
   missionRoundState: MissionRoundState;
@@ -182,6 +184,10 @@ function PlayInner() {
   const [rivalRound, setRivalRound] = useState<MissionRound | null>(null);
   const [resolving, setResolving] = useState(false);
   const [error, setError] = useState("");
+  const [showScorePop, setShowScorePop] = useState(false);
+  const [rivalEvents, setRivalEvents] = useState<Array<{ message: string; teamColor: string }>>([]);
+  const [rivalPopup, setRivalPopup] = useState<{ message: string; teamColor: string } | null>(null);
+  const prevRivalCountRef = useRef(0);
   const missionStarted = useRef(false);
   const resolvedRef = useRef<string>("");
 
@@ -260,6 +266,27 @@ function PlayInner() {
     return () => clearInterval(id);
   }, [fetchState]);
 
+  // Poll rival events every 12 seconds
+  useEffect(() => {
+    async function fetchRivals() {
+      try {
+        const res = await fetch("/api/session/rivals", { credentials: "include" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { rivals: Array<{ message: string; teamColor: string }> };
+        if (data.rivals.length > prevRivalCountRef.current && prevRivalCountRef.current > 0) {
+          const newest = data.rivals[0];
+          setRivalPopup(newest);
+          setTimeout(() => setRivalPopup(null), 3500);
+        }
+        prevRivalCountRef.current = data.rivals.length;
+        setRivalEvents(data.rivals);
+      } catch { /* silent */ }
+    }
+    void fetchRivals();
+    const id = setInterval(() => void fetchRivals(), 12000);
+    return () => clearInterval(id);
+  }, []);
+
   async function handleVote(optionIdx: number) {
     if (!currentRound) return;
     setSelectedOptionIdx(optionIdx);
@@ -315,7 +342,14 @@ function PlayInner() {
         setPhase("rival-alert");
         return;
       }
-      if (data.isComplete) { setPhase("outcome"); return; }
+      if (data.isComplete) {
+        if ((data.outcome?.scoreΔ ?? 0) > 0) {
+          setShowScorePop(true);
+          setTimeout(() => setShowScorePop(false), 2000);
+        }
+        setPhase("outcome");
+        return;
+      }
       if (data.nextRound) {
         setCurrentRound(data.nextRound);
         setSelectedOptionIdx(null);
@@ -373,7 +407,35 @@ function PlayInner() {
     );
   }
 
-  const richMission = mission as Mission;
+  const rawMission = mission as Mission;
+  // Apply Track 101 content overrides when session is on the beginner track
+  const track = teamState.track ?? "201";
+  const t101 = track === "101" ? TRACK_101_MISSION_OVERRIDES[rawMission.id] : null;
+  const richMission: Mission = t101
+    ? {
+        ...rawMission,
+        ...(t101.tagline ? { tagline: t101.tagline } : {}),
+        scenario: t101.scenario ?? rawMission.scenario,
+        infoCards: rawMission.infoCards.map((card) => ({
+          ...card,
+          content: t101.infoCardSimplifications?.[card.title] ?? card.content,
+        })),
+        rounds: rawMission.rounds.map((round) => {
+          const rs = t101.roundSimplifications?.[round.id];
+          if (!rs) return round;
+          return {
+            ...round,
+            ...(rs.prompt ? { prompt: rs.prompt } : {}),
+            ...(rs.context ? { context: rs.context } : {}),
+            options: round.options.map((opt) => ({
+              ...opt,
+              description: rs.options?.[opt.id] ?? opt.description,
+            })),
+          };
+        }),
+      }
+    : rawMission;
+
   const { me, members, activeCount } = teamState;
   const myRole = richMission.roles.find((r) => r.id === me.role) ?? null;
   const myInfoCards = richMission.infoCards.filter(
@@ -810,6 +872,61 @@ function PlayInner() {
             )}
           </div>
         )}
+
+        {/* ── RIVAL POPUP ───────────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {rivalPopup && (
+            <motion.div
+              key="rival-popup"
+              initial={{ opacity: 0, x: 80, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 80, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              className="fixed bottom-16 right-4 z-50 max-w-[260px] pointer-events-none"
+            >
+              <div className="bsc-card p-3 border-[#c9a84c]/40" style={{ background: "rgba(10,12,18,0.95)" }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ background: rivalPopup.teamColor === "gold" ? "#c9a84c" : rivalPopup.teamColor }}
+                  />
+                  <p className="text-[9px] font-mono tracking-widest uppercase text-[#6b7280]">League Wire</p>
+                </div>
+                <p className="font-mono text-xs text-[#e5e7eb] leading-snug">{rivalPopup.message}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── RIVAL TICKER (voting/waiting/outcome phases) ───────────────────── */}
+        {rivalEvents.length > 0 && (phase === "voting" || phase === "waiting" || phase === "outcome") && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 ticker-bar" style={{ background: "#0d1117", borderTop: "1px solid #1a2030" }}>
+            <span className="ticker-text text-[#c9a84c]">
+              {"LEAGUE WIRE  ·  "}
+              {rivalEvents.map((e) => e.message).join("   ·   ")}
+              {"   ·   LEAGUE WIRE  ·  "}
+              {rivalEvents.map((e) => e.message).join("   ·   ")}
+            </span>
+          </div>
+        )}
+
+        {/* ── SCORE POP OVERLAY ─────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {showScorePop && resolveResult?.outcome && resolveResult.outcome.scoreΔ > 0 && (
+            <motion.div
+              key="score-pop"
+              initial={{ opacity: 0, y: 20, scale: 0.7 }}
+              animate={{ opacity: 1, y: -60, scale: 1.4 }}
+              exit={{ opacity: 0, y: -120, scale: 0.9 }}
+              transition={{ duration: 1.6, ease: "easeOut" }}
+              className="fixed top-1/3 left-1/2 -translate-x-1/2 pointer-events-none z-50 select-none"
+            >
+              <span className="font-mono font-bold text-5xl text-[#22c55e] drop-shadow-lg">
+                +{resolveResult.outcome.scoreΔ}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── OUTCOME ───────────────────────────────────────────────────────── */}
         {phase === "outcome" && resolveResult?.outcome && (

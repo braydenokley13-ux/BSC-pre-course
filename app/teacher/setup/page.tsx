@@ -2,12 +2,24 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface TeamInfo { id: string; name: string; joinCode: string }
+interface TeamInfo { id: string; name: string; joinCode: string; color: string }
+
+const TRACK_COLORS: Record<string, string> = {
+  blue: "#3b82f6",
+  gold: "#c9a84c",
+  purple: "#7c3aed",
+  red: "#ef4444",
+  green: "#22c55e",
+  teal: "#14b8a6",
+  orange: "#f97316",
+  black: "#374151",
+};
 
 export default function TeacherSetupPage() {
   const router = useRouter();
   const [title, setTitle] = useState("BSC Pre-Course Game");
   const [teamCount, setTeamCount] = useState(6);
+  const [track, setTrack] = useState<"101" | "201">("201");
   const [teams, setTeams] = useState<TeamInfo[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -36,7 +48,7 @@ export default function TeacherSetupPage() {
       const res = await fetch("/api/session/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, teamCount }),
+        body: JSON.stringify({ title, teamCount, track }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -82,12 +94,14 @@ export default function TeacherSetupPage() {
               <p className="bsc-score-value">{teams.length}</p>
             </div>
             <div className="bsc-score-tile">
-              <p className="bsc-score-label">Student Entry</p>
-              <p className="bsc-score-value">/join</p>
+              <p className="bsc-score-label">Track</p>
+              <p className="bsc-score-value" style={{ color: track === "101" ? "#22c55e" : "#c9a84c" }}>
+                Track {track}
+              </p>
             </div>
             <div className="bsc-score-tile">
-              <p className="bsc-score-label">Status</p>
-              <p className="bsc-score-value">Ready</p>
+              <p className="bsc-score-label">Student Entry</p>
+              <p className="bsc-score-value">/join</p>
             </div>
           </div>
 
@@ -95,7 +109,13 @@ export default function TeacherSetupPage() {
             {teams.map((team, i) => (
               <div key={team.id} className="bsc-card p-5 text-center">
                 <p className="text-[#6b7280] font-mono text-xs mb-1">Breakout Room {i + 1}</p>
-                <p className="text-[#e5e7eb] font-mono font-bold text-lg mb-2">{team.name}</p>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span
+                    className="inline-block w-3 h-3 rounded-full"
+                    style={{ backgroundColor: TRACK_COLORS[team.color] ?? "#3b82f6" }}
+                  />
+                  <p className="text-[#e5e7eb] font-mono font-bold text-lg">{team.name}</p>
+                </div>
                 <div className="bsc-badge-gold text-lg px-4 py-2 tracking-widest font-bold">
                   {team.joinCode}
                 </div>
@@ -171,6 +191,41 @@ export default function TeacherSetupPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Section 001 - Spring 2025"
                 />
+              </div>
+
+              <div>
+                <label className="bsc-label">Curriculum Track</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTrack("201")}
+                    className={`rounded px-3 py-3 font-mono text-sm border transition-colors ${
+                      track === "201"
+                        ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#c9a84c]"
+                        : "border-[#374151] text-[#6b7280] hover:border-[#6b7280]"
+                    }`}
+                  >
+                    <div className="font-bold">Track 201</div>
+                    <div className="text-[10px] mt-0.5 opacity-80">High School / Advanced</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTrack("101")}
+                    className={`rounded px-3 py-3 font-mono text-sm border transition-colors ${
+                      track === "101"
+                        ? "border-[#22c55e] bg-[#22c55e]/10 text-[#22c55e]"
+                        : "border-[#374151] text-[#6b7280] hover:border-[#6b7280]"
+                    }`}
+                  >
+                    <div className="font-bold">Track 101</div>
+                    <div className="text-[10px] mt-0.5 opacity-80">5th–6th Grade</div>
+                  </button>
+                </div>
+                <p className="text-[#6b7280] font-mono text-xs mt-1">
+                  {track === "101"
+                    ? "Simplified language, everyday analogies, grade 6 reading level."
+                    : "Full complexity — salary cap jargon, multi-step tradeoffs."}
+                </p>
               </div>
 
               <div>

@@ -98,6 +98,22 @@ async function buildCompletedResponse(
   };
 }
 
+function parseJsonArray(raw: string, fallback: string[]): string[] {
+  try { return JSON.parse(raw) as string[]; } catch { return fallback; }
+}
+
+async function awardBadgeIfEarned(teamId: string, conceptId: string, masteryScore: number) {
+  if (masteryScore < 2.5) return;
+  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { badges: true } });
+  if (!team) return;
+  const current = parseJsonArray(team.badges, []);
+  if (current.includes(conceptId)) return;
+  await prisma.team.update({
+    where: { id: teamId },
+    data: { badges: JSON.stringify([...current, conceptId]) },
+  });
+}
+
 function parseStateFromAssessment(row: {
   masteryTheta: number;
   masteryScore: number;
@@ -289,6 +305,7 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
+    await awardBadgeIfEarned(assessment.teamId, assessment.conceptId, update.masteryScoreAfter);
     const completed = await buildCompletedResponse(assessment.id);
     if (!completed) {
       return NextResponse.json(
@@ -358,6 +375,7 @@ export async function POST(req: NextRequest) {
         })),
       }),
     ]);
+    await awardBadgeIfEarned(assessment.teamId, assessment.conceptId, update.masteryScoreAfter);
     const completed = await buildCompletedResponse(assessment.id);
     if (completed) return NextResponse.json(completed);
     return NextResponse.json({ error: "Unable to finalize adaptive attempt", code: "UNKNOWN" }, { status: 500 });

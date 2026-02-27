@@ -13,6 +13,40 @@ const NBA_TEAM_NAMES = [
   "Kings", "Spurs", "Raptors", "Jazz", "Wizards",
 ];
 
+// Auto-assign a jersey color based on the NBA team name
+const NBA_TEAM_COLORS: Record<string, string> = {
+  "Hawks": "red",
+  "Celtics": "green",
+  "Nets": "black",
+  "Hornets": "teal",
+  "Bulls": "red",
+  "Cavaliers": "gold",
+  "Mavericks": "blue",
+  "Nuggets": "gold",
+  "Pistons": "blue",
+  "Warriors": "gold",
+  "Rockets": "red",
+  "Pacers": "gold",
+  "Clippers": "red",
+  "Lakers": "purple",
+  "Grizzlies": "teal",
+  "Heat": "red",
+  "Bucks": "green",
+  "Timberwolves": "blue",
+  "Pelicans": "blue",
+  "Knicks": "blue",
+  "Thunder": "blue",
+  "Magic": "blue",
+  "76ers": "blue",
+  "Suns": "orange",
+  "Trail Blazers": "red",
+  "Kings": "purple",
+  "Spurs": "black",
+  "Raptors": "red",
+  "Jazz": "blue",
+  "Wizards": "blue",
+};
+
 function generateJoinCode(teamName: string): string {
   const word = teamName.replace(/\s+/g, "").slice(0, 4).toUpperCase();
   const num = Math.floor(10 + Math.random() * 90);
@@ -24,9 +58,11 @@ export async function POST(req: NextRequest) {
     title?: string;
     password?: string;
     teamCount?: number;
+    track?: string;
   };
   const title = body.title?.trim() || "BSC Pre-Course Game";
   const password = body.password?.trim();
+  const track = body.track === "101" ? "101" : "201";
   const teamCount =
     typeof body.teamCount === "number" && Number.isFinite(body.teamCount)
       ? Math.max(1, Math.min(Math.floor(body.teamCount), 8))
@@ -55,10 +91,12 @@ export async function POST(req: NextRequest) {
     data: {
       title,
       teacherKeyHash: auth?.teacher.id ?? "legacy-password",
+      track,
       teams: {
         create: selectedNames.map((name) => ({
           name,
           joinCode: generateJoinCode(name),
+          color: NBA_TEAM_COLORS[name] ?? "blue",
           currentNodeId: "cap-crunch",
           branchStateJson: JSON.stringify({
             capFlex: 0,
@@ -77,6 +115,12 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     sessionId: session.id,
     title: session.title,
-    teams: session.teams.map((t) => ({ id: t.id, name: t.name, joinCode: t.joinCode })),
+    track: session.track,
+    teams: session.teams.map((t) => ({
+      id: t.id,
+      name: t.name,
+      joinCode: t.joinCode,
+      color: t.color,
+    })),
   });
 }

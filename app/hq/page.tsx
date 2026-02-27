@@ -4,15 +4,18 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ROOM_LAYOUT, RoomMeta } from "@/lib/missionGraph";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
+import { CONCEPT_CARDS } from "@/lib/concepts";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface TeamInfo {
   id: string;
   name: string;
   score: number;
+  color?: string;
   completedMissions: string[];
   teamStatus: string[];
   completedAt: string | null;
+  badges?: string[];
 }
 interface MeInfo { id: string; nickname: string; role: string | null }
 interface MissionRoundState { missionId?: string; isResolved?: boolean }
@@ -245,6 +248,11 @@ export default function HQPage() {
   const [error, setError] = useState("");
   const [navigating, setNavigating] = useState<string | null>(null);
   const [avatarRoom, setAvatarRoom] = useState<string | null>(null);
+  const [badgeToast, setBadgeToast] = useState<string | null>(null);
+  const [rivalEvents, setRivalEvents] = useState<Array<{ message: string; teamColor: string }>>([]);
+  const [rivalPopup, setRivalPopup] = useState<{ message: string; teamColor: string } | null>(null);
+  const prevBadgesRef = useRef<string[]>([]);
+  const prevRivalCountRef = useRef(0);
 
   const fetchState = useCallback(async () => {
     try {
@@ -260,6 +268,16 @@ export default function HQPage() {
       if (rsm?.missionId && !rsm.isResolved) {
         setAvatarRoom(rsm.missionId);
       }
+      // Check for newly earned badges
+      const newBadges = data.team.badges ?? [];
+      const prev = prevBadgesRef.current;
+      const newlyEarned = newBadges.filter((b: string) => !prev.includes(b));
+      if (newlyEarned.length > 0 && prev.length > 0) {
+        const conceptTitle = CONCEPT_CARDS.find((c) => c.id === newlyEarned[0])?.title ?? newlyEarned[0];
+        setBadgeToast(conceptTitle);
+        setTimeout(() => setBadgeToast(null), 3500);
+      }
+      prevBadgesRef.current = newBadges;
     } catch {
       setError("Connection error — retrying…");
     }
@@ -270,6 +288,26 @@ export default function HQPage() {
     const id = setInterval(fetchState, 8000);
     return () => clearInterval(id);
   }, [fetchState]);
+
+  useEffect(() => {
+    async function fetchRivals() {
+      try {
+        const res = await fetch("/api/session/rivals", { credentials: "include" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { rivals: Array<{ message: string; teamColor: string }> };
+        if (data.rivals.length > prevRivalCountRef.current && prevRivalCountRef.current > 0) {
+          const newest = data.rivals[0];
+          setRivalPopup(newest);
+          setTimeout(() => setRivalPopup(null), 3500);
+        }
+        prevRivalCountRef.current = data.rivals.length;
+        setRivalEvents(data.rivals);
+      } catch { /* silent */ }
+    }
+    void fetchRivals();
+    const id = setInterval(() => void fetchRivals(), 15000);
+    return () => clearInterval(id);
+  }, []);
 
   function handleRoomClick(missionId: string, status: RoomStatus) {
     if (status === "locked" || navigating) return;
@@ -300,6 +338,13 @@ export default function HQPage() {
   }
 
   const { team, me, unlockedMissions, completedMissions, teamStatus } = state;
+  const badges = team.badges ?? [];
+
+  const TEAM_COLOR_MAP: Record<string, string> = {
+    blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
+    green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
+  };
+  const teamColor = TEAM_COLOR_MAP[team.color ?? "gold"] ?? "#c9a84c";
   const totalRooms = ROOM_LAYOUT.length;
   const completedCount = completedMissions.length;
   const progressPct = (completedCount / totalRooms) * 100;
@@ -317,8 +362,8 @@ export default function HQPage() {
           <p className="text-[#6b7280] font-mono text-[10px] tracking-widest uppercase mb-0.5">
             General Manager
           </p>
-          <h1 className="text-[#c9a84c] font-mono text-2xl font-bold tracking-wider"
-            style={{ textShadow: "0 0 20px rgba(201,168,76,0.3)" }}
+          <h1 className="font-mono text-2xl font-bold tracking-wider"
+            style={{ color: teamColor, textShadow: `0 0 20px ${teamColor}40` }}
           >
             {team.name}
           </h1>
@@ -340,7 +385,7 @@ export default function HQPage() {
                 <circle cx="28" cy="28" r="22" fill="none" stroke="#1a2030" strokeWidth="4" />
                 <motion.circle
                   cx="28" cy="28" r="22" fill="none"
-                  stroke="#c9a84c" strokeWidth="4"
+                  stroke={teamColor} strokeWidth="4"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 22}`}
                   initial={{ strokeDashoffset: 2 * Math.PI * 22 }}
@@ -349,7 +394,7 @@ export default function HQPage() {
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[#c9a84c] font-mono text-sm font-bold">
+                <span className="font-mono text-sm font-bold" style={{ color: teamColor }}>
                   <ScoreCounter value={team.score} />
                 </span>
               </div>
@@ -410,6 +455,61 @@ export default function HQPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Badge Toast ─────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {badgeToast && (
+          <motion.div
+            key="badge-toast"
+            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 22 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bsc-card px-5 py-3 border-[#c9a84c]/50 bg-[#c9a84c]/10 flex items-center gap-3 pointer-events-none"
+          >
+            <span className="text-2xl">🏆</span>
+            <div>
+              <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c]">Badge Unlocked</p>
+              <p className="font-mono text-sm text-[#e5e7eb] font-bold">{badgeToast}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Badge Panel ──────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bsc-card p-4 mb-5"
+      >
+        <p className="text-[9px] font-mono text-[#6b7280] tracking-widest uppercase mb-3">
+          Concept Badges — {badges.length}/{CONCEPT_CARDS.length} Earned
+        </p>
+        <div className="grid grid-cols-4 gap-2">
+          {CONCEPT_CARDS.map((card) => {
+            const earned = badges.includes(card.id);
+            return (
+              <div
+                key={card.id}
+                className={`text-center py-2 px-1 rounded border transition-colors ${
+                  earned
+                    ? "border-[#c9a84c]/40 bg-[#c9a84c]/8"
+                    : "border-[#1a2030] opacity-40"
+                }`}
+                title={card.title}
+              >
+                <div className={`font-mono text-lg mb-0.5 ${earned ? "text-[#c9a84c]" : "text-[#374151]"}`}>
+                  {earned ? "★" : "○"}
+                </div>
+                <p className={`font-mono text-[9px] leading-tight ${earned ? "text-[#c9a84c]" : "text-[#4b5563]"}`}>
+                  {card.title.split(" ").slice(0, 2).join(" ")}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
 
       {/* ── SVG Arena Floor Blueprint ────────────────────────────────────── */}
       <motion.div
@@ -524,6 +624,43 @@ export default function HQPage() {
       <p className="text-center text-[#2a3245] font-mono text-[9px] tracking-widest uppercase mt-4">
         Auto-refreshes every 8s · Rooms unlock as prerequisites clear
       </p>
+
+      {/* ── Rival popup ──────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {rivalPopup && (
+          <motion.div
+            key="rival-popup-hq"
+            initial={{ opacity: 0, x: 80, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 80, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 280, damping: 24 }}
+            className="fixed bottom-16 right-4 z-50 max-w-[260px] pointer-events-none"
+          >
+            <div className="bsc-card p-3 border-[#c9a84c]/40" style={{ background: "rgba(10,12,18,0.95)" }}>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ background: rivalPopup.teamColor === "gold" ? "#c9a84c" : rivalPopup.teamColor }}
+                />
+                <p className="text-[9px] font-mono tracking-widest uppercase text-[#6b7280]">League Wire</p>
+              </div>
+              <p className="font-mono text-xs text-[#e5e7eb] leading-snug">{rivalPopup.message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Rival ticker strip ───────────────────────────────────────────── */}
+      {rivalEvents.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 ticker-bar" style={{ background: "#0d1117", borderTop: "1px solid #1a2030" }}>
+          <span className="ticker-text text-[#c9a84c]">
+            {"LEAGUE WIRE  ·  "}
+            {rivalEvents.map((e) => e.message).join("   ·   ")}
+            {"   ·   LEAGUE WIRE  ·  "}
+            {rivalEvents.map((e) => e.message).join("   ·   ")}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

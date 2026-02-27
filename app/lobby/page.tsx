@@ -2,11 +2,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { getAvatar } from "@/lib/nbaAvatars";
 
 interface Member {
   id: string;
   nickname: string;
   active: boolean;
+  avatarId?: string;
 }
 
 interface TeamState {
@@ -32,6 +34,8 @@ export default function LobbyPage() {
   const [state, setState] = useState<TeamState | null>(null);
   const [error, setError] = useState("");
   const [prevCount, setPrevCount] = useState(0);
+  const [counting, setCounting] = useState(false);
+  const [countNum, setCountNum] = useState(3);
 
   const fetchState = useCallback(async () => {
     try {
@@ -81,6 +85,23 @@ export default function LobbyPage() {
   }
 
   const canStart = state.activeCount >= 1;
+
+  function handleEnterHQ() {
+    setCounting(true);
+    setCountNum(3);
+    let n = 3;
+    const tick = () => {
+      n -= 1;
+      if (n > 0) {
+        setCountNum(n);
+        setTimeout(tick, 700);
+      } else {
+        setCountNum(0); // "GO!"
+        setTimeout(() => router.push("/hq"), 600);
+      }
+    };
+    setTimeout(tick, 700);
+  }
 
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
@@ -133,7 +154,9 @@ export default function LobbyPage() {
 
         <motion.div className="space-y-0">
           <AnimatePresence initial={false}>
-            {state.members.map((m, i) => (
+            {state.members.map((m, i) => {
+              const av = getAvatar(m.avatarId ?? "hawks");
+              return (
               <motion.div
                 key={m.id}
                 initial={{ opacity: 0, x: -16, height: 0 }}
@@ -143,6 +166,13 @@ export default function LobbyPage() {
                 className="flex items-center justify-between py-2.5 border-b border-[#1a2030] last:border-0"
               >
                 <div className="flex items-center gap-2">
+                  <span
+                    className="flex-shrink-0 w-7 h-7 rounded-full font-mono font-bold text-[9px] flex items-center justify-center"
+                    style={{ backgroundColor: av.color, color: av.textColor }}
+                    title={av.name}
+                  >
+                    {av.abbr}
+                  </span>
                   <span className="font-mono text-sm text-[#e5e7eb]">
                     {m.nickname}
                   </span>
@@ -156,7 +186,8 @@ export default function LobbyPage() {
                   className={`w-2 h-2 rounded-full ${m.active ? "bg-[#22c55e]" : "bg-[#1a2030]"}`}
                 />
               </motion.div>
-            ))}
+              );
+            })}
           </AnimatePresence>
         </motion.div>
 
@@ -187,7 +218,8 @@ export default function LobbyPage() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             className="bsc-btn-gold w-full py-3"
-            onClick={() => router.push("/hq")}
+            onClick={handleEnterHQ}
+            disabled={counting}
           >
             Enter Front Office HQ →
           </motion.button>
@@ -200,6 +232,45 @@ export default function LobbyPage() {
           {state.activeCount} active now · Auto-refreshes every 5s
         </p>
       </motion.div>
+
+      {/* Countdown overlay */}
+      <AnimatePresence>
+        {counting && (
+          <motion.div
+            key="countdown"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#020408]/90"
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={countNum}
+                initial={{ scale: 0.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 1.8, opacity: 0 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+                className="text-center select-none"
+              >
+                {countNum > 0 ? (
+                  <span className="font-mono font-bold text-[#c9a84c]" style={{ fontSize: "8rem" }}>
+                    {countNum}
+                  </span>
+                ) : (
+                  <div>
+                    <span className="font-mono font-bold text-[#22c55e]" style={{ fontSize: "6rem" }}>
+                      GO!
+                    </span>
+                    <p className="font-mono text-[#6b7280] text-sm mt-2 tracking-widest uppercase">
+                      Entering Front Office HQ…
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
