@@ -695,7 +695,7 @@ function PlayInner() {
               </div>
               <div className="flex items-center gap-3">
                 {myRole && <RoleTag title={myRole.title} />}
-                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} student{activeCount !== 1 ? "s" : ""} voted</span>
                 {/* Countdown ring */}
                 <div className="relative w-8 h-8 flex-shrink-0">
                   <svg viewBox="0 0 32 32" className="w-8 h-8 -rotate-90">
@@ -893,7 +893,7 @@ function PlayInner() {
             <div className="flex items-center justify-between mb-5">
               <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
               <div className="flex items-center gap-3">
-                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} voted</span>
+                <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} student{activeCount !== 1 ? "s" : ""} voted</span>
                 {/* Rival countdown ring */}
                 <div className="relative w-8 h-8 flex-shrink-0">
                   <svg viewBox="0 0 32 32" className="w-8 h-8 -rotate-90">
