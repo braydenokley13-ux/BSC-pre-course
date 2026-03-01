@@ -106,10 +106,10 @@ function StatusPill({ id, positive }: { id: string; positive: boolean }) {
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className={`inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border ${
+      className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-md border ${
         positive
-          ? "bg-[#c9a84c]/12 text-[#c9a84c] border-[#c9a84c]/28"
-          : "bg-[#ef4444]/10 text-[#ef4444]/80 border-[#ef4444]/22"
+          ? "bg-[#fffbeb] text-[#d97706] border-[#fde68a]"
+          : "bg-[#fef2f2] text-[#dc2626] border-[#fecaca]"
       }`}
       title={effect.description}
     >
@@ -166,17 +166,17 @@ function SVGRoom({
   const cy = r.y + r.h / 2;
 
   const strokeColor = {
-    completed: "#22c55e",
-    unlocked:  "#c9a84c",
-    active:    "#c9a84c",
-    locked:    "#1a2030",
+    completed: "#16a34a",
+    unlocked:  "#2563eb",
+    active:    "#2563eb",
+    locked:    "#e2e8f0",
   }[status];
 
   const fillColor = {
-    completed: "rgba(34,197,94,0.06)",
-    unlocked:  "rgba(201,168,76,0.05)",
-    active:    "rgba(201,168,76,0.08)",
-    locked:    "rgba(10,12,18,0.6)",
+    completed: "rgba(22,163,74,0.06)",
+    unlocked:  "rgba(37,99,235,0.05)",
+    active:    "rgba(37,99,235,0.08)",
+    locked:    "rgba(241,245,249,0.8)",
   }[status];
 
   const glowId = `glow-${missionId.replace(/-/g, "")}`;
@@ -213,19 +213,19 @@ function SVGRoom({
 
       {/* Status corner indicator */}
       {status === "completed" && (
-        <text x={r.x + r.w - 14} y={r.y + 16} fill="#22c55e" fontSize="11" fontFamily="monospace" textAnchor="middle">✓</text>
+        <text x={r.x + r.w - 14} y={r.y + 16} fill="#16a34a" fontSize="11" fontFamily="sans-serif" textAnchor="middle">✓</text>
       )}
       {status === "locked" && (
-        <text x={r.x + r.w - 14} y={r.y + 16} fill="#1a2030" fontSize="10" fontFamily="monospace" textAnchor="middle">⬡</text>
+        <text x={r.x + r.w - 14} y={r.y + 16} fill="#cbd5e1" fontSize="10" fontFamily="sans-serif" textAnchor="middle">⬡</text>
       )}
       {status === "unlocked" && (
-        <text x={r.x + r.w - 12} y={r.y + 16} fill="#c9a84c" fontSize="9" fontFamily="monospace" textAnchor="middle">▶</text>
+        <text x={r.x + r.w - 12} y={r.y + 16} fill="#2563eb" fontSize="9" fontFamily="sans-serif" textAnchor="middle">▶</text>
       )}
 
       {/* Department label */}
       <text x={cx} y={r.y + 20} textAnchor="middle"
-        fill={status === "locked" ? "#2a3245" : "#6b7280"}
-        fontSize="8" fontFamily="monospace" letterSpacing="1.5"
+        fill={status === "locked" ? "#cbd5e1" : "#64748b"}
+        fontSize="8" fontFamily="sans-serif" letterSpacing="1.5"
         style={{ textTransform: "uppercase" }}
       >
         {r.sub}
@@ -233,28 +233,28 @@ function SVGRoom({
 
       {/* Room name */}
       <text x={cx} y={cy + 6} textAnchor="middle"
-        fill={status === "locked" ? "#2a3245" : status === "completed" ? "#22c55e" : "#e5e7eb"}
-        fontSize="13" fontWeight="700" fontFamily="monospace" letterSpacing="0.5"
+        fill={status === "locked" ? "#94a3b8" : status === "completed" ? "#16a34a" : "#0f172a"}
+        fontSize="13" fontWeight="700" fontFamily="sans-serif" letterSpacing="0.5"
       >
         {r.label}
       </text>
 
       {/* Tagline or status */}
       <text x={cx} y={r.y + r.h - 12} textAnchor="middle"
-        fill={status === "locked" ? "#1a2030" : status === "completed" ? "rgba(34,197,94,0.6)" : "#6b7280"}
-        fontSize="8" fontFamily="monospace"
+        fill={status === "locked" ? "#e2e8f0" : status === "completed" ? "rgba(22,163,74,0.7)" : "#64748b"}
+        fontSize="8" fontFamily="sans-serif"
       >
-        {status === "completed" ? "CLEARED" : status === "locked" ? "— CLASSIFIED —" : status === "unlocked" ? "ENTER →" : "IN PROGRESS"}
+        {status === "completed" ? "CLEARED" : status === "locked" ? "— LOCKED —" : status === "unlocked" ? "ENTER →" : "IN PROGRESS"}
       </text>
 
       {/* Avatar dot */}
       {isAvatar && (
         <g>
           <circle cx={r.x + 20} cy={r.y + r.h - 20} r="10"
-            fill="#c9a84c" stroke="rgba(201,168,76,0.4)" strokeWidth="4"
+            fill="#2563eb" stroke="rgba(37,99,235,0.3)" strokeWidth="4"
           />
           <text x={r.x + 20} y={r.y + r.h - 16} textAnchor="middle"
-            fill="#000" fontSize="7" fontWeight="900" fontFamily="monospace"
+            fill="#fff" fontSize="7" fontWeight="900" fontFamily="sans-serif"
           >GM</text>
         </g>
       )}
@@ -349,7 +349,7 @@ export default function HQPage() {
   if (error && !state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#ef4444] font-mono text-sm">{error}</p>
+        <p className="text-[#dc2626] text-sm">{error}</p>
       </div>
     );
   }
@@ -357,8 +357,8 @@ export default function HQPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[#c9a84c]/30 border-t-[#c9a84c] rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-[#6b7280] font-mono text-xs tracking-widest uppercase">Loading HQ…</p>
+          <div className="w-8 h-8 border-2 border-[#2563eb]/20 border-t-[#2563eb] rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[#64748b] text-xs tracking-widest uppercase">Loading HQ…</p>
         </div>
       </div>
     );
@@ -367,7 +367,7 @@ export default function HQPage() {
   const { team, me, unlockedMissions, completedMissions, teamStatus } = state;
   const badges = team.badges ?? [];
 
-  const teamColor = TEAM_COLOR_MAP[team.color ?? "gold"] ?? "#c9a84c";
+  const teamColor = TEAM_COLOR_MAP[team.color ?? "blue"] ?? "#2563eb";
   const totalRooms = ROOM_LAYOUT.length;
   const completedCount = completedMissions.length;
   const progressPct = (completedCount / totalRooms) * 100;
@@ -382,19 +382,19 @@ export default function HQPage() {
         className="flex items-start justify-between mb-5 gap-4 flex-wrap"
       >
         <div>
-          <p className="text-[#6b7280] font-mono text-[10px] tracking-widest uppercase mb-0.5">
+          <p className="text-[#64748b] text-[10px] tracking-widest uppercase mb-0.5 font-medium">
             General Manager
           </p>
-          <h1 className="font-mono text-2xl font-bold tracking-wider"
-            style={{ color: teamColor, textShadow: `0 0 20px ${teamColor}40` }}
+          <h1 className="text-2xl font-bold tracking-tight"
+            style={{ color: teamColor }}
           >
             {team.name}
           </h1>
-          <p className="text-[#6b7280] font-mono text-xs mt-1">
+          <p className="text-[#64748b] text-xs mt-1">
             Welcome back,{" "}
-            <span className="text-[#e5e7eb]">{me.nickname}</span>
+            <span className="text-[#0f172a] font-medium">{me.nickname}</span>
             {me.role && (
-              <span className="ml-2 text-[#c9a84c]">— {me.role.toUpperCase()}</span>
+              <span className="ml-2 text-[#2563eb]">— {me.role.toUpperCase()}</span>
             )}
           </p>
         </div>
@@ -402,10 +402,10 @@ export default function HQPage() {
         <div className="flex items-center gap-6">
           {/* Score ring */}
           <div className="text-center">
-            <p className="text-[#6b7280] font-mono text-[9px] uppercase tracking-widest mb-1">Score</p>
+            <p className="text-[#64748b] text-[9px] uppercase tracking-widest mb-1 font-medium">Score</p>
             <div className="relative w-14 h-14">
               <svg viewBox="0 0 56 56" className="w-14 h-14 -rotate-90">
-                <circle cx="28" cy="28" r="22" fill="none" stroke="#1a2030" strokeWidth="4" />
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#e2e8f0" strokeWidth="4" />
                 <motion.circle
                   cx="28" cy="28" r="22" fill="none"
                   stroke={teamColor} strokeWidth="4"
@@ -425,11 +425,11 @@ export default function HQPage() {
           </div>
 
           <div className="text-right">
-            <p className="text-[#6b7280] font-mono text-[9px] uppercase tracking-widest mb-1">Progress</p>
-            <p className="text-[#e5e7eb] font-mono text-xl font-bold">
-              {completedCount}<span className="text-[#6b7280] text-sm">/{totalRooms}</span>
+            <p className="text-[#64748b] text-[9px] uppercase tracking-widest mb-1 font-medium">Progress</p>
+            <p className="text-[#0f172a] text-xl font-bold">
+              {completedCount}<span className="text-[#64748b] text-sm">/{totalRooms}</span>
             </p>
-            <p className="text-[#6b7280] font-mono text-[9px] uppercase tracking-widest">Missions</p>
+            <p className="text-[#64748b] text-[9px] uppercase tracking-widest font-medium">Missions</p>
           </div>
         </div>
       </motion.div>
@@ -441,16 +441,15 @@ export default function HQPage() {
         transition={{ delay: 0.15, duration: 0.4 }}
         className="mb-5"
       >
-        <div className="flex justify-between text-[9px] font-mono text-[#6b7280] tracking-widest uppercase mb-1.5">
+        <div className="flex justify-between text-[9px] text-[#64748b] tracking-widest uppercase mb-1.5 font-medium">
           <span>Floor Progress</span>
           <span>{completedCount} of {totalRooms} departments cleared</span>
         </div>
-        <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
+        <div className="h-1.5 bg-[#e2e8f0] rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full"
             style={{
-              background: "linear-gradient(90deg, #8a6d2e 0%, #c9a84c 50%, #e8c56a 100%)",
-              boxShadow: "0 0 8px rgba(201,168,76,0.5)",
+              background: "linear-gradient(90deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%)",
             }}
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
@@ -488,12 +487,12 @@ export default function HQPage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bsc-card px-5 py-3 border-[#c9a84c]/50 bg-[#c9a84c]/10 flex items-center gap-3 pointer-events-none"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bsc-card px-5 py-3 border-[#bfdbfe] bg-[#eff6ff] flex items-center gap-3 pointer-events-none"
           >
             <span className="text-2xl">🏆</span>
             <div>
-              <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c]">Badge Unlocked</p>
-              <p className="font-mono text-sm text-[#e5e7eb] font-bold">{badgeToast}</p>
+              <p className="text-[10px] tracking-widest uppercase text-[#2563eb] font-semibold">Badge Unlocked</p>
+              <p className="text-sm text-[#0f172a] font-bold">{badgeToast}</p>
             </div>
           </motion.div>
         )}
@@ -506,7 +505,7 @@ export default function HQPage() {
         transition={{ delay: 0.3 }}
         className="bsc-card p-4 mb-5"
       >
-        <p className="text-[9px] font-mono text-[#6b7280] tracking-widest uppercase mb-3">
+        <p className="text-[9px] text-[#64748b] tracking-widest uppercase mb-3 font-medium">
           Concept Badges — {badges.length}/{CONCEPT_CARDS.length} Earned
         </p>
         <div className="grid grid-cols-4 gap-2">
@@ -517,15 +516,15 @@ export default function HQPage() {
                 key={card.id}
                 className={`text-center py-2 px-1 rounded border transition-colors ${
                   earned
-                    ? "border-[#c9a84c]/40 bg-[#c9a84c]/8"
-                    : "border-[#1a2030] opacity-40"
+                    ? "border-[#bfdbfe] bg-[#eff6ff]"
+                    : "border-[#e2e8f0] opacity-50"
                 }`}
                 title={card.title}
               >
-                <div className={`font-mono text-lg mb-0.5 ${earned ? "text-[#c9a84c]" : "text-[#374151]"}`}>
+                <div className={`text-lg mb-0.5 ${earned ? "text-[#2563eb]" : "text-[#94a3b8]"}`}>
                   {earned ? "★" : "○"}
                 </div>
-                <p className={`font-mono text-[9px] leading-tight ${earned ? "text-[#c9a84c]" : "text-[#4b5563]"}`}>
+                <p className={`text-[9px] leading-tight ${earned ? "text-[#2563eb] font-medium" : "text-[#94a3b8]"}`}>
                   {card.title.split(" ").slice(0, 2).join(" ")}
                 </p>
               </div>
@@ -541,18 +540,18 @@ export default function HQPage() {
         transition={{ delay: 0.25, duration: 0.5 }}
         className="glass-card p-4 mb-4 overflow-hidden relative"
       >
-        {/* Blueprint grid background */}
-        <div className="absolute inset-0 opacity-[0.03]"
+        {/* Subtle grid background */}
+        <div className="absolute inset-0 opacity-[0.4]"
           style={{
-            backgroundImage: "linear-gradient(#c9a84c 1px, transparent 1px), linear-gradient(90deg, #c9a84c 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px)",
             backgroundSize: "40px 40px",
           }}
         />
 
-        <p className="text-[9px] font-mono text-[#6b7280] tracking-widest uppercase mb-3 relative z-10">
-          ◈ Arena HQ — Front Office Floor Map
+        <p className="text-[9px] text-[#64748b] tracking-widest uppercase mb-3 relative z-10 font-medium">
+          Front Office Floor Map
           {unlockedMissions.length > 0 && (
-            <span className="ml-3 text-[#c9a84c]">
+            <span className="ml-3 text-[#2563eb] font-semibold">
               {unlockedMissions.length} room{unlockedMissions.length > 1 ? "s" : ""} unlocked
             </span>
           )}
@@ -569,7 +568,7 @@ export default function HQPage() {
               key={i}
               d={d}
               fill="none"
-              stroke="#1a2030"
+              stroke="#cbd5e1"
               strokeWidth="1.5"
               strokeDasharray="6 4"
               className="svg-corridor"
@@ -593,7 +592,7 @@ export default function HQPage() {
 
           {/* Floor label */}
           <text x="450" y="516" textAnchor="middle"
-            fill="#2a3245" fontSize="8" fontFamily="monospace" letterSpacing="2"
+            fill="#94a3b8" fontSize="8" fontFamily="sans-serif" letterSpacing="2"
           >
             FRONT OFFICE — LEVEL 1
           </text>
@@ -606,11 +605,11 @@ export default function HQPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-[#020408]/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-xl"
+              className="absolute inset-0 bg-white/80 flex items-center justify-center z-20 backdrop-blur-sm rounded-xl"
             >
               <div className="text-center">
-                <div className="w-8 h-8 border-2 border-[#c9a84c]/30 border-t-[#c9a84c] rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-[#c9a84c] font-mono text-xs tracking-widest uppercase">
+                <div className="w-8 h-8 border-2 border-[#2563eb]/20 border-t-[#2563eb] rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-[#2563eb] text-xs tracking-widest uppercase font-medium">
                   Entering {ROOM_SVG[navigating]?.label ?? "room"}…
                 </p>
               </div>
@@ -624,27 +623,27 @@ export default function HQPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="flex items-center justify-center gap-6 text-[9px] font-mono text-[#6b7280] tracking-wider"
+        className="flex items-center justify-center gap-6 text-[9px] text-[#64748b] tracking-wider font-medium"
       >
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-[#22c55e] bg-[rgba(34,197,94,0.06)] inline-block" />
+          <span className="w-3 h-3 rounded border border-[#16a34a] bg-[rgba(22,163,74,0.06)] inline-block" />
           Cleared
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-[#c9a84c] bg-[rgba(201,168,76,0.05)] inline-block" />
+          <span className="w-3 h-3 rounded border border-[#2563eb] bg-[rgba(37,99,235,0.05)] inline-block" />
           Unlocked
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-[#1a2030] bg-[rgba(10,12,18,0.6)] opacity-40 inline-block" />
+          <span className="w-3 h-3 rounded border border-[#e2e8f0] bg-[rgba(241,245,249,0.8)] opacity-60 inline-block" />
           Locked
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-[#c9a84c] inline-block" />
+          <span className="w-3 h-3 rounded-full bg-[#2563eb] inline-block" />
           You (GM)
         </span>
       </motion.div>
 
-      <p className="text-center text-[#2a3245] font-mono text-[9px] tracking-widest uppercase mt-4">
+      <p className="text-center text-[#94a3b8] text-[9px] tracking-widest uppercase mt-4 font-medium">
         Auto-refreshes every 8s · Rooms unlock as prerequisites clear
       </p>
 
@@ -659,23 +658,23 @@ export default function HQPage() {
             transition={{ type: "spring", stiffness: 280, damping: 24 }}
             className="fixed bottom-16 right-4 z-50 max-w-[260px] pointer-events-none"
           >
-            <div className="bsc-card p-3 border-[#c9a84c]/40" style={{ background: "rgba(10,12,18,0.95)" }}>
+            <div className="bsc-card p-3">
               <div className="flex items-center gap-2 mb-1.5">
                 <div
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{ background: TEAM_COLOR_MAP[rivalPopup.teamColor] ?? rivalPopup.teamColor }}
                 />
-                <p className="text-[9px] font-mono tracking-widest uppercase text-[#6b7280]">League Wire</p>
+                <p className="text-[9px] tracking-widest uppercase text-[#64748b] font-medium">League Wire</p>
               </div>
-              <p className="font-mono text-xs text-[#e5e7eb] leading-snug">{rivalPopup.message}</p>
+              <p className="text-xs text-[#0f172a] leading-snug">{rivalPopup.message}</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* ── Rival ticker strip ───────────────────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 ticker-bar" style={{ background: "#0d1117", borderTop: "1px solid #1a2030" }}>
-        <span className="ticker-text text-[#c9a84c]">
+      <div className="fixed bottom-0 left-0 right-0 z-40 ticker-bar">
+        <span className="ticker-text">
           {rivalEvents.length > 0 ? (
             <>
               {"LEAGUE WIRE  ·  "}

@@ -75,7 +75,7 @@ function Podium({ entries, myTeamId }: { entries: LeaderboardEntry[]; myTeamId: 
     <div className="flex items-end justify-center gap-3 mb-8">
       {slots.map((entry, slotIdx) => {
         const isCenter = slotIdx === 1;
-        const teamColor = TEAM_COLOR_MAP[entry.color] ?? "#c9a84c";
+        const teamColor = TEAM_COLOR_MAP[entry.color] ?? "#2563eb";
         const isMine = entry.teamId === myTeamId;
         const rankIdx = entry.rank - 1;
 
@@ -89,11 +89,11 @@ function Podium({ entries, myTeamId }: { entries: LeaderboardEntry[]; myTeamId: 
           >
             {/* Team name above podium */}
             <p
-              className={`font-mono text-xs font-bold mb-1 text-center max-w-[90px] truncate ${isMine ? "text-[#c9a84c]" : "text-[#e5e7eb]"}`}
+              className={`font-mono text-xs font-bold mb-1 text-center max-w-[90px] truncate ${isMine ? "text-[#2563eb]" : "text-[#0f172a]"}`}
             >
               {entry.teamName}
             </p>
-            <p className="font-mono text-[10px] text-[#6b7280] mb-1">
+            <p className="font-mono text-[10px] text-[#64748b] mb-1">
               <ScoreCounter target={entry.score} /> pts
             </p>
             <span className="text-2xl mb-1">{medals[rankIdx] ?? `#${entry.rank}`}</span>
@@ -103,7 +103,7 @@ function Podium({ entries, myTeamId }: { entries: LeaderboardEntry[]; myTeamId: 
               className={`${heights[slotIdx]} ${isCenter ? "w-24" : "w-20"} rounded-t-lg flex items-center justify-center relative`}
               style={{
                 background: `linear-gradient(180deg, ${teamColor}22 0%, ${teamColor}11 100%)`,
-                border: `2px solid ${isMine ? "#c9a84c" : teamColor}`,
+                border: `2px solid ${isMine ? "#2563eb" : teamColor}`,
                 boxShadow: isMine ? `0 0 16px ${teamColor}40` : undefined,
               }}
             >
@@ -197,7 +197,7 @@ export default function CompletePage() {
     if (confettiFiredRef.current || leaderboard.length < 2 || !confettiContainerRef.current) return;
     confettiFiredRef.current = true;
     const container = confettiContainerRef.current;
-    const colors = ["#c9a84c", "#22c55e", "#e5e7eb", "#3b82f6", "#ef4444"];
+    const colors = ["#2563eb", "#16a34a", "#f59e0b", "#3b82f6", "#ef4444"];
     for (let i = 0; i < 55; i++) {
       const piece = document.createElement("div");
       piece.className = "confetti-piece";
@@ -227,7 +227,7 @@ export default function CompletePage() {
         <motion.div
           animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="text-[#c9a84c] font-mono text-2xl"
+          className="text-[#2563eb] font-mono text-2xl"
         >
           ◈
         </motion.div>
@@ -260,7 +260,7 @@ export default function CompletePage() {
           initial={{ opacity: 0, letterSpacing: "0.2em" }}
           animate={{ opacity: 1, letterSpacing: "0.4em" }}
           transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-          className="text-[#c9a84c] font-mono text-5xl font-bold mb-3"
+          className="text-[#2563eb] font-mono text-5xl font-bold mb-3"
         >
           GM TENURE
         </motion.div>
@@ -268,7 +268,7 @@ export default function CompletePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-[#22c55e] font-mono text-2xl font-bold mb-4"
+          className="text-[#16a34a] font-mono text-2xl font-bold mb-4"
         >
           COMPLETE
         </motion.div>
@@ -276,7 +276,7 @@ export default function CompletePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.65 }}
-          className="text-[#e5e7eb] font-mono text-base"
+          className="text-[#0f172a] font-mono text-base"
         >
           {state.me.nickname} · Team {state.team.name}
         </motion.p>
@@ -284,10 +284,10 @@ export default function CompletePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="text-[#6b7280] font-mono text-sm mt-1"
+          className="text-[#64748b] font-mono text-sm mt-1"
         >
           {missionCount} missions · {badges.length} concepts · {" "}
-          <span className="text-[#c9a84c] font-bold">
+          <span className="text-[#2563eb] font-bold">
             <ScoreCounter target={state.team.score} /> pts
           </span>
         </motion.p>
@@ -301,7 +301,7 @@ export default function CompletePage() {
           transition={{ delay: 0.9 }}
           className="bsc-card p-6 mb-5 text-center"
         >
-          <p className="font-mono text-xs text-[#6b7280] animate-pulse">Loading league standings...</p>
+          <p className="font-mono text-xs text-[#64748b] animate-pulse">Loading league standings...</p>
         </motion.div>
       )}
       {leaderboardLoaded && topThree.length >= 2 && (
@@ -311,22 +311,22 @@ export default function CompletePage() {
           transition={{ delay: 0.9 }}
           className="bsc-card p-6 mb-5"
         >
-          <p className="text-[9px] font-mono text-[#6b7280] tracking-widest uppercase text-center mb-5">
+          <p className="text-[9px] font-mono text-[#64748b] tracking-widest uppercase text-center mb-5">
             ◈ League Standings
           </p>
           <Podium entries={topThree} myTeamId={state.team.id} />
 
           {/* Full standings below podium if more than 3 teams */}
           {leaderboard.length > 3 && (
-            <div className="border-t border-[#1a2030] pt-4 space-y-2">
+            <div className="border-t border-[#e2e8f0] pt-4 space-y-2">
               {leaderboard.slice(3).map((entry) => (
                 <div
                   key={entry.teamId}
-                  className={`flex items-center justify-between py-1.5 px-3 rounded ${entry.isCurrentTeam ? "bg-[#c9a84c]/8 border border-[#c9a84c]/20" : ""}`}
+                  className={`flex items-center justify-between py-1.5 px-3 rounded ${entry.isCurrentTeam ? "bg-[#eff6ff] border border-[#2563eb]/20" : ""}`}
                 >
-                  <span className="font-mono text-xs text-[#6b7280]">#{entry.rank}</span>
-                  <span className={`font-mono text-xs ${entry.isCurrentTeam ? "text-[#c9a84c]" : "text-[#e5e7eb]"}`}>{entry.teamName}</span>
-                  <span className="font-mono text-xs text-[#6b7280]">{entry.score} pts</span>
+                  <span className="font-mono text-xs text-[#64748b]">#{entry.rank}</span>
+                  <span className={`font-mono text-xs ${entry.isCurrentTeam ? "text-[#2563eb]" : "text-[#0f172a]"}`}>{entry.teamName}</span>
+                  <span className="font-mono text-xs text-[#64748b]">{entry.score} pts</span>
                 </div>
               ))}
             </div>
@@ -342,7 +342,7 @@ export default function CompletePage() {
           transition={{ delay: 1.1 }}
           className="bsc-card p-6 mb-5 text-center"
         >
-          <p className="font-mono text-xs text-[#6b7280] animate-pulse">Loading your GM profile...</p>
+          <p className="font-mono text-xs text-[#64748b] animate-pulse">Loading your GM profile...</p>
         </motion.div>
       )}
       {myEntry && (
@@ -350,16 +350,16 @@ export default function CompletePage() {
           initial={{ opacity: 0, y: 16, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 1.1, type: "spring", stiffness: 200, damping: 22 }}
-          className="bsc-card p-6 mb-5 border-[#c9a84c]/30"
-          style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(201,168,76,0.06) 0%, transparent 70%)" }}
+          className="bsc-card p-6 mb-5 border-[#2563eb]/30"
+          style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(37,99,235,0.06) 0%, transparent 70%)" }}
         >
-          <p className="text-[9px] font-mono tracking-widest uppercase text-[#6b7280] mb-3">Your GM Identity</p>
+          <p className="text-[9px] font-mono tracking-widest uppercase text-[#64748b] mb-3">Your GM Identity</p>
           <div className="flex items-start gap-4">
             <span className="text-4xl">{myEntry.gmEmoji}</span>
             <div>
-              <p className="font-mono text-xl font-bold text-[#c9a84c] mb-1">{myEntry.gmTitle}</p>
-              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{myEntry.gmDesc}</p>
-              <p className="font-mono text-xs text-[#6b7280] mt-2">{myEntry.badgeCount}/{CONCEPT_CARDS.length} concept badges earned</p>
+              <p className="font-mono text-xl font-bold text-[#2563eb] mb-1">{myEntry.gmTitle}</p>
+              <p className="font-mono text-sm text-[#0f172a] leading-relaxed">{myEntry.gmDesc}</p>
+              <p className="font-mono text-xs text-[#64748b] mt-2">{myEntry.badgeCount}/{CONCEPT_CARDS.length} concept badges earned</p>
             </div>
           </div>
         </motion.div>
@@ -378,23 +378,23 @@ export default function CompletePage() {
             {decisions.map((d) => (
               <div
                 key={d.missionId}
-                className="flex items-center gap-2 py-2 border-b border-[#1a2030] last:border-0"
+                className="flex items-center gap-2 py-2 border-b border-[#e2e8f0] last:border-0"
               >
-                <span className="font-mono text-[10px] text-[#6b7280] w-24 flex-shrink-0 truncate">{d.missionTitle}</span>
-                <span className="flex-1 font-mono text-xs text-[#e5e7eb] truncate">{d.studentOptionLabel}</span>
+                <span className="font-mono text-[10px] text-[#64748b] w-24 flex-shrink-0 truncate">{d.missionTitle}</span>
+                <span className="flex-1 font-mono text-xs text-[#0f172a] truncate">{d.studentOptionLabel}</span>
                 <span
-                  className={`font-mono text-xs font-bold w-5 text-center flex-shrink-0 ${d.votedWithTeam ? "text-[#22c55e]" : "text-[#c9a84c]"}`}
+                  className={`font-mono text-xs font-bold w-5 text-center flex-shrink-0 ${d.votedWithTeam ? "text-[#16a34a]" : "text-[#2563eb]"}`}
                 >
                   {d.votedWithTeam ? "✓" : "✗"}
                 </span>
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-[#1a2030] flex items-center justify-between">
-            <p className="font-mono text-xs text-[#6b7280]">Voted with your team</p>
+          <div className="mt-3 pt-3 border-t border-[#e2e8f0] flex items-center justify-between">
+            <p className="font-mono text-xs text-[#64748b]">Voted with your team</p>
             <div className="text-right">
-              <p className="font-mono text-sm font-bold text-[#c9a84c]">{votedWithTeamCount}/{totalDecisions}</p>
-              <p className="font-mono text-[10px] text-[#6b7280]">{styleLabel}</p>
+              <p className="font-mono text-sm font-bold text-[#2563eb]">{votedWithTeamCount}/{totalDecisions}</p>
+              <p className="font-mono text-[10px] text-[#64748b]">{styleLabel}</p>
             </div>
           </div>
         </motion.div>
@@ -424,10 +424,10 @@ export default function CompletePage() {
                 }}
                 className={`p-3 rounded border font-mono text-xs ${
                   earned
-                    ? "border-[#c9a84c]/40 bg-[#c9a84c]/8 text-[#c9a84c]"
-                    : "border-[#1a2030] text-[#6b7280] opacity-35"
+                    ? "border-[#2563eb]/40 bg-[#eff6ff] text-[#2563eb]"
+                    : "border-[#e2e8f0] text-[#64748b] opacity-35"
                 }`}
-                style={earned ? { background: "rgba(201,168,76,0.05)" } : {}}
+                style={earned ? { background: "rgba(37,99,235,0.05)" } : {}}
               >
                 <span className="mr-1">{earned ? "★" : "○"}</span>
                 {card.title}
@@ -445,7 +445,7 @@ export default function CompletePage() {
         className="bsc-card p-6 text-center"
       >
         <p className="bsc-section-title">Claim Code</p>
-        <p className="text-[#6b7280] font-mono text-xs mb-4">
+        <p className="text-[#64748b] font-mono text-xs mb-4">
           Submit this code to your instructor to verify your participation.
         </p>
 
@@ -457,7 +457,7 @@ export default function CompletePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <p className="text-[#e5e7eb] font-mono text-sm mb-4">
+              <p className="text-[#0f172a] font-mono text-sm mb-4">
                 Generate your unique claim code below. Each student gets their own code.
               </p>
               <motion.button
@@ -480,9 +480,9 @@ export default function CompletePage() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bsc-card p-4 mb-4 border-[#c9a84c]/60"
+                className="bsc-card p-4 mb-4 border-[#2563eb]/60"
               >
-                <p className="text-[#c9a84c] font-mono text-2xl font-bold tracking-widest">
+                <p className="text-[#2563eb] font-mono text-2xl font-bold tracking-widest">
                   {claimCode}
                 </p>
               </motion.div>
@@ -498,11 +498,11 @@ export default function CompletePage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="border border-[#22c55e]/40 bg-[#22c55e]/8 rounded px-4 py-3"
-                style={{ background: "rgba(34,197,94,0.06)" }}
+                className="border border-[#16a34a]/40 bg-[#16a34a]/8 rounded px-4 py-3"
+                style={{ background: "rgba(22,163,74,0.06)" }}
               >
-                <p className="text-[#22c55e] font-mono text-sm font-bold">Code received ✓</p>
-                <p className="text-[#6b7280] font-mono text-xs mt-1">
+                <p className="text-[#16a34a] font-mono text-sm font-bold">Code received ✓</p>
+                <p className="text-[#64748b] font-mono text-xs mt-1">
                   Paste this code in your LMS, Zoom chat, or wherever your instructor requests it.
                 </p>
               </motion.div>
@@ -515,7 +515,7 @@ export default function CompletePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: myEntry ? 1.7 : 1.3 }}
-        className="text-center text-[#6b7280] font-mono text-xs mt-6 leading-relaxed"
+        className="text-center text-[#64748b] font-mono text-xs mt-6 leading-relaxed"
       >
         You&apos;ll go deeper on all 8 concepts in the course. The cap math, analytics models, and
         trade mechanics will click much faster now that you&apos;ve made the decisions yourself.

@@ -114,7 +114,7 @@ export default function TeacherHistoryPage() {
     return (
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="bsc-card p-6">
-          <p className="text-[#6b7280] font-mono text-sm">Loading session history...</p>
+          <p className="text-[#64748b] font-mono text-sm">Loading session history...</p>
         </div>
       </div>
     );
@@ -124,8 +124,8 @@ export default function TeacherHistoryPage() {
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-[#c9a84c] font-mono text-xl font-bold">Session History</h1>
-          <p className="text-[#6b7280] font-mono text-xs">
+          <h1 className="text-[#2563eb] font-mono text-xl font-bold">Session History</h1>
+          <p className="text-[#64748b] font-mono text-xs">
             Archived sessions are read-only. Export any session snapshot below.
           </p>
         </div>
@@ -150,11 +150,11 @@ export default function TeacherHistoryPage() {
                 onClick={() => setSelectedSessionId(session.id)}
                 className={`w-full text-left rounded border px-3 py-2 font-mono text-xs ${
                   selectedSessionId === session.id
-                    ? "border-[#c9a84c]/40 bg-[#c9a84c]/10 text-[#e5e7eb]"
-                    : "border-[#1a2030] text-[#9ca3af]"
+                    ? "border-[#2563eb]/40 bg-[#2563eb]/10 text-[#0f172a]"
+                    : "border-[#e2e8f0] text-[#64748b]"
                 }`}
               >
-                <p className="text-[#e5e7eb]">{session.title}</p>
+                <p className="text-[#0f172a]">{session.title}</p>
                 <p className="mt-1">{new Date(session.createdAt).toLocaleString()}</p>
                 <p className="mt-1">
                   {session.teamCount} teams · {session.studentCount} students · {session.status}
@@ -162,22 +162,22 @@ export default function TeacherHistoryPage() {
               </button>
             ))}
             {sessions.length === 0 && (
-              <p className="text-[#6b7280] font-mono text-xs">No sessions found.</p>
+              <p className="text-[#64748b] font-mono text-xs">No sessions found.</p>
             )}
           </div>
         </div>
 
         <div className="bsc-card p-4">
           {!feed?.session ? (
-            <p className="text-[#6b7280] font-mono text-sm">
+            <p className="text-[#64748b] font-mono text-sm">
               Select a session to view read-only details.
             </p>
           ) : (
             <>
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <div>
-                  <h2 className="text-[#e5e7eb] font-mono text-lg font-bold">{feed.session.title}</h2>
-                  <p className="text-[#6b7280] font-mono text-xs">
+                  <h2 className="text-[#0f172a] font-mono text-lg font-bold">{feed.session.title}</h2>
+                  <p className="text-[#64748b] font-mono text-xs">
                     Created {new Date(feed.session.createdAt).toLocaleString()} · {feed.completedTeams}/
                     {feed.totalTeams} teams complete
                   </p>
@@ -201,7 +201,7 @@ export default function TeacherHistoryPage() {
               <div className="overflow-auto">
                 <table className="w-full text-left font-mono text-xs">
                   <thead>
-                    <tr className="text-[#6b7280] border-b border-[#1a2030]">
+                    <tr className="text-[#64748b] border-b border-[#e2e8f0]">
                       <th className="py-2 pr-2">Team</th>
                       <th className="py-2 pr-2">Mission</th>
                       <th className="py-2 pr-2">Score</th>
@@ -211,8 +211,8 @@ export default function TeacherHistoryPage() {
                   </thead>
                   <tbody>
                     {feed.teams.map((team) => (
-                      <tr key={team.id} className="border-b border-[#1a2030]/50 text-[#9ca3af]">
-                        <td className="py-2 pr-2 text-[#e5e7eb]">{team.name}</td>
+                      <tr key={team.id} className="border-b border-[#e2e8f0]/50 text-[#64748b]">
+                        <td className="py-2 pr-2 text-[#0f172a]">{team.name}</td>
                         <td className="py-2 pr-2">{team.missionTitle}</td>
                         <td className="py-2 pr-2">{team.score}</td>
                         <td className="py-2 pr-2">
@@ -225,7 +225,7 @@ export default function TeacherHistoryPage() {
                     ))}
                     {feed.teams.length === 0 && (
                       <tr>
-                        <td className="py-2 text-[#6b7280]" colSpan={5}>
+                        <td className="py-2 text-[#64748b]" colSpan={5}>
                           No teams in this session.
                         </td>
                       </tr>

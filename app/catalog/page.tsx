@@ -72,8 +72,8 @@ function recommendationText(band: "heavy" | "medium" | "light"): string {
 
 function recommendationColor(band: "heavy" | "medium" | "light"): string {
   if (band === "heavy") return "text-[#ef4444]";
-  if (band === "medium") return "text-[#c9a84c]";
-  return "text-[#22c55e]";
+  if (band === "medium") return "text-[#2563eb]";
+  return "text-[#16a34a]";
 }
 
 function CatalogContent() {
@@ -208,9 +208,9 @@ function CatalogContent() {
       <div className="flex gap-5">
         <div className="w-56 flex-shrink-0 hidden lg:block">
           <div className="bsc-card p-0 sticky top-[80px] overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#1a2030]">
-              <p className="font-mono text-[10px] tracking-widest uppercase text-[#c9a84c]">GM Case Files</p>
-              <p className="font-mono text-[9px] text-[#6b7280] mt-0.5">Adaptive Assessment</p>
+            <div className="px-4 py-3 border-b border-[#e2e8f0]">
+              <p className="font-mono text-[10px] tracking-widest uppercase text-[#2563eb]">GM Case Files</p>
+              <p className="font-mono text-[9px] text-[#64748b] mt-0.5">Adaptive Assessment</p>
             </div>
             <motion.ul variants={staggerList} initial="hidden" animate="show" className="py-2">
               {CONCEPT_CARDS.map((concept) => {
@@ -221,8 +221,8 @@ function CatalogContent() {
                       onClick={() => router.push(`/catalog?concept=${concept.id}`)}
                       className={`w-full text-left px-4 py-2.5 transition-colors font-mono text-xs flex items-center gap-2 ${
                         isCurrent
-                          ? "bg-[#c9a84c]/10 text-[#c9a84c] border-l-2 border-[#c9a84c]"
-                          : "text-[#6b7280] hover:text-[#e5e7eb] hover:bg-[#1a2030]/50 border-l-2 border-transparent"
+                          ? "bg-[#eff6ff] text-[#2563eb] border-l-2 border-[#2563eb]"
+                          : "text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] border-l-2 border-transparent"
                       }`}
                     >
                       <span className="text-[10px]">{isCurrent ? "▶" : "◦"}</span>
@@ -241,23 +241,23 @@ function CatalogContent() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28 }}
-            className="bsc-card p-4 mb-4 border-[#c9a84c]/30"
+            className="bsc-card p-4 mb-4 border-[#2563eb]/30"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <span className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] border border-[#c9a84c]/30 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-mono tracking-widest uppercase text-[#2563eb] border border-[#2563eb]/30 px-2 py-0.5 rounded">
                   Classification: GM Only
                 </span>
                 <span className="bsc-badge-gold">Adaptive Mode</span>
               </div>
               <button
-                className="text-[#6b7280] font-mono text-xs hover:text-[#e5e7eb] transition-colors"
+                className="text-[#64748b] font-mono text-xs hover:text-[#0f172a] transition-colors"
                 onClick={() => router.push("/hq")}
               >
                 ← HQ
               </button>
             </div>
-            <h2 className="text-[#c9a84c] font-mono text-xl font-bold leading-tight">{card.title}</h2>
+            <h2 className="text-[#2563eb] font-mono text-xl font-bold leading-tight">{card.title}</h2>
           </motion.div>
 
           <AnimatePresence mode="wait">
@@ -269,9 +269,9 @@ function CatalogContent() {
               transition={{ duration: 0.3 }}
               className="bsc-card p-6 mb-4 relative overflow-hidden gm-watermark"
             >
-              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed mb-5">{card.body}</p>
-              <div className="border-t border-[#1a2030] pt-4">
-                <p className="font-mono text-xs text-[#6b7280] italic">{card.note}</p>
+              <p className="font-mono text-sm text-[#0f172a] leading-relaxed mb-5">{card.body}</p>
+              <div className="border-t border-[#e2e8f0] pt-4">
+                <p className="font-mono text-xs text-[#64748b] italic">{card.note}</p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -289,7 +289,7 @@ function CatalogContent() {
               transition={{ delay: 0.2 }}
               className="text-center py-4"
             >
-              <p className="text-[#6b7280] font-mono text-sm mb-4">
+              <p className="text-[#64748b] font-mono text-sm mb-4">
                 Start an adaptive check. You will answer between {minQuestions} and {maxQuestions} questions.
               </p>
               <motion.button
@@ -316,16 +316,16 @@ function CatalogContent() {
               >
                 <div className="flex items-center gap-3 mb-4">
                   <p className="bsc-section-title mb-0">Adaptive Assessment</p>
-                  <div className="flex-1 h-px bg-[#c9a84c]/20" />
-                  <span className="text-[10px] font-mono text-[#6b7280]">
+                  <div className="flex-1 h-px bg-[#dbeafe]" />
+                  <span className="text-[10px] font-mono text-[#64748b]">
                     Question {askedCount} of up to {maxQuestions}
                   </span>
                 </div>
 
                 <div className="mb-4">
-                  <p className="font-mono text-sm text-[#e5e7eb] mb-2">{currentQuestion.stem}</p>
+                  <p className="font-mono text-sm text-[#0f172a] mb-2">{currentQuestion.stem}</p>
                   {currentEstimate && (
-                    <p className="font-mono text-[11px] text-[#6b7280]">
+                    <p className="font-mono text-[11px] text-[#64748b]">
                       Current estimate: {currentEstimate.masteryScore.toFixed(2)} / 4.00
                     </p>
                   )}
@@ -340,12 +340,12 @@ function CatalogContent() {
                       whileTap={{ scale: 0.99 }}
                       className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
                         selectedOption === index
-                          ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#e5e7eb]"
-                          : "border-[#1a2030] text-[#6b7280] hover:border-[#c9a84c]/40 hover:text-[#e5e7eb]"
+                          ? "border-[#2563eb] bg-[#eff6ff] text-[#0f172a]"
+                          : "border-[#e2e8f0] text-[#64748b] hover:border-[#2563eb]/40 hover:text-[#0f172a]"
                       }`}
                       onClick={() => setSelectedOption(index)}
                     >
-                      <span className="text-[#6b7280] mr-2">{index + 1}.</span>
+                      <span className="text-[#64748b] mr-2">{index + 1}.</span>
                       {option}
                     </motion.button>
                   ))}
@@ -360,7 +360,7 @@ function CatalogContent() {
                 >
                   {submitting ? "Saving..." : "Submit and Continue →"}
                 </motion.button>
-                <p className="text-[#6b7280] font-mono text-[11px] mt-2">
+                <p className="text-[#64748b] font-mono text-[11px] mt-2">
                   Answers are scored at the end so we can estimate understanding more accurately.
                 </p>
               </motion.div>
@@ -374,50 +374,50 @@ function CatalogContent() {
                 initial={{ opacity: 0, scale: 0.97, y: 14 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 220, damping: 20 }}
-                className="bsc-card p-6 border-2 border-[#c9a84c]/40"
+                className="bsc-card p-6 border-2 border-[#2563eb]/40"
               >
                 <div className="text-center mb-5">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
-                    className="text-[#c9a84c] font-mono text-5xl mb-3"
+                    className="text-[#2563eb] font-mono text-5xl mb-3"
                   >
                     ◎
                   </motion.div>
-                  <h3 className="text-[#e5e7eb] font-mono font-bold text-lg">Adaptive Summary Complete</h3>
-                  <p className="text-[#6b7280] font-mono text-xs mt-1">
+                  <h3 className="text-[#0f172a] font-mono font-bold text-lg">Adaptive Summary Complete</h3>
+                  <p className="text-[#64748b] font-mono text-xs mt-1">
                     {result.questionCount} questions · Mastery {result.masteryScore.toFixed(2)} / 4.00
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                  <div className="border border-[#1a2030] rounded px-3 py-3">
-                    <p className="text-[#6b7280] font-mono text-xs">Recommendation Band</p>
+                  <div className="border border-[#e2e8f0] rounded px-3 py-3">
+                    <p className="text-[#64748b] font-mono text-xs">Recommendation Band</p>
                     <p className={`font-mono text-sm mt-1 ${recommendationColor(result.recommendationBand)}`}>
                       {result.recommendationBand.toUpperCase()}
                     </p>
-                    <p className="text-[#9ca3af] font-mono text-xs mt-1">
+                    <p className="text-[#64748b] font-mono text-xs mt-1">
                       {recommendationText(result.recommendationBand)}
                     </p>
                   </div>
-                  <div className="border border-[#1a2030] rounded px-3 py-3">
-                    <p className="text-[#6b7280] font-mono text-xs">Confidence</p>
-                    <p className="font-mono text-sm mt-1 text-[#e5e7eb]">
+                  <div className="border border-[#e2e8f0] rounded px-3 py-3">
+                    <p className="text-[#64748b] font-mono text-xs">Confidence</p>
+                    <p className="font-mono text-sm mt-1 text-[#0f172a]">
                       {result.lowConfidence ? "Lower confidence estimate" : "Stable estimate"}
                     </p>
-                    <p className="text-[#9ca3af] font-mono text-xs mt-1">
+                    <p className="text-[#64748b] font-mono text-xs mt-1">
                       Uncertainty: {result.uncertainty.toFixed(2)}
                     </p>
                   </div>
                 </div>
 
                 {result.objectiveBreakdown.length > 0 && (
-                  <div className="border border-[#1a2030] rounded px-3 py-3 mb-4">
-                    <p className="text-[#6b7280] font-mono text-xs mb-2">Objective Breakdown</p>
+                  <div className="border border-[#e2e8f0] rounded px-3 py-3 mb-4">
+                    <p className="text-[#64748b] font-mono text-xs mb-2">Objective Breakdown</p>
                     <div className="space-y-1">
                       {result.objectiveBreakdown.slice(0, 4).map((item) => (
-                        <p key={item.objectiveId} className="text-[#9ca3af] font-mono text-xs">
+                        <p key={item.objectiveId} className="text-[#64748b] font-mono text-xs">
                           {item.objectiveId}: {item.correctCount}/{item.askedCount} correct · {item.missRate}% miss
                         </p>
                       ))}
@@ -426,11 +426,11 @@ function CatalogContent() {
                 )}
 
                 {result.misconceptionsTop.length > 0 && (
-                  <div className="border border-[#1a2030] rounded px-3 py-3 mb-4">
-                    <p className="text-[#6b7280] font-mono text-xs mb-2">Top Misconceptions</p>
+                  <div className="border border-[#e2e8f0] rounded px-3 py-3 mb-4">
+                    <p className="text-[#64748b] font-mono text-xs mb-2">Top Misconceptions</p>
                     <div className="space-y-1">
                       {result.misconceptionsTop.slice(0, 3).map((row) => (
-                        <p key={row.tag} className="text-[#9ca3af] font-mono text-xs">
+                        <p key={row.tag} className="text-[#64748b] font-mono text-xs">
                           {row.tag}: {row.count}
                         </p>
                       ))}
@@ -465,7 +465,7 @@ function CatalogContent() {
 
 export default function CatalogPage() {
   return (
-    <Suspense fallback={<div className="text-[#6b7280] font-mono text-sm p-6">Loading...</div>}>
+    <Suspense fallback={<div className="text-[#64748b] font-mono text-sm p-6">Loading...</div>}>
       <CatalogContent />
     </Suspense>
   );

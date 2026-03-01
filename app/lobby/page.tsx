@@ -29,7 +29,7 @@ function PulsingDot() {
     <motion.span
       animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
       transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
-      className="inline-block w-2 h-2 rounded-full bg-[#22c55e]"
+      className="inline-block w-2 h-2 rounded-full bg-[#16a34a]"
     />
   );
 }
@@ -79,7 +79,7 @@ export default function LobbyPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#ef4444] font-mono text-sm">{error}</p>
+        <p className="text-[#dc2626] text-sm">{error}</p>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export default function LobbyPage() {
         <motion.div
           animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="text-[#c9a84c] font-mono text-2xl"
+          className="text-[#2563eb] text-2xl"
         >
           ◈
         </motion.div>
@@ -117,7 +117,7 @@ export default function LobbyPage() {
     setTimeout(tick, 700);
   }
 
-  const teamColor = state ? (TEAM_COLOR_MAP[state.team.color ?? ""] ?? "#c9a84c") : "#c9a84c";
+  const teamColor = state ? (TEAM_COLOR_MAP[state.team.color ?? ""] ?? "#2563eb") : "#2563eb";
 
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
@@ -129,13 +129,13 @@ export default function LobbyPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020408]"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white"
           >
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4 }}
-              className="font-mono text-xs tracking-[0.3em] text-[#c9a84c] uppercase mb-4"
+              className="text-xs tracking-[0.2em] text-[#64748b] uppercase mb-4 font-medium"
             >
               Your Team Is
             </motion.p>
@@ -143,7 +143,7 @@ export default function LobbyPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.5 }}
-              className="font-mono font-bold text-5xl tracking-widest"
+              className="font-bold text-5xl tracking-tight"
               style={{ color: teamColor }}
             >
               {state.team.name}
@@ -164,12 +164,12 @@ export default function LobbyPage() {
           initial={{ opacity: 0, letterSpacing: "0.05em" }}
           animate={{ opacity: 1, letterSpacing: "0.1em" }}
           transition={{ delay: 0.15, duration: 0.6 }}
-          className="text-[#c9a84c] font-mono text-3xl font-bold mb-2"
+          className="text-[#2563eb] text-3xl font-bold mb-2 tracking-tight"
         >
           {state.team.name}
         </motion.h1>
         <div className="flex items-center justify-center gap-2 mt-2">
-          <span className="text-[#6b7280] font-mono text-xs">Team Code:</span>
+          <span className="text-[#64748b] text-xs">Team Code:</span>
           <motion.span
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -179,7 +179,7 @@ export default function LobbyPage() {
             {state.team.joinCode}
           </motion.span>
         </div>
-        <p className="text-[#6b7280] font-mono text-xs mt-2">
+        <p className="text-[#64748b] text-xs mt-2">
           Share this code with your teammates in Zoom chat
         </p>
       </motion.div>
@@ -195,7 +195,7 @@ export default function LobbyPage() {
           <p className="bsc-section-title mb-0">Roster</p>
           <div className="flex items-center gap-2">
             <PulsingDot />
-            <span className="text-[#6b7280] font-mono text-xs">{state.members.length} joined</span>
+            <span className="text-[#64748b] text-xs">{state.members.length} joined</span>
           </div>
         </div>
 
@@ -210,7 +210,7 @@ export default function LobbyPage() {
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 exit={{ opacity: 0, x: 16, height: 0 }}
                 transition={{ duration: 0.25, delay: i * 0.04 }}
-                className="flex items-center justify-between py-2.5 border-b border-[#1a2030] last:border-0"
+                className="flex items-center justify-between py-2.5 border-b border-[#e2e8f0] last:border-0"
               >
                 <div className="flex items-center gap-2">
                   <span
@@ -220,17 +220,17 @@ export default function LobbyPage() {
                   >
                     {av.abbr}
                   </span>
-                  <span className="font-mono text-sm text-[#e5e7eb]">
+                  <span className="text-sm text-[#0f172a]">
                     {m.nickname}
                   </span>
                   {m.id === state.me.id && (
-                    <span className="text-[#c9a84c] font-mono text-[10px]">(you)</span>
+                    <span className="text-[#2563eb] text-[10px] font-medium">(you)</span>
                   )}
                 </div>
                 <motion.span
                   animate={m.active ? { scale: [1, 1.3, 1] } : {}}
                   transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  className={`w-2 h-2 rounded-full ${m.active ? "bg-[#22c55e]" : "bg-[#1a2030]"}`}
+                  className={`w-2 h-2 rounded-full ${m.active ? "bg-[#16a34a]" : "bg-[#e2e8f0]"}`}
                 />
               </motion.div>
               );
@@ -243,7 +243,7 @@ export default function LobbyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-[#6b7280] font-mono text-xs mt-3"
+            className="text-[#64748b] text-xs mt-3"
           >
             Waiting for teammates to join…
           </motion.p>
@@ -257,7 +257,7 @@ export default function LobbyPage() {
         transition={{ delay: 0.28 }}
         className="bsc-card p-6 text-center"
       >
-        <p className="text-[#e5e7eb] font-mono text-sm mb-4">
+        <p className="text-[#0f172a] text-sm mb-4">
           8 missions. 8 concepts. One front office philosophy.
         </p>
         {canStart ? (
@@ -275,7 +275,7 @@ export default function LobbyPage() {
             Waiting for teammates to join…
           </button>
         )}
-        <p className="text-[#6b7280] font-mono text-xs mt-3">
+        <p className="text-[#64748b] text-xs mt-3">
           {state.activeCount} active now · Auto-refreshes every 5s
         </p>
       </motion.div>
@@ -288,7 +288,7 @@ export default function LobbyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#020408]/90"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172a]/90"
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -300,15 +300,15 @@ export default function LobbyPage() {
                 className="text-center select-none"
               >
                 {countNum > 0 ? (
-                  <span className="font-mono font-bold text-[#c9a84c]" style={{ fontSize: "8rem" }}>
+                  <span className="font-bold text-[#2563eb]" style={{ fontSize: "8rem" }}>
                     {countNum}
                   </span>
                 ) : (
                   <div>
-                    <span className="font-mono font-bold text-[#22c55e]" style={{ fontSize: "6rem" }}>
+                    <span className="font-bold text-[#16a34a]" style={{ fontSize: "6rem" }}>
                       GO!
                     </span>
-                    <p className="font-mono text-[#6b7280] text-sm mt-2 tracking-widest uppercase">
+                    <p className="text-white/70 text-sm mt-2 tracking-widest uppercase">
                       Entering Front Office HQ…
                     </p>
                   </div>

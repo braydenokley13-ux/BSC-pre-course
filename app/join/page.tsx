@@ -6,13 +6,12 @@ import { NBA_AVATARS } from "@/lib/nbaAvatars";
 
 type JoinMode = "join" | "recover";
 
-// ── Cinematic intro ─────────────────────────────────────────────────────────
+// ── Clean intro splash ───────────────────────────────────────────────────────
 
 function CinematicIntro({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState(0);
-  // step 0: blank → 1: BOW text → 2: subtitle → 3: arc line → 4: tagline → 5: fade out
   useEffect(() => {
-    const timings = [600, 1200, 1800, 2400, 3400];
+    const timings = [500, 1100, 1700, 2600];
     const timers = timings.map((t, i) =>
       setTimeout(() => setStep(i + 1), t)
     );
@@ -20,108 +19,70 @@ function CinematicIntro({ onDone }: { onDone: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (step >= 5) {
-      const t = setTimeout(onDone, 600);
+    if (step >= 4) {
+      const t = setTimeout(onDone, 500);
       return () => clearTimeout(t);
     }
   }, [step, onDone]);
 
   return (
     <AnimatePresence>
-      {step < 5 && (
+      {step < 4 && (
         <motion.div
           key="intro"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020408]"
+          transition={{ duration: 0.5 }}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white"
         >
-          {/* Background grid */}
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage:
-                "linear-gradient(#c9a84c 1px, transparent 1px), linear-gradient(90deg, #c9a84c 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
-            }}
-          />
-
-          {/* SVG court arc */}
-          <AnimatePresence>
-            {step >= 3 && (
-              <motion.svg
-                key="arc"
-                viewBox="0 0 400 120"
-                className="absolute w-80 opacity-20"
-                style={{ top: "50%", transform: "translateY(-150px)" }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.2 }}
-                transition={{ duration: 0.8 }}
-              >
-                <path
-                  d="M 0 100 Q 200 -20 400 100"
-                  fill="none"
-                  stroke="#c9a84c"
-                  strokeWidth="1.5"
-                  strokeDasharray="8 6"
-                />
-                <circle cx="200" cy="100" r="40" fill="none" stroke="#c9a84c" strokeWidth="1" strokeDasharray="5 5" />
-              </motion.svg>
-            )}
-          </AnimatePresence>
-
           <div className="relative z-10 text-center px-6">
-            {/* BOW SPORTS CAPITAL */}
             <AnimatePresence>
               {step >= 1 && (
                 <motion.div
                   key="title"
-                  initial={{ opacity: 0, y: -30, letterSpacing: "0.05em" }}
-                  animate={{ opacity: 1, y: 0, letterSpacing: "0.25em" }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="font-mono font-bold text-[#c9a84c] mb-2"
-                  style={{ fontSize: "clamp(1.8rem, 6vw, 3.5rem)" }}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="font-bold text-[#2563eb] mb-2"
+                  style={{ fontSize: "clamp(1.8rem, 6vw, 3rem)", letterSpacing: "-0.02em" }}
                 >
                   BOW SPORTS CAPITAL
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Front Office Simulator */}
             <AnimatePresence>
               {step >= 2 && (
                 <motion.p
                   key="sub"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6 }}
-                  className="font-mono text-[#6b7280] tracking-[0.3em] uppercase text-sm mb-6"
+                  transition={{ duration: 0.5 }}
+                  className="text-[#64748b] tracking-widest uppercase text-sm mb-6 font-medium"
                 >
-                  FRONT OFFICE SIMULATOR
+                  Front Office Simulator
                 </motion.p>
               )}
             </AnimatePresence>
 
-            {/* Tagline */}
             <AnimatePresence>
-              {step >= 4 && (
+              {step >= 3 && (
                 <motion.p
                   key="tag"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: [0, 1, 0.8, 1], scale: 1 }}
-                  transition={{ duration: 0.7 }}
-                  className="font-mono text-[#e5e7eb] text-lg tracking-widest"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-[#0f172a] text-lg font-semibold"
                 >
-                  STEP INTO THE WAR ROOM
+                  Step into the War Room
                 </motion.p>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Skip */}
           <button
             onClick={onDone}
-            className="absolute top-4 right-6 font-mono text-[10px] text-[#374151] hover:text-[#6b7280] transition-colors tracking-widest uppercase"
+            className="absolute top-4 right-6 text-[10px] text-[#94a3b8] hover:text-[#64748b] transition-colors tracking-widest uppercase"
           >
             skip →
           </button>
@@ -152,7 +113,7 @@ function AvatarPicker({
             title={av.name}
             className={`relative flex items-center justify-center rounded-full w-10 h-10 font-mono font-bold text-[9px] transition-all ${
               selected === av.id
-                ? "ring-2 ring-[#c9a84c] ring-offset-2 ring-offset-[#020408] scale-110"
+                ? "ring-2 ring-[#2563eb] ring-offset-2 ring-offset-white scale-110"
                 : "opacity-70 hover:opacity-100 hover:scale-105"
             }`}
             style={{ backgroundColor: av.color, color: av.textColor }}
@@ -273,7 +234,7 @@ export default function JoinPage() {
 
   return (
     <>
-      {/* Cinematic intro overlay */}
+      {/* Intro overlay */}
       {showIntro && <CinematicIntro onDone={() => setShowIntro(false)} />}
 
       <div className="flex items-center justify-center min-h-[calc(100vh-56px)] px-4">
@@ -284,10 +245,10 @@ export default function JoinPage() {
             transition={{ duration: 0.5 }}
             className="text-center mb-8"
           >
-            <div className="text-[#c9a84c] font-mono text-5xl font-bold mb-3 tracking-widest">
-              GM SEAT
+            <div className="text-[#2563eb] font-bold text-4xl mb-3 tracking-tight">
+              GM Seat
             </div>
-            <p className="text-[#6b7280] font-mono text-sm leading-relaxed">
+            <p className="text-[#64748b] text-sm leading-relaxed">
               Enter your team with your join code, or recover your original seat if you lost access.
             </p>
           </motion.div>
@@ -300,7 +261,7 @@ export default function JoinPage() {
           >
             <div className="grid grid-cols-2 gap-2 mb-5">
               <button
-                className={`bsc-btn-ghost text-xs py-2 ${mode === "join" ? "border-[#c9a84c]/40 text-[#e5e7eb]" : ""}`}
+                className={`bsc-btn-ghost text-xs py-2 ${mode === "join" ? "border-[#2563eb]/40 text-[#0f172a] bg-[#eff6ff]" : ""}`}
                 onClick={() => {
                   setMode("join");
                   setError("");
@@ -310,7 +271,7 @@ export default function JoinPage() {
                 Join Team
               </button>
               <button
-                className={`bsc-btn-ghost text-xs py-2 ${mode === "recover" ? "border-[#c9a84c]/40 text-[#e5e7eb]" : ""}`}
+                className={`bsc-btn-ghost text-xs py-2 ${mode === "recover" ? "border-[#2563eb]/40 text-[#0f172a] bg-[#eff6ff]" : ""}`}
                 onClick={() => {
                   setMode("recover");
                   setError("");
@@ -348,7 +309,7 @@ export default function JoinPage() {
                 </label>
                 <input
                   id="joinCode"
-                  className="bsc-input uppercase tracking-widest"
+                  className="bsc-input font-mono uppercase tracking-widest"
                   value={joinCode}
                   onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
                   placeholder="Enter your team code from your instructor."
@@ -364,7 +325,7 @@ export default function JoinPage() {
                   </label>
                   <input
                     id="recoveryCode"
-                    className="bsc-input uppercase tracking-widest"
+                    className="bsc-input font-mono uppercase tracking-widest"
                     value={recoveryCode}
                     onChange={(event) => setRecoveryCode(event.target.value.toUpperCase())}
                     placeholder="Enter your saved recovery code."
@@ -375,8 +336,8 @@ export default function JoinPage() {
               )}
 
               {error && (
-                <div className="border border-[#ef4444]/40 bg-[#ef4444]/8 rounded px-3 py-2">
-                  <p className="text-[#ef4444] font-mono text-xs">{error}</p>
+                <div className="border border-[#fecaca] bg-[#fef2f2] rounded-md px-3 py-2">
+                  <p className="text-[#dc2626] text-xs">{error}</p>
                 </div>
               )}
 
@@ -395,21 +356,21 @@ export default function JoinPage() {
                     ? "Joining..."
                     : "Recovering..."
                   : mode === "join"
-                  ? "Join Team and Continue ->"
-                  : "Recover My Seat ->"}
+                  ? "Join Team and Continue →"
+                  : "Recover My Seat →"}
               </button>
             </form>
 
-            <p className="text-[#6b7280] font-mono text-xs mt-4 leading-relaxed">
+            <p className="text-[#64748b] text-xs mt-4 leading-relaxed">
               Save your recovery code when it appears. It is the safest way to get back in if your
               browser cookie or device changes.
             </p>
           </motion.div>
 
-          <p className="text-center text-[#6b7280] font-mono text-xs mt-4">
+          <p className="text-center text-[#64748b] text-xs mt-4">
             Instructor?{" "}
-            <a href="/teacher" className="text-[#c9a84c] hover:underline">
-              Open teacher dashboard -&gt;
+            <a href="/teacher" className="text-[#2563eb] hover:underline">
+              Open teacher dashboard →
             </a>
           </p>
         </div>
@@ -417,7 +378,7 @@ export default function JoinPage() {
         <AnimatePresence>
           {issuedRecoveryCode && (
             <motion.div
-              className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+              className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -428,16 +389,16 @@ export default function JoinPage() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
               >
                 <p className="bsc-section-title mb-2">Save This Recovery Code</p>
-                <p className="text-[#9ca3af] font-mono text-xs mb-3">
+                <p className="text-[#64748b] text-xs mb-3">
                   Write this down now. Use it to recover your seat if you lose access later.
                 </p>
-                <div className="border border-[#c9a84c]/40 rounded px-3 py-3 mb-4">
-                  <p className="text-[#c9a84c] font-mono text-2xl tracking-widest text-center">
+                <div className="border border-[#bfdbfe] bg-[#eff6ff] rounded-md px-3 py-3 mb-4">
+                  <p className="text-[#2563eb] font-mono text-2xl tracking-widest text-center">
                     {issuedRecoveryCode}
                   </p>
                 </div>
                 <button className="bsc-btn-gold w-full py-3" onClick={continueAfterSavingCode}>
-                  I Saved My Code. Continue -&gt;
+                  I Saved My Code. Continue →
                 </button>
               </motion.div>
             </motion.div>

@@ -67,7 +67,7 @@ export default function TeacherSetupPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
         <div className="bsc-broadcast-shell p-5 md:p-6">
-          <p className="text-[#6b7280] font-mono text-sm text-center">Checking teacher session...</p>
+          <p className="text-[#64748b] font-mono text-sm text-center">Checking teacher session...</p>
         </div>
       </div>
     );
@@ -79,7 +79,7 @@ export default function TeacherSetupPage() {
         <div className="bsc-broadcast-shell p-5 md:p-6">
           <div className="text-center mb-5">
             <div className="text-[#22c55e] font-mono text-2xl font-bold mb-1">Session Created ✓</div>
-            <p className="text-[#6b7280] font-mono text-sm">
+            <p className="text-[#64748b] font-mono text-sm">
               Share each team code with the matching breakout room.
             </p>
           </div>
@@ -95,7 +95,7 @@ export default function TeacherSetupPage() {
             </div>
             <div className="bsc-score-tile">
               <p className="bsc-score-label">Track</p>
-              <p className="bsc-score-value" style={{ color: track === "101" ? "#22c55e" : "#c9a84c" }}>
+              <p className="bsc-score-value" style={{ color: track === "101" ? "#16a34a" : "#2563eb" }}>
                 Track {track}
               </p>
             </div>
@@ -108,13 +108,13 @@ export default function TeacherSetupPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {teams.map((team, i) => (
               <div key={team.id} className="bsc-card p-5 text-center">
-                <p className="text-[#6b7280] font-mono text-xs mb-1">Breakout Room {i + 1}</p>
+                <p className="text-[#64748b] font-mono text-xs mb-1">Breakout Room {i + 1}</p>
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <span
                     className="inline-block w-3 h-3 rounded-full"
                     style={{ backgroundColor: TRACK_COLORS[team.color] ?? "#3b82f6" }}
                   />
-                  <p className="text-[#e5e7eb] font-mono font-bold text-lg">{team.name}</p>
+                  <p className="text-[#0f172a] font-mono font-bold text-lg">{team.name}</p>
                 </div>
                 <div className="bsc-badge-gold text-lg px-4 py-2 tracking-widest font-bold">
                   {team.joinCode}
@@ -125,8 +125,8 @@ export default function TeacherSetupPage() {
 
           <div className="bsc-card p-5 mb-5">
             <p className="bsc-section-title mb-2">Instructions for students</p>
-            <ol className="font-mono text-sm text-[#6b7280] space-y-1 list-decimal list-inside">
-              <li>Go to <span className="text-[#c9a84c]">[your-domain]/join</span></li>
+            <ol className="font-mono text-sm text-[#64748b] space-y-1 list-decimal list-inside">
+              <li>Go to <span className="text-[#2563eb]">[your-domain]/join</span></li>
               <li>Enter your name and your team code</li>
               <li>Play through 8 situations together as a team</li>
               <li>Submit your claim code at the end</li>
@@ -156,8 +156,8 @@ export default function TeacherSetupPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
       <div className="bsc-broadcast-shell p-5 md:p-6">
         <div className="text-center mb-5">
-          <div className="text-[#c9a84c] font-mono text-2xl font-bold mb-1">New Session</div>
-          <p className="text-[#6b7280] font-mono text-xs">Creates teams and generates join codes</p>
+          <div className="text-[#2563eb] font-mono text-2xl font-bold mb-1">New Session</div>
+          <p className="text-[#64748b] font-mono text-xs">Creates teams and generates join codes</p>
         </div>
 
         <div className="bsc-score-grid mb-4">
@@ -201,8 +201,8 @@ export default function TeacherSetupPage() {
                     onClick={() => setTrack("201")}
                     className={`rounded px-3 py-3 font-mono text-sm border transition-colors ${
                       track === "201"
-                        ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#c9a84c]"
-                        : "border-[#374151] text-[#6b7280] hover:border-[#6b7280]"
+                        ? "border-[#2563eb] bg-[#2563eb]/10 text-[#2563eb]"
+                        : "border-[#374151] text-[#64748b] hover:border-[#6b7280]"
                     }`}
                   >
                     <div className="font-bold">Track 201</div>
@@ -214,14 +214,14 @@ export default function TeacherSetupPage() {
                     className={`rounded px-3 py-3 font-mono text-sm border transition-colors ${
                       track === "101"
                         ? "border-[#22c55e] bg-[#22c55e]/10 text-[#22c55e]"
-                        : "border-[#374151] text-[#6b7280] hover:border-[#6b7280]"
+                        : "border-[#374151] text-[#64748b] hover:border-[#6b7280]"
                     }`}
                   >
                     <div className="font-bold">Track 101</div>
                     <div className="text-[10px] mt-0.5 opacity-80">5th–6th Grade</div>
                   </button>
                 </div>
-                <p className="text-[#6b7280] font-mono text-xs mt-1">
+                <p className="text-[#64748b] font-mono text-xs mt-1">
                   {track === "101"
                     ? "Simplified language, everyday analogies, grade 6 reading level."
                     : "Full complexity — salary cap jargon, multi-step tradeoffs."}
@@ -240,7 +240,7 @@ export default function TeacherSetupPage() {
                     <option key={n} value={n}>{n} teams</option>
                   ))}
                 </select>
-                <p className="text-[#6b7280] font-mono text-xs mt-1">
+                <p className="text-[#64748b] font-mono text-xs mt-1">
                   Ideal: 3-4 students per team. Each team plays at its own pace.
                 </p>
               </div>
@@ -263,14 +263,14 @@ export default function TeacherSetupPage() {
 
           <div className="bsc-card p-5">
             <p className="bsc-section-title">Session Notes</p>
-            <div className="border border-[#c9a84c]/20 bg-[#c9a84c]/5 rounded px-4 py-3">
-              <p className="text-[#c9a84c] font-mono text-xs font-bold mb-1">Note</p>
-              <p className="text-[#6b7280] font-mono text-xs">
+            <div className="border border-[#2563eb]/20 bg-[#2563eb]/5 rounded px-4 py-3">
+              <p className="text-[#2563eb] font-mono text-xs font-bold mb-1">Note</p>
+              <p className="text-[#64748b] font-mono text-xs">
                 Creating a new session will archive any currently active session.
                 Old data is preserved and exportable.
               </p>
             </div>
-            <div className="mt-4 space-y-2 font-mono text-xs text-[#9ca3af]">
+            <div className="mt-4 space-y-2 font-mono text-xs text-[#64748b]">
               <p>1. Create session</p>
               <p>2. Share team codes</p>
               <p>3. Monitor live feed</p>
