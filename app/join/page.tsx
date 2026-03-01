@@ -8,11 +8,14 @@ type JoinMode = "join" | "recover";
 
 // ── Cinematic intro ─────────────────────────────────────────────────────────
 
+// Punchy words shown between subtitle and tagline
+const PUNCHY_WORDS = ["DECIDE.", "NEGOTIATE.", "WIN."];
+
 function CinematicIntro({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState(0);
-  // step 0: blank → 1: BOW text → 2: subtitle → 3: arc line → 4: tagline → 5: fade out
+  // step 0: blank → 1: BOW text → 2: subtitle → 3/4/5: punchy words → 6: arc → 7: tagline → 8: fade out
   useEffect(() => {
-    const timings = [600, 1200, 1800, 2400, 3400];
+    const timings = [600, 1200, 1500, 1800, 2100, 2600, 3100, 4100];
     const timers = timings.map((t, i) =>
       setTimeout(() => setStep(i + 1), t)
     );
@@ -20,20 +23,22 @@ function CinematicIntro({ onDone }: { onDone: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (step >= 5) {
-      const t = setTimeout(onDone, 600);
+    if (step >= 8) {
+      const t = setTimeout(onDone, 500);
       return () => clearTimeout(t);
     }
   }, [step, onDone]);
 
+  const punchyWord = step >= 3 && step <= 5 ? PUNCHY_WORDS[step - 3] : null;
+
   return (
     <AnimatePresence>
-      {step < 5 && (
+      {step < 8 && (
         <motion.div
           key="intro"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020408]"
         >
           {/* Background grid */}
@@ -48,7 +53,7 @@ function CinematicIntro({ onDone }: { onDone: () => void }) {
 
           {/* SVG court arc */}
           <AnimatePresence>
-            {step >= 3 && (
+            {step >= 6 && (
               <motion.svg
                 key="arc"
                 viewBox="0 0 400 120"
@@ -102,17 +107,36 @@ function CinematicIntro({ onDone }: { onDone: () => void }) {
               )}
             </AnimatePresence>
 
+            {/* Punchy words: DECIDE. NEGOTIATE. WIN. */}
+            <div className="h-12 flex items-center justify-center mb-4">
+              <AnimatePresence mode="wait">
+                {punchyWord && (
+                  <motion.p
+                    key={punchyWord}
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.1 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="font-mono font-bold text-[#e5e7eb] tracking-widest"
+                    style={{ fontSize: "clamp(1.4rem, 5vw, 2.6rem)" }}
+                  >
+                    {punchyWord}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* Tagline */}
             <AnimatePresence>
-              {step >= 4 && (
+              {step >= 7 && (
                 <motion.p
                   key="tag"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: [0, 1, 0.8, 1], scale: 1 }}
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: [0, 1, 0.85, 1], scale: 1 }}
                   transition={{ duration: 0.7 }}
-                  className="font-mono text-[#e5e7eb] text-lg tracking-widest"
+                  className="font-mono text-[#c9a84c] text-lg tracking-widest font-bold"
                 >
-                  STEP INTO THE WAR ROOM
+                  YOUR FRANCHISE. YOUR CALL.
                 </motion.p>
               )}
             </AnimatePresence>

@@ -42,6 +42,9 @@ export default function LobbyPage() {
   const [counting, setCounting] = useState(false);
   const [countNum, setCountNum] = useState(3);
   const [showReveal, setShowReveal] = useState(false);
+  const [joinToast, setJoinToast] = useState<string | null>(null);
+  const [teamFull, setTeamFull] = useState(false);
+  const [rivalTeams, setRivalTeams] = useState<Array<{ color: string; codePrefix: string; memberCount: number }>>([]);
   const hasRevealedRef = useRef(false);
 
   const fetchState = useCallback(async () => {
@@ -54,9 +57,25 @@ export default function LobbyPage() {
         router.replace("/hq");
         return;
       }
-      if (state && data.members.length !== prevCount) {
+
+      // Detect new member joins and celebrate
+      if (state && data.members.length > prevCount) {
+        const newMember = data.members.find(
+          (m: Member) => !state.members.some((e) => e.id === m.id)
+        );
+        if (newMember && newMember.id !== state.me.id) {
+          setJoinToast(newMember.nickname);
+          setTimeout(() => setJoinToast(null), 2800);
+        }
+        if (data.members.length === 4 && prevCount < 4) {
+          setTeamFull(true);
+          setTimeout(() => setTeamFull(false), 2000);
+        }
+        setPrevCount(data.members.length);
+      } else if (state && data.members.length !== prevCount) {
         setPrevCount(data.members.length);
       }
+
       setState(data);
     } catch {
       setError("Connection error");
@@ -75,6 +94,20 @@ export default function LobbyPage() {
     setShowReveal(true);
     setTimeout(() => setShowReveal(false), 2400);
   }, [state]);
+
+  useEffect(() => {
+    async function fetchRivalTeams() {
+      try {
+        const res = await fetch("/api/session/teams-status", { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json() as { teams: Array<{ color: string; codePrefix: string; memberCount: number }> };
+        setRivalTeams(data.teams ?? []);
+      } catch { /* silent */ }
+    }
+    void fetchRivalTeams();
+    const id = setInterval(() => void fetchRivalTeams(), 8000);
+    return () => clearInterval(id);
+  }, []);
 
   if (error) {
     return (
@@ -250,6 +283,45 @@ export default function LobbyPage() {
         )}
       </motion.div>
 
+      {/* League Activity */}
+      {rivalTeams.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22 }}
+          className="bsc-card p-4 mb-4"
+        >
+          <p className="bsc-section-title mb-3">League Activity</p>
+          <div className="space-y-2">
+            {rivalTeams.map((t, i) => {
+              const hex = TEAM_COLOR_MAP[t.color] ?? "#6b7280";
+              return (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hex, boxShadow: `0 0 6px ${hex}80` }} />
+                  <span className="font-mono text-[11px] text-[#6b7280] flex-1">
+                    Team <span className="text-[#9ca3af]">{t.codePrefix}••</span>
+                  </span>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 4 }).map((_, s) => (
+                      <div
+                        key={s}
+                        className="w-3.5 h-3.5 rounded-sm border"
+                        style={s < t.memberCount
+                          ? { background: `${hex}30`, borderColor: hex }
+                          : { background: "transparent", borderColor: "#1a2030" }}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-mono text-[10px]" style={{ color: hex }}>
+                    {t.memberCount}/4
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
       {/* Start section */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -279,6 +351,71 @@ export default function LobbyPage() {
           {state.activeCount} active now · Auto-refreshes every 5s
         </p>
       </motion.div>
+
+      {/* Teammate join toast */}
+      <AnimatePresence>
+        {joinToast && (
+          <motion.div
+            key="join-toast"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: "spring", stiffness: 280, damping: 24 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          >
+            <div className="bsc-card px-5 py-3 flex items-center gap-3 border-[#22c55e]/40"
+              style={{ background: "rgba(13,17,32,0.96)" }}>
+              <motion.span
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ repeat: 2, duration: 0.4 }}
+                className="text-[#22c55e] font-mono font-bold text-sm"
+              >
+                +1
+              </motion.span>
+              <p className="font-mono text-sm text-[#e5e7eb]">
+                <span className="text-[#22c55e] font-bold">{joinToast}</span>{" "}
+                entered the war room
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Team assembled overlay */}
+      <AnimatePresence>
+        {teamFull && (
+          <motion.div
+            key="team-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#020408]/85"
+          >
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              className="bsc-card p-10 text-center"
+              style={{ boxShadow: "0 0 0 1px rgba(201,168,76,0.5), 0 0 40px rgba(201,168,76,0.12)" }}
+            >
+              <motion.p
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ repeat: Infinity, duration: 1.2 }}
+                className="font-mono text-[10px] tracking-[0.4em] uppercase text-[#c9a84c] mb-4"
+              >
+                ◈ Full Roster
+              </motion.p>
+              <p className="font-mono font-bold text-[#e5e7eb] text-2xl tracking-widest mb-2">
+                TEAM ASSEMBLED
+              </p>
+              <p className="font-mono text-xs text-[#6b7280]">
+                All four executives are in the building.
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Countdown overlay */}
       <AnimatePresence>

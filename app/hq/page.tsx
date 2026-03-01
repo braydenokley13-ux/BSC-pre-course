@@ -273,6 +273,7 @@ export default function HQPage() {
   const [rivalEvents, setRivalEvents] = useState<Array<{ message: string; teamColor: string }>>([]);
   const [rivalPopup, setRivalPopup] = useState<{ message: string; teamColor: string } | null>(null);
   const [banterIdx, setBanterIdx] = useState(0);
+  const [leaderScore, setLeaderScore] = useState<number | null>(null);
   const prevBadgesRef = useRef<string[]>([]);
   const prevRivalCountRef = useRef(0);
 
@@ -328,6 +329,20 @@ export default function HQPage() {
     }
     void fetchRivals();
     const id = setInterval(() => void fetchRivals(), 15000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    async function fetchLeader() {
+      try {
+        const res = await fetch("/api/session/leaderboard", { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json() as { leaderboard: Array<{ score: number }> };
+        if (data.leaderboard?.length > 0) setLeaderScore(data.leaderboard[0].score);
+      } catch { /* silent */ }
+    }
+    void fetchLeader();
+    const id = setInterval(() => void fetchLeader(), 12000);
     return () => clearInterval(id);
   }, []);
 
@@ -457,6 +472,25 @@ export default function HQPage() {
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
           />
         </div>
+
+        {/* Dynasty score strip */}
+        {leaderScore !== null && leaderScore > 0 && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-[9px] font-mono text-[#6b7280] tracking-widest uppercase shrink-0">Dynasty Score</span>
+            <div className="flex-1 h-[3px] bg-[#1a2030] rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: teamColor, boxShadow: `0 0 6px ${teamColor}80` }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min((team.score / leaderScore) * 100, 100)}%` }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+              />
+            </div>
+            <span className="text-[9px] font-mono shrink-0" style={{ color: teamColor }}>
+              {team.score >= leaderScore ? "★ LEADING" : `${team.score}/${leaderScore}`}
+            </span>
+          </div>
+        )}
       </motion.div>
 
       {/* ── Status effects ───────────────────────────────────────────────── */}
