@@ -52,13 +52,26 @@ interface TeamStateResponse {
 
 type RoomStatus = "completed" | "active" | "unlocked" | "locked";
 
-function getRoomStatus(room: RoomMeta, completed: string[], unlocked: string[]): RoomStatus {
+function getRoomStatus(room: RoomMeta, completed: string[], unlocked: string[], avatarRoom: string | null): RoomStatus {
   if (completed.includes(room.missionId)) return "completed";
+  if (avatarRoom === room.missionId) return "active";
   if (unlocked.includes(room.missionId)) return "unlocked";
   return "locked";
 }
 
-// ── SVG room coordinates for 900×580 viewBox ─────────────────────────────────
+// ── Room icon map ─────────────────────────────────────────────────────────────
+const ROOM_ICONS: Record<string, string> = {
+  "cap-crunch":      "💰",
+  "contract-choice": "📋",
+  "revenue-mix":     "📊",
+  "stats-lineup":    "📈",
+  "expense-pressure":"🔄",
+  "matchup-adjust":  "🏥",
+  "draft-table":     "📝",
+  "final-gm-call":   "👔",
+};
+
+// ── SVG room coordinates for 900×528 viewBox ─────────────────────────────────
 // Layout: Cap Room center top, tier-2 row, tier-3 row, Owner's Suite bottom
 const ROOM_SVG: Record<string, { x: number; y: number; w: number; h: number; label: string; sub: string }> = {
   "cap-crunch":      { x: 330, y: 28,  w: 240, h: 72, label: "CAP ROOM",       sub: "SALARY CAP DEPT" },
@@ -108,8 +121,8 @@ function StatusPill({ id, positive }: { id: string; positive: boolean }) {
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
       className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-md border ${
         positive
-          ? "bg-[#fffbeb] text-[#d97706] border-[#fde68a]"
-          : "bg-[#fef2f2] text-[#dc2626] border-[#fecaca]"
+          ? "bg-[rgba(201,168,76,0.10)] text-[#c9a84c] border-[rgba(201,168,76,0.25)]"
+          : "bg-[rgba(239,68,68,0.10)] text-[#ef4444] border-[rgba(239,68,68,0.25)]"
       }`}
       title={effect.description}
     >
@@ -166,17 +179,17 @@ function SVGRoom({
   const cy = r.y + r.h / 2;
 
   const strokeColor = {
-    completed: "#16a34a",
-    unlocked:  "#2563eb",
-    active:    "#2563eb",
-    locked:    "#e2e8f0",
+    completed: "#22c55e",
+    unlocked:  "#3b82f6",
+    active:    "#c9a84c",
+    locked:    "#1e293b",
   }[status];
 
   const fillColor = {
-    completed: "rgba(22,163,74,0.06)",
-    unlocked:  "rgba(37,99,235,0.05)",
-    active:    "rgba(37,99,235,0.08)",
-    locked:    "rgba(241,245,249,0.8)",
+    completed: "rgba(34,197,94,0.11)",
+    unlocked:  "rgba(59,130,246,0.12)",
+    active:    "rgba(201,168,76,0.12)",
+    locked:    "rgba(9,18,36,0.65)",
   }[status];
 
   const glowId = `glow-${missionId.replace(/-/g, "")}`;
@@ -190,7 +203,7 @@ function SVGRoom({
       {/* Glow filter def */}
       <defs>
         <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation={status === "unlocked" ? "4" : status === "completed" ? "3" : "0"} result="blur" />
+          <feGaussianBlur stdDeviation={status === "active" ? "5" : status === "unlocked" ? "4" : status === "completed" ? "3" : "0"} result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
       </defs>
@@ -202,38 +215,49 @@ function SVGRoom({
         fill={fillColor}
         stroke={strokeColor}
         strokeWidth={status === "locked" ? 1 : status === "completed" || status === "unlocked" ? 1.5 : 2}
-        filter={status !== "locked" && status !== "active" ? `url(#${glowId})` : undefined}
+        filter={status !== "locked" ? `url(#${glowId})` : undefined}
       />
 
       {/* Grid blueprint lines inside the room */}
       <line x1={r.x + 12} y1={cy} x2={r.x + r.w - 12} y2={cy}
-        stroke={strokeColor} strokeWidth="0.4" strokeDasharray="3 4" opacity="0.3" />
+        stroke={strokeColor} strokeWidth="0.4" strokeDasharray="3 4" opacity={status === "locked" ? 0.1 : 0.25} />
       <line x1={cx} y1={r.y + 8} x2={cx} y2={r.y + r.h - 8}
-        stroke={strokeColor} strokeWidth="0.4" strokeDasharray="3 4" opacity="0.3" />
+        stroke={strokeColor} strokeWidth="0.4" strokeDasharray="3 4" opacity={status === "locked" ? 0.1 : 0.25} />
 
       {/* Status corner indicator */}
       {status === "completed" && (
-        <text x={r.x + r.w - 14} y={r.y + 16} fill="#16a34a" fontSize="11" fontFamily="sans-serif" textAnchor="middle">✓</text>
+        <text x={r.x + r.w - 14} y={r.y + 16} fill="#22c55e" fontSize="11" fontFamily="sans-serif" textAnchor="middle">✓</text>
       )}
       {status === "locked" && (
-        <text x={r.x + r.w - 14} y={r.y + 16} fill="#cbd5e1" fontSize="10" fontFamily="sans-serif" textAnchor="middle">⬡</text>
+        <text x={r.x + r.w - 14} y={r.y + 16} fill="#2d3f58" fontSize="10" fontFamily="sans-serif" textAnchor="middle">⬡</text>
       )}
       {status === "unlocked" && (
-        <text x={r.x + r.w - 12} y={r.y + 16} fill="#2563eb" fontSize="9" fontFamily="sans-serif" textAnchor="middle">▶</text>
+        <text x={r.x + r.w - 12} y={r.y + 16} fill="#3b82f6" fontSize="9" fontFamily="sans-serif" textAnchor="middle">▶</text>
+      )}
+      {status === "active" && (
+        <text x={r.x + r.w - 12} y={r.y + 16} fill="#c9a84c" fontSize="9" fontFamily="sans-serif" textAnchor="middle">★</text>
       )}
 
       {/* Department label */}
       <text x={cx} y={r.y + 20} textAnchor="middle"
-        fill={status === "locked" ? "#cbd5e1" : "#64748b"}
+        fill={status === "locked" ? "#2d3f58" : "#94a3b8"}
         fontSize="8" fontFamily="sans-serif" letterSpacing="1.5"
         style={{ textTransform: "uppercase" }}
       >
         {r.sub}
       </text>
 
+      {/* Room icon */}
+      <text x={cx - 44} y={cy + 6} textAnchor="middle"
+        fontSize="13" fontFamily="sans-serif"
+        opacity={status === "locked" ? 0.3 : 0.85}
+      >
+        {ROOM_ICONS[missionId] ?? "🏢"}
+      </text>
+
       {/* Room name */}
-      <text x={cx} y={cy + 6} textAnchor="middle"
-        fill={status === "locked" ? "#94a3b8" : status === "completed" ? "#16a34a" : "#0f172a"}
+      <text x={cx + 8} y={cy + 6} textAnchor="middle"
+        fill={status === "locked" ? "#2d3f58" : status === "completed" ? "#22c55e" : status === "active" ? "#c9a84c" : "#f1f5f9"}
         fontSize="13" fontWeight="700" fontFamily="sans-serif" letterSpacing="0.5"
       >
         {r.label}
@@ -241,10 +265,10 @@ function SVGRoom({
 
       {/* Tagline or status */}
       <text x={cx} y={r.y + r.h - 12} textAnchor="middle"
-        fill={status === "locked" ? "#e2e8f0" : status === "completed" ? "rgba(22,163,74,0.7)" : "#64748b"}
+        fill={status === "locked" ? "#1e293b" : status === "completed" ? "rgba(34,197,94,0.8)" : status === "active" ? "rgba(201,168,76,0.9)" : "#94a3b8"}
         fontSize="8" fontFamily="sans-serif"
       >
-        {status === "completed" ? "CLEARED" : status === "locked" ? "— LOCKED —" : status === "unlocked" ? "ENTER →" : "IN PROGRESS"}
+        {status === "completed" ? "CLEARED" : status === "locked" ? "— LOCKED —" : status === "active" ? "● IN PROGRESS" : "ENTER →"}
       </text>
 
       {/* Avatar dot */}
@@ -619,16 +643,17 @@ export default function HQPage() {
                 key={card.id}
                 className={`text-center py-2 px-1 rounded border transition-colors ${
                   earned
-                    ? "border-[#bfdbfe] bg-[#eff6ff]"
-                    : "border-[#e2e8f0] opacity-50"
+                    ? "border-[#3b82f6]/40 bg-[#3b82f6]/08"
+                    : "border-[#1e293b] opacity-40"
                 }`}
+                style={earned ? { background: "rgba(59,130,246,0.08)" } : {}}
                 title={card.title}
               >
-                <div className={`text-lg mb-0.5 ${earned ? "text-[#2563eb]" : "text-[#94a3b8]"}`}>
+                <div className={`text-lg mb-0.5 ${earned ? "text-[#3b82f6]" : "text-[#334155]"}`}>
                   {earned ? "★" : "○"}
                 </div>
                 <p className={`text-[9px] leading-tight ${earned ? "text-[#2563eb] font-medium" : "text-[#94a3b8]"}`}>
-                  {card.title.split(" ").slice(0, 2).join(" ")}
+                  {card.title.split(" ").slice(0, 3).join(" ")}
                 </p>
               </div>
             );
@@ -644,9 +669,9 @@ export default function HQPage() {
         className="glass-card p-4 mb-4 overflow-hidden relative"
       >
         {/* Subtle grid background */}
-        <div className="absolute inset-0 opacity-[0.4]"
+        <div className="absolute inset-0"
           style={{
-            backgroundImage: "linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
             backgroundSize: "40px 40px",
           }}
         />
@@ -671,7 +696,7 @@ export default function HQPage() {
               key={i}
               d={d}
               fill="none"
-              stroke="#cbd5e1"
+              stroke="rgba(59,130,246,0.28)"
               strokeWidth="1.5"
               strokeDasharray="6 4"
               className="svg-corridor"
@@ -681,7 +706,7 @@ export default function HQPage() {
 
           {/* Rooms */}
           {ROOM_LAYOUT.map((room) => {
-            const status = getRoomStatus(room, completedMissions, unlockedMissions);
+            const status = getRoomStatus(room, completedMissions, unlockedMissions, avatarRoom);
             return (
               <SVGRoom
                 key={room.missionId}
@@ -695,7 +720,7 @@ export default function HQPage() {
 
           {/* Floor label */}
           <text x="450" y="516" textAnchor="middle"
-            fill="#94a3b8" fontSize="8" fontFamily="sans-serif" letterSpacing="2"
+            fill="rgba(201,168,76,0.45)" fontSize="8" fontFamily="sans-serif" letterSpacing="3"
           >
             FRONT OFFICE — LEVEL 1
           </text>
@@ -729,15 +754,19 @@ export default function HQPage() {
         className="flex items-center justify-center gap-6 text-[9px] text-[#64748b] tracking-wider font-medium"
       >
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-[#16a34a] bg-[rgba(22,163,74,0.06)] inline-block" />
+          <span className="w-3 h-3 rounded border border-[#22c55e] bg-[rgba(34,197,94,0.11)] inline-block" />
           Cleared
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-[#2563eb] bg-[rgba(37,99,235,0.05)] inline-block" />
+          <span className="w-3 h-3 rounded border border-[#c9a84c] bg-[rgba(201,168,76,0.12)] inline-block" />
+          Active
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded border border-[#3b82f6] bg-[rgba(59,130,246,0.12)] inline-block" />
           Unlocked
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-[#e2e8f0] bg-[rgba(241,245,249,0.8)] opacity-60 inline-block" />
+          <span className="w-3 h-3 rounded border border-[#1e293b] bg-[rgba(9,18,36,0.65)] opacity-70 inline-block" />
           Locked
         </span>
         <span className="flex items-center gap-1.5">
@@ -747,7 +776,7 @@ export default function HQPage() {
       </motion.div>
 
       <p className="text-center text-[#94a3b8] text-[9px] tracking-widest uppercase mt-4 font-medium">
-        Auto-refreshes every 8s · Rooms unlock as prerequisites clear
+        Auto-refreshes every 5s · Rooms unlock as prerequisites clear
       </p>
 
       {/* ── Rival popup ──────────────────────────────────────────────────── */}

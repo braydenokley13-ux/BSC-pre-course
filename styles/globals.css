@@ -391,6 +391,7 @@ body {
 }
 
 .svg-corridor { animation: corridor 2.5s linear infinite; }
+.svg-corridor-gold { animation: corridor 1.8s linear infinite; }
 
 /* ── SVG avatar float ────────────────────────────────────────────────────── */
 @keyframes float {
