@@ -29,7 +29,7 @@ function PulsingDot() {
     <motion.span
       animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
       transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
-      className="inline-block w-2 h-2 rounded-full bg-[#16a34a]"
+      className="inline-block w-2 h-2 rounded-full bg-[#22c55e]"
     />
   );
 }
@@ -42,6 +42,9 @@ export default function LobbyPage() {
   const [counting, setCounting] = useState(false);
   const [countNum, setCountNum] = useState(3);
   const [showReveal, setShowReveal] = useState(false);
+  const [joinToast, setJoinToast] = useState<string | null>(null);
+  const [teamFull, setTeamFull] = useState(false);
+  const [rivalTeams, setRivalTeams] = useState<Array<{ color: string; codePrefix: string; memberCount: number }>>([]);
   const hasRevealedRef = useRef(false);
 
   const fetchState = useCallback(async () => {
@@ -54,9 +57,25 @@ export default function LobbyPage() {
         router.replace("/hq");
         return;
       }
-      if (state && data.members.length !== prevCount) {
+
+      // Detect new member joins and celebrate
+      if (state && data.members.length > prevCount) {
+        const newMember = data.members.find(
+          (m: Member) => !state.members.some((e) => e.id === m.id)
+        );
+        if (newMember && newMember.id !== state.me.id) {
+          setJoinToast(newMember.nickname);
+          setTimeout(() => setJoinToast(null), 2800);
+        }
+        if (data.members.length === 4 && prevCount < 4) {
+          setTeamFull(true);
+          setTimeout(() => setTeamFull(false), 2000);
+        }
+        setPrevCount(data.members.length);
+      } else if (state && data.members.length !== prevCount) {
         setPrevCount(data.members.length);
       }
+
       setState(data);
     } catch {
       setError("Connection error");
@@ -76,10 +95,24 @@ export default function LobbyPage() {
     setTimeout(() => setShowReveal(false), 2400);
   }, [state]);
 
+  useEffect(() => {
+    async function fetchRivalTeams() {
+      try {
+        const res = await fetch("/api/session/teams-status", { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json() as { teams: Array<{ color: string; codePrefix: string; memberCount: number }> };
+        setRivalTeams(data.teams ?? []);
+      } catch { /* silent */ }
+    }
+    void fetchRivalTeams();
+    const id = setInterval(() => void fetchRivalTeams(), 8000);
+    return () => clearInterval(id);
+  }, []);
+
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[#dc2626] text-sm">{error}</p>
+        <p className="text-[#ef4444] font-mono text-sm">{error}</p>
       </div>
     );
   }
@@ -90,7 +123,7 @@ export default function LobbyPage() {
         <motion.div
           animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="text-[#2563eb] text-2xl"
+          className="text-[#c9a84c] font-mono text-2xl"
         >
           ◈
         </motion.div>
@@ -117,7 +150,7 @@ export default function LobbyPage() {
     setTimeout(tick, 700);
   }
 
-  const teamColor = state ? (TEAM_COLOR_MAP[state.team.color ?? ""] ?? "#2563eb") : "#2563eb";
+  const teamColor = state ? (TEAM_COLOR_MAP[state.team.color ?? ""] ?? "#c9a84c") : "#c9a84c";
 
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
@@ -129,13 +162,13 @@ export default function LobbyPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020408]"
           >
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4 }}
-              className="text-xs tracking-[0.2em] text-[#64748b] uppercase mb-4 font-medium"
+              className="font-mono text-xs tracking-[0.3em] text-[#c9a84c] uppercase mb-4"
             >
               Your Team Is
             </motion.p>
@@ -143,7 +176,7 @@ export default function LobbyPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.5 }}
-              className="font-bold text-5xl tracking-tight"
+              className="font-mono font-bold text-5xl tracking-widest"
               style={{ color: teamColor }}
             >
               {state.team.name}
@@ -164,12 +197,12 @@ export default function LobbyPage() {
           initial={{ opacity: 0, letterSpacing: "0.05em" }}
           animate={{ opacity: 1, letterSpacing: "0.1em" }}
           transition={{ delay: 0.15, duration: 0.6 }}
-          className="text-[#2563eb] text-3xl font-bold mb-2 tracking-tight"
+          className="text-[#c9a84c] font-mono text-3xl font-bold mb-2"
         >
           {state.team.name}
         </motion.h1>
         <div className="flex items-center justify-center gap-2 mt-2">
-          <span className="text-[#64748b] text-xs">Team Code:</span>
+          <span className="text-[#6b7280] font-mono text-xs">Team Code:</span>
           <motion.span
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -179,7 +212,7 @@ export default function LobbyPage() {
             {state.team.joinCode}
           </motion.span>
         </div>
-        <p className="text-[#64748b] text-xs mt-2">
+        <p className="text-[#6b7280] font-mono text-xs mt-2">
           Share this code with your teammates in Zoom chat
         </p>
       </motion.div>
@@ -195,7 +228,7 @@ export default function LobbyPage() {
           <p className="bsc-section-title mb-0">Roster</p>
           <div className="flex items-center gap-2">
             <PulsingDot />
-            <span className="text-[#64748b] text-xs">{state.members.length} joined</span>
+            <span className="text-[#6b7280] font-mono text-xs">{state.members.length} joined</span>
           </div>
         </div>
 
@@ -210,7 +243,7 @@ export default function LobbyPage() {
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 exit={{ opacity: 0, x: 16, height: 0 }}
                 transition={{ duration: 0.25, delay: i * 0.04 }}
-                className="flex items-center justify-between py-2.5 border-b border-[#e2e8f0] last:border-0"
+                className="flex items-center justify-between py-2.5 border-b border-[#1a2030] last:border-0"
               >
                 <div className="flex items-center gap-2">
                   <span
@@ -220,17 +253,17 @@ export default function LobbyPage() {
                   >
                     {av.abbr}
                   </span>
-                  <span className="text-sm text-[#0f172a]">
+                  <span className="font-mono text-sm text-[#e5e7eb]">
                     {m.nickname}
                   </span>
                   {m.id === state.me.id && (
-                    <span className="text-[#2563eb] text-[10px] font-medium">(you)</span>
+                    <span className="text-[#c9a84c] font-mono text-[10px]">(you)</span>
                   )}
                 </div>
                 <motion.span
                   animate={m.active ? { scale: [1, 1.3, 1] } : {}}
                   transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  className={`w-2 h-2 rounded-full ${m.active ? "bg-[#16a34a]" : "bg-[#e2e8f0]"}`}
+                  className={`w-2 h-2 rounded-full ${m.active ? "bg-[#22c55e]" : "bg-[#1a2030]"}`}
                 />
               </motion.div>
               );
@@ -243,12 +276,51 @@ export default function LobbyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-[#64748b] text-xs mt-3"
+            className="text-[#6b7280] font-mono text-xs mt-3"
           >
             Waiting for teammates to join…
           </motion.p>
         )}
       </motion.div>
+
+      {/* League Activity */}
+      {rivalTeams.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22 }}
+          className="bsc-card p-4 mb-4"
+        >
+          <p className="bsc-section-title mb-3">League Activity</p>
+          <div className="space-y-2">
+            {rivalTeams.map((t, i) => {
+              const hex = TEAM_COLOR_MAP[t.color] ?? "#6b7280";
+              return (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hex, boxShadow: `0 0 6px ${hex}80` }} />
+                  <span className="font-mono text-[11px] text-[#6b7280] flex-1">
+                    Team <span className="text-[#9ca3af]">{t.codePrefix}••</span>
+                  </span>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 4 }).map((_, s) => (
+                      <div
+                        key={s}
+                        className="w-3.5 h-3.5 rounded-sm border"
+                        style={s < t.memberCount
+                          ? { background: `${hex}30`, borderColor: hex }
+                          : { background: "transparent", borderColor: "#1a2030" }}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-mono text-[10px]" style={{ color: hex }}>
+                    {t.memberCount}/4
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Start section */}
       <motion.div
@@ -257,7 +329,7 @@ export default function LobbyPage() {
         transition={{ delay: 0.28 }}
         className="bsc-card p-6 text-center"
       >
-        <p className="text-[#0f172a] text-sm mb-4">
+        <p className="text-[#e5e7eb] font-mono text-sm mb-4">
           8 missions. 8 concepts. One team style.
         </p>
         {canStart ? (
@@ -275,10 +347,75 @@ export default function LobbyPage() {
             Waiting for teammates to join…
           </button>
         )}
-        <p className="text-[#64748b] text-xs mt-3">
+        <p className="text-[#6b7280] font-mono text-xs mt-3">
           {state.activeCount} active now · Updates every 5s
         </p>
       </motion.div>
+
+      {/* Teammate join toast */}
+      <AnimatePresence>
+        {joinToast && (
+          <motion.div
+            key="join-toast"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: "spring", stiffness: 280, damping: 24 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          >
+            <div className="bsc-card px-5 py-3 flex items-center gap-3 border-[#22c55e]/40"
+              style={{ background: "rgba(13,17,32,0.96)" }}>
+              <motion.span
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ repeat: 2, duration: 0.4 }}
+                className="text-[#22c55e] font-mono font-bold text-sm"
+              >
+                +1
+              </motion.span>
+              <p className="font-mono text-sm text-[#e5e7eb]">
+                <span className="text-[#22c55e] font-bold">{joinToast}</span>{" "}
+                entered the war room
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Team assembled overlay */}
+      <AnimatePresence>
+        {teamFull && (
+          <motion.div
+            key="team-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#020408]/85"
+          >
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              className="bsc-card p-10 text-center"
+              style={{ boxShadow: "0 0 0 1px rgba(201,168,76,0.5), 0 0 40px rgba(201,168,76,0.12)" }}
+            >
+              <motion.p
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ repeat: Infinity, duration: 1.2 }}
+                className="font-mono text-[10px] tracking-[0.4em] uppercase text-[#c9a84c] mb-4"
+              >
+                ◈ Full Roster
+              </motion.p>
+              <p className="font-mono font-bold text-[#e5e7eb] text-2xl tracking-widest mb-2">
+                TEAM ASSEMBLED
+              </p>
+              <p className="font-mono text-xs text-[#6b7280]">
+                All four executives are in the building.
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Countdown overlay */}
       <AnimatePresence>
@@ -288,7 +425,7 @@ export default function LobbyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172a]/90"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#020408]/90"
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -300,15 +437,15 @@ export default function LobbyPage() {
                 className="text-center select-none"
               >
                 {countNum > 0 ? (
-                  <span className="font-bold text-[#2563eb]" style={{ fontSize: "8rem" }}>
+                  <span className="font-mono font-bold text-[#c9a84c]" style={{ fontSize: "8rem" }}>
                     {countNum}
                   </span>
                 ) : (
                   <div>
-                    <span className="font-bold text-[#16a34a]" style={{ fontSize: "6rem" }}>
+                    <span className="font-mono font-bold text-[#22c55e]" style={{ fontSize: "6rem" }}>
                       GO!
                     </span>
-                    <p className="text-white/70 text-sm mt-2 tracking-widest uppercase">
+                    <p className="font-mono text-[#6b7280] text-sm mt-2 tracking-widest uppercase">
                       Entering Front Office HQ…
                     </p>
                   </div>
