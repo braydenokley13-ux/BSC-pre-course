@@ -24,6 +24,12 @@ import {
   loadAdaptiveQuestionsFromDb,
 } from "@/lib/adaptiveBank";
 
+interface FeedbackPayload {
+  isCorrect: boolean;
+  correctIndex: number;
+  explanation: string;
+}
+
 interface CompletedPayload {
   done: true;
   masteryScore: number;
@@ -38,6 +44,7 @@ interface CompletedPayload {
   misconceptionsTop: Array<{ tag: string; count: number }>;
   recommendationBand: "heavy" | "medium" | "light";
   lowConfidence: boolean;
+  feedback?: FeedbackPayload;
 }
 
 function buildUsageCounts(questionIds: string[]): Record<string, number> {
@@ -235,6 +242,14 @@ export async function POST(req: NextRequest) {
   const currentState = parseStateFromAssessment(assessment);
   const update = applyAdaptiveAnswer(currentState, currentQuestion, selectedIndex);
 
+  const feedback: FeedbackPayload = {
+    isCorrect: update.isCorrect,
+    correctIndex: currentQuestion.correctIndex,
+    explanation: update.isCorrect
+      ? currentQuestion.explanationCorrect
+      : currentQuestion.explanationRemediation,
+  };
+
   try {
     await prisma.adaptiveResponse.create({
       data: {
@@ -313,7 +328,7 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-    return NextResponse.json(completed);
+    return NextResponse.json({ ...completed, feedback });
   }
 
   const usageRows = await prisma.adaptiveResponse.findMany({
@@ -377,7 +392,7 @@ export async function POST(req: NextRequest) {
     ]);
     await awardBadgeIfEarned(assessment.teamId, assessment.conceptId, update.masteryScoreAfter);
     const completed = await buildCompletedResponse(assessment.id);
-    if (completed) return NextResponse.json(completed);
+    if (completed) return NextResponse.json({ ...completed, feedback });
     return NextResponse.json({ error: "Unable to finalize adaptive attempt", code: "UNKNOWN" }, { status: 500 });
   }
 
@@ -400,6 +415,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     done: false,
+    feedback,
     askedCount: questionCount + 1,
     minQuestions: ADAPTIVE_MIN_QUESTIONS,
     maxQuestions: ADAPTIVE_MAX_QUESTIONS,

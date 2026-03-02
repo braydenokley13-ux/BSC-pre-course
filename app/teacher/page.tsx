@@ -57,7 +57,7 @@ export default function TeacherLoginPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
         <div className="bsc-broadcast-shell p-5 md:p-6">
-          <p className="text-[#6b7280] font-mono text-sm text-center">Checking teacher session...</p>
+          <p className="text-[#64748b] font-mono text-sm text-center">Checking teacher session...</p>
         </div>
       </div>
     );
@@ -67,8 +67,8 @@ export default function TeacherLoginPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
       <div className="bsc-broadcast-shell p-5 md:p-6">
         <div className="mb-4">
-          <div className="text-[#c9a84c] font-mono text-3xl font-bold mb-1">TEACHER DESK</div>
-          <p className="text-[#6b7280] font-mono text-xs tracking-wider">Instructor Login</p>
+          <div className="text-[#2563eb] font-mono text-3xl font-bold mb-1">TEACHER DESK</div>
+          <p className="text-[#64748b] font-mono text-xs tracking-wider">Instructor Login</p>
         </div>
 
         <div className="bsc-score-grid mb-4">
@@ -136,20 +136,20 @@ export default function TeacherLoginPage() {
 
           <div className="bsc-card p-5">
             <p className="bsc-section-title">Before You Start</p>
-            <div className="space-y-3 font-mono text-xs text-[#9ca3af]">
+            <div className="space-y-3 font-mono text-xs text-[#64748b]">
               <p>1. Create a fresh classroom session.</p>
               <p>2. Share team codes in breakout rooms.</p>
               <p>3. Track progress and stuck teams live.</p>
               <p>4. Export summary and detail CSV files.</p>
             </div>
-            <div className="mt-4 pt-4 border-t border-[#1e2435]">
+            <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
               <span className="bsc-status-normal">Teacher Controls Enabled</span>
             </div>
           </div>
         </div>
 
         <p className="text-center mt-5">
-          <a href="/join" className="text-[#6b7280] font-mono text-xs hover:text-[#c9a84c]">
+          <a href="/join" className="text-[#64748b] font-mono text-xs hover:text-[#2563eb]">
             Back to student join page
           </a>
         </p>

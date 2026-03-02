@@ -6,6 +6,10 @@ export interface AdaptiveObjectiveSeed {
   focus: string;
   misconceptionTags: [string, string, string];
   remediation: string;
+  // When provided, these replace template-generated option text with actual content.
+  // Provide both fields or neither; mixing one with template fallback creates obvious answer-giveaways.
+  correctStatement?: string;
+  misconceptionDescriptions?: [string, string, string];
 }
 
 export interface AdaptiveConceptSeed {

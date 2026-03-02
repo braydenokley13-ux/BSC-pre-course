@@ -158,9 +158,6 @@ function conceptLabel(conceptId: string): string {
     .join(" ");
 }
 
-function simplifyFocus(focus: string): string {
-  return focus.replace(/^how\s+/i, "");
-}
 
 function getConceptVoice(conceptId: string): ConceptVoice {
   const voice = CONCEPT_VOICES[conceptId];
@@ -177,8 +174,10 @@ function getConceptVoice(conceptId: string): ConceptVoice {
 function buildCorrectOption(
   objectiveFocus: string,
   termId: string,
-  difficulty: DifficultyLevel
+  difficulty: DifficultyLevel,
+  correctStatement?: string
 ): string {
+  if (correctStatement) return correctStatement;
   const term = toHumanTerm(termId);
   if (difficulty === 1) {
     return `Use the ${term} rule first. Pick the option that shows the right idea.`;
@@ -196,8 +195,12 @@ function buildDistractor(
   tag: string,
   termId: string,
   focus: string,
-  slot: number
+  slot: number,
+  misconceptionDescriptions?: [string, string, string]
 ): string {
+  if (misconceptionDescriptions && slot >= 0 && slot <= 2) {
+    return misconceptionDescriptions[slot];
+  }
   const humanTerm = toHumanTerm(termId);
   const misconception = tag.replace(/-/g, " ");
   if (slot === 0) {
@@ -217,26 +220,25 @@ function buildQuestionStem(
   variant: number
 ): string {
   const term = toHumanTerm(termId);
-  const focusHint = simplifyFocus(objectiveFocus);
   const voice = getConceptVoice(seed.conceptId);
   if (difficulty === 1) {
     return variant === 1
-      ? `In ${voice.quickScene}, which option best shows you understand ${term} for ${focusHint}?`
-      : `In ${voice.quickScene}, which option explains ${term} the right way for ${focusHint}?`;
+      ? `In ${voice.quickScene}, which statement about ${term} is accurate?`
+      : `In ${voice.quickScene}, which option correctly describes ${term}?`;
   }
   if (difficulty === 2) {
     return variant === 1
-      ? `In ${voice.planningScene}, which plan uses ${term} the right way for ${focusHint}?`
-      : `In ${voice.planningScene}, which choice shows good understanding of ${term} for ${focusHint}?`;
+      ? `In ${voice.planningScene}, which plan correctly applies ${term}?`
+      : `In ${voice.planningScene}, which approach shows the right understanding of ${term}?`;
   }
   if (difficulty === 3) {
     return variant === 1
-      ? `In ${voice.tradeoffScene}, goals clash. Which option still uses ${term} correctly for ${focusHint}?`
-      : `In ${voice.tradeoffScene}, which plan uses ${term} best for ${focusHint} now and later?`;
+      ? `In ${voice.tradeoffScene}, goals clash. Which option still applies ${term} correctly?`
+      : `In ${voice.tradeoffScene}, which plan uses ${term} correctly under competing priorities?`;
   }
   return variant === 1
-    ? `In ${voice.pressureScene}, pressure is high. Which decision still uses ${term} correctly for ${focusHint}?`
-    : `In ${voice.pressureScene}, which option shows the strongest understanding of ${term} for ${focusHint}?`;
+    ? `In ${voice.pressureScene}, pressure is high. Which decision correctly applies ${term}?`
+    : `In ${voice.pressureScene}, which option shows the strongest understanding of ${term}?`;
 }
 
 function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestionSeed[] {
@@ -248,10 +250,11 @@ function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestion
         const correctOption = buildCorrectOption(
           objective.focus,
           objective.termId,
-          difficulty
+          difficulty,
+          objective.correctStatement
         );
         const distractors = objective.misconceptionTags.map((tag, slot) => ({
-          text: buildDistractor(tag, objective.termId, objective.focus, slot),
+          text: buildDistractor(tag, objective.termId, objective.focus, slot, objective.misconceptionDescriptions),
           tag,
         }));
         const correctIndex = ((objectiveIndex + difficulty + variant) % 4) as 0 | 1 | 2 | 3;
@@ -280,9 +283,9 @@ function buildQuestionSetForConcept(seed: AdaptiveConceptSeed): AdaptiveQuestion
           options,
           correctIndex,
           misconceptionTags,
-          explanationCorrect: `Correct. This choice uses ${toHumanTerm(
-            objective.termId
-          )} correctly in context.`,
+          explanationCorrect: objective.correctStatement
+            ? `Correct. ${objective.correctStatement}`
+            : `Correct. This choice uses ${toHumanTerm(objective.termId)} correctly in context.`,
           explanationRemediation: objective.remediation,
           readingLevel,
           readingWaived: readingLevel < 6 || readingLevel > 8,

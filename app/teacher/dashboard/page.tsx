@@ -380,7 +380,7 @@ export default function TeacherDashboard() {
         <motion.div
           animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="text-[#c9a84c] font-mono text-2xl"
+          className="text-[#2563eb] font-mono text-2xl"
         >
           ◈
         </motion.div>
@@ -396,8 +396,8 @@ export default function TeacherDashboard() {
     <div className="max-w-7xl mx-auto px-4 py-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
-          <h1 className="text-[#c9a84c] font-mono text-xl font-bold">{feed.title}</h1>
-          <p className="text-[#6b7280] font-mono text-xs mt-0.5">
+          <h1 className="text-[#2563eb] font-mono text-xl font-bold">{feed.title}</h1>
+          <p className="text-[#64748b] font-mono text-xs mt-0.5">
             {feed.completedTeams}/{feed.totalTeams} teams complete · Refreshes every 5s
           </p>
           {error && <p className="text-[#ef4444] font-mono text-xs mt-1">{error}</p>}
@@ -428,7 +428,7 @@ export default function TeacherDashboard() {
       <div className="grid grid-cols-5 gap-4 mb-6">
         <StatCard label="Teams" value={feed.totalTeams} />
         <StatCard label="Completed" value={feed.completedTeams} color="#22c55e" />
-        <StatCard label="In Progress" value={inProgress} color="#c9a84c" />
+        <StatCard label="In Progress" value={inProgress} color="#2563eb" />
         <StatCard label="Stuck" value={stuck} color="#ef4444" />
         <StatCard label="High Alerts" value={highAlerts} color="#ef4444" />
       </div>
@@ -438,7 +438,7 @@ export default function TeacherDashboard() {
           <AnimatePresence>
             {feed.teams.length === 0 && (
               <div className="bsc-card p-6 text-center col-span-full">
-                <p className="font-mono text-sm text-[#6b7280]">No teams have joined this session yet.</p>
+                <p className="font-mono text-sm text-[#64748b]">No teams have joined this session yet.</p>
                 <p className="font-mono text-xs text-[#374151] mt-1">Share the join code with students to get started.</p>
               </div>
             )}
@@ -455,37 +455,37 @@ export default function TeacherDashboard() {
                       ? "border-[#22c55e]/40"
                       : team.isStuck
                       ? "border-[#ef4444]/50"
-                      : "border-[#1a2030]"
+                      : "border-[#e2e8f0]"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <span className="text-[#e5e7eb] font-mono font-bold">{team.name}</span>
-                      <span className="text-[#6b7280] font-mono text-xs ml-2">{team.joinCode}</span>
+                      <span className="text-[#0f172a] font-mono font-bold">{team.name}</span>
+                      <span className="text-[#64748b] font-mono text-xs ml-2">{team.joinCode}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {team.isComplete && <span className="bsc-badge-green">Done</span>}
                       {team.isStuck && <span className="bsc-badge-red">Stuck</span>}
-                      <span className="text-[#6b7280] font-mono text-xs">{team.score}pts</span>
+                      <span className="text-[#64748b] font-mono text-xs">{team.score}pts</span>
                     </div>
                   </div>
 
                   <div className="mb-2">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className="font-mono text-xs text-[#6b7280]">
+                      <span className="font-mono text-xs text-[#64748b]">
                         {team.isComplete ? "Complete" : team.missionTitle}
                       </span>
-                      <span className="font-mono text-xs text-[#6b7280]">⏱ {formatElapsed(team.elapsedSeconds)}</span>
+                      <span className="font-mono text-xs text-[#64748b]">⏱ {formatElapsed(team.elapsedSeconds)}</span>
                     </div>
-                    <div className="h-1.5 bg-[#1a2030] rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[#f1f5f9] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#c9a84c] rounded-full"
+                        className="h-full bg-[#2563eb] rounded-full"
                         style={{
                           width: `${MISSIONS.length > 0 ? (team.missionIndex / MISSIONS.length) * 100 : 0}%`,
                         }}
                       />
                     </div>
-                    <div className="flex items-center justify-between mt-1 font-mono text-[10px] text-[#6b7280]">
+                    <div className="flex items-center justify-between mt-1 font-mono text-[10px] text-[#64748b]">
                       <span>v{team.teamStateVersion}</span>
                       <span>{team.activeMissionId ? `${team.activeMissionId} / ${team.activeRoundId}` : "No active round"}</span>
                     </div>
@@ -499,11 +499,11 @@ export default function TeacherDashboard() {
                         </span>
                       ))
                     ) : (
-                      <span className="text-[#6b7280] font-mono text-xs">No badges yet</span>
+                      <span className="text-[#64748b] font-mono text-xs">No badges yet</span>
                     )}
                   </div>
 
-                  <div className="border-t border-[#1a2030] pt-3">
+                  <div className="border-t border-[#e2e8f0] pt-3">
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       {team.members.map((member) => (
                         <span
@@ -511,14 +511,14 @@ export default function TeacherDashboard() {
                           className={`font-mono text-xs px-1.5 py-0.5 rounded border ${
                             member.active
                               ? "border-[#22c55e]/40 text-[#22c55e]"
-                              : "border-[#1a2030] text-[#6b7280]"
+                              : "border-[#e2e8f0] text-[#64748b]"
                           }`}
                         >
                           {member.nickname}
                         </span>
                       ))}
                     </div>
-                    <div className="flex items-center gap-3 font-mono text-xs text-[#6b7280] mb-3">
+                    <div className="flex items-center gap-3 font-mono text-xs text-[#64748b] mb-3">
                       <span>{team.activeMembers}/{team.totalMembers} active</span>
                       {team.checkPassRate !== null && <span>Check: {team.checkPassRate}%</span>}
                       <span>Codes: {team.claimCodesSubmitted}</span>
@@ -555,7 +555,7 @@ export default function TeacherDashboard() {
                       </button>
                     </div>
                     {actionInFlight && (
-                      <p className="text-[#c9a84c] font-mono text-xs mt-2">
+                      <p className="text-[#2563eb] font-mono text-xs mt-2">
                         {actionInFlight} is in progress...
                       </p>
                     )}
@@ -570,7 +570,7 @@ export default function TeacherDashboard() {
           <div className="bsc-card p-4">
             <p className="bsc-section-title mb-2">Live Alerts</p>
             {alerts.length === 0 ? (
-              <p className="text-[#6b7280] font-mono text-xs">No active alerts.</p>
+              <p className="text-[#64748b] font-mono text-xs">No active alerts.</p>
             ) : (
               <div className="space-y-2">
                 {alerts.slice(0, 8).map((alert) => {
@@ -579,17 +579,17 @@ export default function TeacherDashboard() {
                     alert.severity === "high"
                       ? "#ef4444"
                       : alert.severity === "medium"
-                      ? "#c9a84c"
+                      ? "#2563eb"
                       : "#6b7280";
                   return (
-                    <div key={`${alert.teamId}-${alert.type}-${alert.ageSeconds}`} className="border border-[#1a2030] rounded px-3 py-2">
+                    <div key={`${alert.teamId}-${alert.type}-${alert.ageSeconds}`} className="border border-[#e2e8f0] rounded px-3 py-2">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-mono text-xs text-[#e5e7eb]">{team?.name ?? alert.teamId}</span>
+                        <span className="font-mono text-xs text-[#0f172a]">{team?.name ?? alert.teamId}</span>
                         <span className="font-mono text-[10px]" style={{ color }}>
                           {alert.severity.toUpperCase()}
                         </span>
                       </div>
-                      <p className="font-mono text-[11px] text-[#9ca3af]">{alert.message}</p>
+                      <p className="font-mono text-[11px] text-[#64748b]">{alert.message}</p>
                     </div>
                   );
                 })}
@@ -600,29 +600,29 @@ export default function TeacherDashboard() {
           <div className="bsc-card p-4">
             <p className="bsc-section-title mb-2">Teaching Analytics</p>
             {!analytics ? (
-              <p className="text-[#6b7280] font-mono text-xs">Loading analytics...</p>
+              <p className="text-[#64748b] font-mono text-xs">Loading analytics...</p>
             ) : (
               <div className="space-y-2 font-mono text-xs">
-                <p className="text-[#9ca3af]">
-                  Participation: <span className="text-[#e5e7eb]">{analytics.participationRate}%</span>
+                <p className="text-[#64748b]">
+                  Participation: <span className="text-[#0f172a]">{analytics.participationRate}%</span>
                 </p>
-                <p className="text-[#9ca3af]">
+                <p className="text-[#64748b]">
                   Median vote latency:{" "}
-                  <span className="text-[#e5e7eb]">
+                  <span className="text-[#0f172a]">
                     {analytics.medianVoteLatencySeconds == null
                       ? "N/A"
                       : `${analytics.medianVoteLatencySeconds}s`}
                   </span>
                 </p>
-                <p className="text-[#9ca3af]">
-                  Students: <span className="text-[#e5e7eb]">{analytics.totals.students}</span> · Votes:{" "}
-                  <span className="text-[#e5e7eb]">{analytics.totals.votes}</span> · Adaptive checks:{" "}
-                  <span className="text-[#e5e7eb]">{analytics.totals.adaptiveAssessments}</span>
+                <p className="text-[#64748b]">
+                  Students: <span className="text-[#0f172a]">{analytics.totals.students}</span> · Votes:{" "}
+                  <span className="text-[#0f172a]">{analytics.totals.votes}</span> · Adaptive checks:{" "}
+                  <span className="text-[#0f172a]">{analytics.totals.adaptiveAssessments}</span>
                 </p>
-                <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Teach heavily</p>
+                <div className="pt-2 border-t border-[#e2e8f0]">
+                  <p className="text-[#64748b] mb-1">Teach heavily</p>
                   {analytics.focusRecommendations.heavyConcepts.length === 0 ? (
-                    <p className="text-[#6b7280]">No heavy-priority concepts yet.</p>
+                    <p className="text-[#64748b]">No heavy-priority concepts yet.</p>
                   ) : (
                     analytics.focusRecommendations.heavyConcepts.slice(0, 4).map((concept) => (
                       <p key={concept} className="text-[#ef4444]">
@@ -631,75 +631,75 @@ export default function TeacherDashboard() {
                     ))
                   )}
                 </div>
-                <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Class Concept Mastery</p>
+                <div className="pt-2 border-t border-[#e2e8f0]">
+                  <p className="text-[#64748b] mb-1">Class Concept Mastery</p>
                   {analytics.classConceptMastery.length === 0 ? (
-                    <p className="text-[#6b7280]">No adaptive concept data yet.</p>
+                    <p className="text-[#64748b]">No adaptive concept data yet.</p>
                   ) : (
                     analytics.classConceptMastery.slice(0, 3).map((item) => (
-                      <p key={item.conceptId} className="text-[#9ca3af]">
+                      <p key={item.conceptId} className="text-[#64748b]">
                         {item.conceptId}:{" "}
-                        <span className="text-[#e5e7eb]">
+                        <span className="text-[#0f172a]">
                           {item.avgMastery.toFixed(2)} / 4 ({item.teachingPriority})
                         </span>
                       </p>
                     ))
                   )}
                 </div>
-                <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Team Variance Watch</p>
+                <div className="pt-2 border-t border-[#e2e8f0]">
+                  <p className="text-[#64748b] mb-1">Team Variance Watch</p>
                   {analytics.teamConceptMastery.length === 0 ? (
-                    <p className="text-[#6b7280]">No team-level mastery data yet.</p>
+                    <p className="text-[#64748b]">No team-level mastery data yet.</p>
                   ) : (
                     analytics.teamConceptMastery
                       .slice()
                       .sort((a, b) => b.variance - a.variance)
                       .slice(0, 3)
                       .map((item) => (
-                      <p key={`${item.teamId}-${item.conceptId}`} className="text-[#9ca3af]">
+                      <p key={`${item.teamId}-${item.conceptId}`} className="text-[#64748b]">
                         {item.teamName} · {item.conceptId}:{" "}
-                        <span className="text-[#e5e7eb]">
+                        <span className="text-[#0f172a]">
                           {item.avgMastery.toFixed(2)} / 4 · variance {item.variance.toFixed(2)}
                         </span>
                       </p>
                     ))
                   )}
                 </div>
-                <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Objective Weak Spots</p>
+                <div className="pt-2 border-t border-[#e2e8f0]">
+                  <p className="text-[#64748b] mb-1">Objective Weak Spots</p>
                   {analytics.objectiveWeakness.length === 0 ? (
-                    <p className="text-[#6b7280]">No objective weakness data yet.</p>
+                    <p className="text-[#64748b]">No objective weakness data yet.</p>
                   ) : (
                     analytics.objectiveWeakness.slice(0, 3).map((row) => (
-                      <p key={`${row.conceptId}-${row.objectiveId}`} className="text-[#9ca3af]">
+                      <p key={`${row.conceptId}-${row.objectiveId}`} className="text-[#64748b]">
                         {row.objectiveId}:{" "}
-                        <span className="text-[#e5e7eb]">{row.missRate}% miss</span> ·{" "}
+                        <span className="text-[#0f172a]">{row.missRate}% miss</span> ·{" "}
                         {row.recommendedAction}
                       </p>
                     ))
                   )}
                 </div>
-                <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Decision vs Mastery</p>
+                <div className="pt-2 border-t border-[#e2e8f0]">
+                  <p className="text-[#64748b] mb-1">Decision vs Mastery</p>
                   {analytics.decisionVsMastery.length === 0 ? (
-                    <p className="text-[#6b7280]">No decision/mastery divergence yet.</p>
+                    <p className="text-[#64748b]">No decision/mastery divergence yet.</p>
                   ) : (
                     analytics.decisionVsMastery.slice(0, 2).map((row) => (
-                      <p key={`${row.missionId}-${row.roundId}`} className="text-[#9ca3af]">
-                        {row.missionTitle}: <span className="text-[#e5e7eb]">{row.divergence}% divergence</span>
+                      <p key={`${row.missionId}-${row.roundId}`} className="text-[#64748b]">
+                        {row.missionTitle}: <span className="text-[#0f172a]">{row.divergence}% divergence</span>
                       </p>
                     ))
                   )}
                 </div>
-                <div className="pt-2 border-t border-[#1a2030]">
-                  <p className="text-[#6b7280] mb-1">Top bottlenecks</p>
+                <div className="pt-2 border-t border-[#e2e8f0]">
+                  <p className="text-[#64748b] mb-1">Top bottlenecks</p>
                   {analytics.missionBottlenecks.length === 0 ? (
-                    <p className="text-[#6b7280]">Not enough event data yet.</p>
+                    <p className="text-[#64748b]">Not enough event data yet.</p>
                   ) : (
                     analytics.missionBottlenecks.slice(0, 3).map((item) => (
-                      <p key={item.missionId} className="text-[#9ca3af]">
+                      <p key={item.missionId} className="text-[#64748b]">
                         {item.missionTitle}:{" "}
-                        <span className="text-[#e5e7eb]">{item.medianSeconds}s</span> ({item.samples})
+                        <span className="text-[#0f172a]">{item.medianSeconds}s</span> ({item.samples})
                       </p>
                     ))
                   )}
@@ -711,15 +711,15 @@ export default function TeacherDashboard() {
           <div className="bsc-card p-4">
             <p className="bsc-section-title mb-2">Recent Actions</p>
             {recentActions.length === 0 ? (
-              <p className="text-[#6b7280] font-mono text-xs">No actions logged yet.</p>
+              <p className="text-[#64748b] font-mono text-xs">No actions logged yet.</p>
             ) : (
               <div className="space-y-2">
                 {recentActions.map((item) => {
                   const team = teamById.get(item.teamId);
                   return (
-                    <div key={item.id} className="border border-[#1a2030] rounded px-3 py-2">
+                    <div key={item.id} className="border border-[#e2e8f0] rounded px-3 py-2">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-mono text-xs text-[#e5e7eb]">
+                        <span className="font-mono text-xs text-[#0f172a]">
                           {team?.name ?? item.teamId}
                         </span>
                         <span
@@ -730,7 +730,7 @@ export default function TeacherDashboard() {
                           {item.success ? "SUCCESS" : "FAILED"}
                         </span>
                       </div>
-                      <p className="font-mono text-[11px] text-[#9ca3af]">
+                      <p className="font-mono text-[11px] text-[#64748b]">
                         {item.actionType} · {new Date(item.createdAt).toLocaleTimeString()}
                       </p>
                     </div>
@@ -746,10 +746,10 @@ export default function TeacherDashboard() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bsc-card p-5 w-full max-w-md">
             <p className="bsc-section-title mb-2">Confirm Action</p>
-            <p className="font-mono text-sm text-[#e5e7eb] mb-3">
+            <p className="font-mono text-sm text-[#0f172a] mb-3">
               {actionLabel(pendingAction.actionType)} for {pendingAction.teamName}.
             </p>
-            <p className="font-mono text-xs text-[#6b7280] mb-3">
+            <p className="font-mono text-xs text-[#64748b] mb-3">
               This action is logged and may change live gameplay state.
             </p>
             {pendingAction.actionType === "jump-mission" && (
