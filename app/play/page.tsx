@@ -98,8 +98,8 @@ const TEAM_COLOR_MAP: Record<string, string> = {
 };
 
 // ── Voting timer constants ──────────────────────────────────────────────────────
-const VOTE_TIMER_SECS = 90;
-const RIVAL_TIMER_SECS = 60;
+const VOTE_TIMER_SECS = 45;
+const RIVAL_TIMER_SECS = 30;
 
 // ── Score pop crowd reaction ────────────────────────────────────────────────────
 function getCrowdReaction(delta: number): string {
@@ -491,6 +491,7 @@ function PlayInner() {
   const [showRoleCeremony, setShowRoleCeremony] = useState(false);
   const [privateRevealed, setPrivateRevealed] = useState(false);
   const [revealNotif, setRevealNotif] = useState<string | null>(null);
+  const [skipCardDelays, setSkipCardDelays] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
   const prevRivalCountRef = useRef(0);
   const missionStarted = useRef(false);
@@ -574,7 +575,7 @@ function PlayInner() {
 
   useEffect(() => {
     void fetchState();
-    const id = setInterval(() => void fetchState(), 4000);
+    const id = setInterval(() => void fetchState(), 2000);
     return () => clearInterval(id);
   }, [fetchState]);
 
@@ -823,7 +824,8 @@ function PlayInner() {
   const votedIds = teamState.votes.map((v) => v.studentId);
   const activeIds = members.filter((m) => m.active).map((m) => m.id);
   const votedCount = activeIds.filter((id) => votedIds.includes(id)).length;
-  const canReveal = votedCount >= activeCount && activeCount > 0;
+  // Anyone who has personally voted can lock in the round — no need to wait for stragglers
+  const canReveal = selectedOptionIdx !== null;
 
   // Stable phase key so voting→waiting doesn't re-animate options
   const phaseKey =
@@ -1001,16 +1003,16 @@ function PlayInner() {
             </motion.div>
 
             {/* Info cards */}
-            <div className="space-y-3 mb-5">
+            <div className="space-y-3 mb-3">
               {myInfoCards.map((card) => (
                 <InfoCardReveal
                   key={card.title}
                   title={card.title}
                   content={card.content}
-                  delay={card.revealDelay}
+                  delay={skipCardDelays ? 0 : card.revealDelay}
                   isRoleRestricted={!!card.roleOnly}
                   onReveal={(title) => {
-                    if (card.revealDelay > 0) {
+                    if (!skipCardDelays && card.revealDelay > 0) {
                       setRevealNotif(title);
                       setTimeout(() => setRevealNotif(null), 2800);
                     }
@@ -1018,6 +1020,19 @@ function PlayInner() {
                 />
               ))}
             </div>
+
+            {/* Show All / Skip delays */}
+            {!skipCardDelays && myInfoCards.some((c) => c.revealDelay > 0) && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="bsc-btn-ghost w-full py-2 mb-4 text-xs"
+                onClick={() => setSkipCardDelays(true)}
+              >
+                Show All Intel Now ↓
+              </motion.button>
+            )}
 
             {/* CTA */}
             <motion.button
@@ -1030,7 +1045,7 @@ function PlayInner() {
               onClick={() => { if (currentRound) setPhase("voting"); }}
               disabled={!currentRound}
             >
-              {currentRound ? "I've Read the Briefing — Begin Voting →" : "Preparing mission…"}
+              {currentRound ? "Let's Vote →" : "Preparing mission…"}
             </motion.button>
           </div>
         )}
@@ -1188,74 +1203,87 @@ function PlayInner() {
               })}
             </motion.div>
 
-            {/* Waiting state — with live teammate vote indicators */}
+            {/* Waiting state — live teammate huddle + instant lock-in */}
             {phase === "waiting" && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center space-y-3"
+                className="space-y-4"
               >
-                <PulsingDots />
-                <p className="text-[#6b7280] font-mono text-xs">
-                  {votedCount}/{activeCount} votes in — waiting for teammates…
-                </p>
-                {/* Teammate vote indicators */}
-                <div className="flex flex-wrap gap-2 justify-center mt-1">
-                  {members.filter((m) => m.active).map((m) => {
-                    const hasVoted = votedIds.includes(m.id);
-                    return (
-                      <motion.div
-                        key={m.id}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 18 }}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded border font-mono text-[10px] transition-colors"
-                        style={{
-                          borderColor: hasVoted ? "#c9a84c" : "#1a2030",
-                          background: hasVoted ? "rgba(201,168,76,0.06)" : "transparent",
-                        }}
-                      >
-                        <div
-                          className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0 bg-[#c9a84c]/20"
-                          style={{ color: "#c9a84c" }}
+                {/* Team Huddle */}
+                <div className="bsc-card p-4">
+                  <p className="font-mono text-[10px] tracking-widest uppercase text-[#c9a84c] mb-3">
+                    ⚡ Team Huddle — {votedCount}/{activeCount} voted
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {members.filter((m) => m.active).map((m) => {
+                      const hasVoted = votedIds.includes(m.id);
+                      const av = getAvatar(m.avatarId ?? "hawks");
+                      return (
+                        <motion.div
+                          key={m.id}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                          className="flex flex-col items-center gap-1"
                         >
-                          {m.nickname.slice(0, 1).toUpperCase()}
-                        </div>
-                        <span style={{ color: hasVoted ? "#c9a84c" : "#6b7280" }}>
-                          {m.nickname}{m.id === me.id ? " (you)" : ""}
-                        </span>
-                        {hasVoted ? (
-                          <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 400 }}
-                            className="text-[#c9a84c] text-[11px]"
-                          >
-                            ✓
-                          </motion.span>
-                        ) : (
-                          <motion.span
-                            animate={{ opacity: [1, 0.3, 1] }}
-                            transition={{ repeat: Infinity, duration: 1.4 }}
-                            className="w-1.5 h-1.5 rounded-full bg-[#6b7280] flex-shrink-0"
-                          />
-                        )}
-                      </motion.div>
-                    );
-                  })}
+                          <div className="relative">
+                            <div
+                              className="w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-[10px]"
+                              style={{ backgroundColor: av.color, color: av.textColor,
+                                boxShadow: hasVoted ? `0 0 0 3px #22c55e` : `0 0 0 2px #1a2030` }}
+                            >
+                              {av.abbr}
+                            </div>
+                            {hasVoted && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 500 }}
+                                className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#22c55e] flex items-center justify-center text-white text-[9px] font-bold"
+                              >
+                                ✓
+                              </motion.div>
+                            )}
+                            {!hasVoted && (
+                              <motion.div
+                                animate={{ opacity: [1, 0.3, 1] }}
+                                transition={{ repeat: Infinity, duration: 1.2 }}
+                                className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#374151] flex items-center justify-center"
+                              >
+                                <span className="text-[8px] text-[#6b7280]">?</span>
+                              </motion.div>
+                            )}
+                          </div>
+                          <span className="font-mono text-[9px] text-center max-w-[40px] truncate"
+                            style={{ color: hasVoted ? "#22c55e" : "#6b7280" }}>
+                            {m.id === me.id ? "YOU" : m.nickname.slice(0, 5)}
+                          </span>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* Lock In button — visible immediately after you vote */}
                 {canReveal && (
                   <motion.button
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    initial={{ scale: 0.85, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="bsc-btn-gold px-8 py-2"
+                    transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="bsc-btn-gold w-full py-4 text-base font-bold"
                     onClick={() => void handleResolveRound(currentRound.id)}
                     disabled={resolving}
                   >
-                    {resolving ? "Counting votes…" : "Reveal Results →"}
+                    {resolving ? "Counting Votes…" : votedCount >= activeCount ? "Everyone Voted — Reveal Results! 🏆" : `Lock It In! (${votedCount}/${activeCount} voted) →`}
                   </motion.button>
+                )}
+                {!canReveal && (
+                  <p className="text-center text-[#6b7280] font-mono text-xs">
+                    Vote above to lock in your team's call…
+                  </p>
                 )}
               </motion.div>
             )}
@@ -1421,21 +1449,45 @@ function PlayInner() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center space-y-3"
+                className="space-y-4"
               >
-                <PulsingDots color="#ef4444" />
-                <p className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} responses in…</p>
+                <div className="bsc-card p-4">
+                  <p className="font-mono text-[10px] tracking-widest uppercase text-[#ef4444] mb-3">
+                    ⚡ Team Response — {votedCount}/{activeCount} voted
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {members.filter((m) => m.active).map((m) => {
+                      const hasVoted = votedIds.includes(m.id);
+                      const av = getAvatar(m.avatarId ?? "hawks");
+                      return (
+                        <div key={m.id} className="flex flex-col items-center gap-1">
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-[10px]"
+                            style={{ backgroundColor: av.color, color: av.textColor,
+                              boxShadow: hasVoted ? `0 0 0 3px #ef4444` : `0 0 0 2px #1a2030` }}
+                          >
+                            {av.abbr}
+                          </div>
+                          <span className="font-mono text-[9px]" style={{ color: hasVoted ? "#ef4444" : "#6b7280" }}>
+                            {m.id === me.id ? "YOU" : m.nickname.slice(0, 5)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
                 {canReveal && (
                   <motion.button
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    initial={{ scale: 0.85, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="bsc-btn-gold px-8 py-2"
+                    transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="bsc-btn-gold w-full py-4 text-base font-bold"
                     onClick={() => void handleResolveRound("rival-response")}
                     disabled={resolving}
                   >
-                    {resolving ? "Processing…" : "Confirm Response →"}
+                    {resolving ? "Processing…" : `Fire Back! (${votedCount}/${activeCount} voted) →`}
                   </motion.button>
                 )}
               </motion.div>

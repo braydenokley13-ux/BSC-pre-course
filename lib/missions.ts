@@ -106,20 +106,20 @@ const capCrunch: Mission = {
       title: "AGENT CALL — MARCUS WEBB",
       content:
         "Webb's agent: '3 years, $48M — firm. He's got real interest from LA and Miami, both with cap space. If you can't match that level of commitment, we're listening to other offers. He wants to stay but the market is the market.'",
-      revealDelay: 12,
+      revealDelay: 4,
     },
     {
       title: "OWNERSHIP MEMO — PRIVATE",
       content:
         "Owner's message: 'Luxury tax is acceptable once — I'll wear it this year. But do NOT let us slide into repeater territory. If we're over the line in 3 of the next 4 years, the penalties become very serious. Stay out of repeater range no matter what.'",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "president",
     },
     {
       title: "MEDICAL FILE — RESTRICTED",
       content:
         "Team doctor note (private): Webb presented with a stress reaction in his left heel 18 months ago. Not publicly disclosed. Re-injury chance over a 3-year term: 28%. Recommend monitoring workload.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "scout",
     },
   ],
@@ -565,19 +565,19 @@ const contractChoice: Mission = {
       title: "RIVAL GM INTEL",
       content:
         "Heard from a league source: Houston and Portland are both clearing big cap space this summer. Houston's GM privately told our contact: 'Cole is the exact profile we're building around.' This is not a bluff — they have the room to sign him outright.",
-      revealDelay: 12,
+      revealDelay: 4,
     },
     {
       title: "PLAYER TOP GOALS — AGENT CALL",
       content:
         "Cole's agent says his client has three top goals in order: (1) Winning — he wants to be on a real playoff team. (2) Market value — he doesn't want to be underpaid vs. his peers. (3) City — he likes it here but won't sacrifice 1 and 2 for it. He has not talked to the other teams directly yet.",
-      revealDelay: 24,
+      revealDelay: 8,
     },
     {
       title: "CAP ROOM FORECAST — RESTRICTED",
       content:
         "If you sign Cole at Supermax: you are fully committed through his age-28 season with virtually no cap flexibility. If you sign team-friendly: you retain a $7M trade exception and mid-level exception access. If you let him go via sign-and-trade: you can structure return assets with salary matching.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "capologist",
     },
   ],
@@ -1025,19 +1025,19 @@ const revenueMix: Mission = {
       title: "PLAYER SENTIMENT ALERT",
       content:
         "Three veterans spoke to our Player Relations VP off the record: the practice facility naming rights feel 'disrespectful to the culture here.' The social media order is the bigger issue — one All-Star said he will not post branded content and will address it publicly if required. This is not a small concern.",
-      revealDelay: 12,
+      revealDelay: 4,
     },
     {
       title: "OWNER DIRECTIVE",
       content:
         "Owner memo: 'NovaTech is the right partner for where this team is going. Get this done. We need this revenue to stay strong on payroll. If they walk, it's on you.' The owner has already told his board this deal is happening. He is emotionally committed to closing.",
-      revealDelay: 20,
+      revealDelay: 7,
     },
     {
       title: "COMPETITOR INTELLIGENCE — RESTRICTED",
       content:
         "League source: two other franchises are in active talks with NovaTech's rivals for comparable deals. If NovaTech walks away from us and closes with a competitor, the optics are bad. But, NovaTech's VP of Partnerships told our CRO off the record that they prefer our market — this is not a pure auction. We have power we haven't used yet.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "cro",
     },
   ],
@@ -1535,19 +1535,19 @@ const expensePressure: Mission = {
       title: "SECOND APRON STATUS",
       content:
         "Your current payroll: $186.5M. Second Apron line: $189M. Reeves at $28M + current payroll minus outgoing $22M = $192.5M — that puts you $3.5M over the Second Apron. Consequence: you would lose your ability to use the mid-level exception, lose the ability to aggregate in future trades, and your draft pick acquisition rights are restricted for 3 years.",
-      revealDelay: 10,
+      revealDelay: 4,
     },
     {
       title: "DALLAS'S MOTIVATION",
       content:
         "Dallas wants to clear Reeves' salary to reset their payroll before the off-season. They're in a rebuild. Reeves has asked for a trade — they're complying. Their GM has told two other teams about this deal. There are 4 hours left before the deadline. They need an answer at 2 PM to file the paperwork in time.",
-      revealDelay: 20,
+      revealDelay: 7,
     },
     {
       title: "REEVES MEDICAL FILE — PRIVATE",
       content:
         "Team doctor note: Jordan Reeves had a labrum procedure on his left shoulder 14 months ago. Recovery was full per official reports. But, our scout's film review shows he has significantly reduced his pull-up jumper from the left side since the surgery — a shot he hit at 41% previously. Opponents will scheme for this in a playoff series. He's not the same player off the left.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "scout",
     },
   ],
@@ -2103,19 +2103,19 @@ const statsLineup: Mission = {
       title: "COACH HILL'S POSITION",
       content:
         "Coach Hill in today's film session: 'I've been watching basketball for 30 years. I know what a good lineup looks like and I know what wins playoff games. This is a regular season lineup against bad defensive teams. Run it in the finals and see what happens.' He's not budging on his own. He needs a different kind of conversation.",
-      revealDelay: 12,
+      revealDelay: 4,
     },
     {
       title: "PLAYER PERSPECTIVE",
       content:
         "Post-practice interview (two players, anonymized): Starting PG — 'If the numbers say that, the coaches should look at it. I want to win.' Starting SF — 'If I'm getting benched because of a computer I'm going to have a serious conversation with the team office.' The locker room is split.",
-      revealDelay: 20,
+      revealDelay: 7,
     },
     {
       title: "ADVANCED BREAKDOWN — RESTRICTED",
       content:
         "Why the lineup works (model explanation): the bench unit creates 34% more corner-3 opportunities through off-ball movement. Opponents are forced to hedge on the pick-and-roll, opening driving lanes. The starting lineup's weakness: two non-shooters on the floor simultaneously collapses spacing. This is a core roster issue, not a talent issue. The fix is rotation design, not player acquisition.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "analytics",
     },
   ],
@@ -2605,19 +2605,19 @@ const matchupAdjust: Mission = {
       title: "PERFORMANCE METRICS — LAST 12 GAMES",
       content:
         "Q4 shooting: 43.1% (season avg: 47.9%). Vertical leap measurement (weekly tracking): down 3.1 inches vs. preseason baseline. First-step quickness (GPS tracking): down 7%. Points per shot attempt: down 0.8. None of these are injuries — but all of them are measurable degradation consistent with late-season fatigue in a high-minute player.",
-      revealDelay: 12,
+      revealDelay: 4,
     },
     {
       title: "SEEDING STAKES",
       content:
         "Current standing: 4th seed, 1 game ahead of 5th. Remaining schedule: 6 home games, 5 road games (including 2 back-to-backs). The difference between 4th and 5th seed changes first-round opponent: 4th faces the 5-seed (easier), 5th faces the 4-seed (harder). Estimated win differential if Morris plays 32 vs. 38 minutes over remaining 11 games: -2.1 wins expected.",
-      revealDelay: 20,
+      revealDelay: 7,
     },
     {
       title: "PLAYER PERSPECTIVE — RESTRICTED",
       content:
         "Morris told team doctor off the record: 'I can feel it in my left foot. It's not bad enough to worry about but it's there.' He told Coach Hill publicly: 'I feel great, give me the minutes.' He's protecting his image as an iron man. His agent has called three times this week asking about the medical situation. The contract language: if Morris misses 20+ regular season games due to non-injury-related load management, the team owes a $3M bonus payment.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "president",
     },
   ],
@@ -3168,19 +3168,19 @@ const draftTable: Mission = {
       title: "STATS REPORT — DAMIEN COLE (MODEL RANK #4)",
       content:
         "Age: 20. Mid-major stats: 28.4 pts, 6.1 ast, 47.2% FG, 41.8% 3P on 7.4 attempts. Model inputs: shot quality (95th percentile), off-ball movement efficiency (97th percentile), pick-and-roll decision-making (91st percentile). Model output: 94% confidence in top-15 player by Year 3. Scout consensus rank: #14. Sample-size note: mid-major competition is a big limitation — model adjusts, but uncertainty range is wide.",
-      revealDelay: 12,
+      revealDelay: 4,
     },
     {
       title: "TRADE OFFER — LIVE",
       content:
         "Memphis just called: they'll give us #12 + their 2026 first-round pick (top-8 protected) for #6. That's two lottery-range assets instead of one. If we trade down to #12, both Cole and Silva will be available. If we stay at #6, we control the pick but lose the extra asset.",
-      revealDelay: 20,
+      revealDelay: 7,
     },
     {
       title: "CONTRACT SCALE — FOR YOUR REFERENCE",
       content:
         "Rookie scale at #6: Year 1 base ~$9.8M (120% of scale), Years 2-3 escalate ~8%/year. Team controls Years 1-4 via standard rookie scale. Team option in Year 3 and Year 4. Max rookie extension rules at Year 4 completion. Cost-controlled talent for 4 years. A team cornerstone pick here is the most efficient salary spend in basketball.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "capologist",
     },
   ],
@@ -3735,19 +3735,19 @@ const finalGmCall: Mission = {
       title: "LEAGUE LANDSCAPE",
       content:
         "Last 10 Finals participants — how they were built: 7 via stats-forward drafting and development; 2 via superstar free agency (both required 3+ years of prior rebuilding to have cap space); 1 via trade (assets accumulated over 4 years of rebuild). The era of 'star free agency as primary strategy' has a 20% success rate in the current CBA. The era of 'draft and develop' has a 70% Finals appearance rate when executed with patience.",
-      revealDelay: 12,
+      revealDelay: 4,
     },
     {
       title: "OWNER'S STATED TOP GOALS",
       content:
         "Owner's opening statement: '1. I want a playoff team every year Webb is here — that's the non-negotiable. 2. I want to understand how decisions are made in this building — stats, scouting, both? 3. I want a plan that doesn't blow up if one thing goes wrong.' He did not mention a spending ceiling in this meeting. That's notable.",
-      revealDelay: 20,
+      revealDelay: 7,
     },
     {
       title: "STRONG INTELLIGENCE — RESTRICTED",
       content:
         "Two rival GMs have been given permission to pursue Webb in a sign-and-trade when his contract expires. One has a war chest of 3 future firsts. Our power: we're the only team that can offer him a supermax extension — $47.6M/year — before he hits free agency. If we extend Webb now at supermax, we control his career for 5 more years. If we let him reach free agency, we lose that power for good. The owner doesn't know the extension window closes in 60 days.",
-      revealDelay: 24,
+      revealDelay: 8,
       roleOnly: "president",
     },
   ],
