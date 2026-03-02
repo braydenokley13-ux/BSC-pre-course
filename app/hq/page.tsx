@@ -441,7 +441,7 @@ export default function HQPage() {
   const progressPct = (completedCount / totalRooms) * 100;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-16">
       {/* ── Auto-join mission overlay ────────────────────────────────────── */}
       <AnimatePresence>
         {autoJoinMission && (
@@ -619,7 +619,7 @@ export default function HQPage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bsc-card px-5 py-3 border-[#bfdbfe] bg-[#eff6ff] flex items-center gap-3 pointer-events-none"
+            className="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bsc-card px-5 py-3 border-[#bfdbfe] bg-[#eff6ff] flex items-center gap-3 pointer-events-none"
           >
             <span className="text-2xl">🏆</span>
             <div>
@@ -671,7 +671,7 @@ export default function HQPage() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.25, duration: 0.5 }}
-        className="glass-card p-4 mb-4 overflow-hidden relative"
+        className="glass-card p-4 mb-4 overflow-x-hidden overflow-y-auto relative"
       >
         {/* Subtle grid background */}
         <div className="absolute inset-0"

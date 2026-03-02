@@ -595,7 +595,7 @@ const contractChoice: Mission = {
       title: "TEAM PRESIDENT",
       description: "You interface with ownership and handle long-term strategy.",
       privateInfo:
-        "The owner made it clear: 'Sign Cole at whatever it takes — I'm not watching him walk to Houston on national TV.' There is no actual ceiling on this deal from ownership's perspective. But the owner also said the team must be a playoff playoff team every year Cole is here. That's the real limit.",
+        "The owner made it clear: 'Sign Cole at whatever it takes — I'm not watching him walk to Houston on national TV.' There is no actual ceiling on this deal from ownership's perspective. But the owner also said the team must be a playoff-caliber team every year Cole is here. That's the real limit.",
     },
     {
       id: "scout",
@@ -1361,12 +1361,20 @@ const revenueMix: Mission = {
       roundTagCombo: ["negotiate", "creative-integration"],
       variants: [
         {
-          probability: 1.0,
+          probability: 0.75,
           label: "Organic Integration Deal — Best-in-Class",
           scoreΔ: 10,
           narrative:
             "NovaTech's VP of Marketing loved it. '6 premium organic integrations beat 10 ads every time.' Closed at $21M. No naming rights. Players didn't even notice the posts. NovaTech's CMO is presenting the integration strategy at a marketing conference. This is a case study.",
           applyStatus: ["high-morale", "analytics-forward"],
+        },
+        {
+          probability: 0.25,
+          label: "Organic Integration Rejected — Back to Basics",
+          scoreΔ: 6,
+          narrative:
+            "NovaTech's internal brand team overruled their VP of Marketing. 'Our board approved a sponsorship, not an editorial experiment.' They wanted the 10 posts or nothing. You negotiated down to 8 at $19.5M — below forecast, and the players noticed. The organic insight was right; NovaTech's internal politics weren't ready for it.",
+          applyStatus: [],
         },
       ],
     },
@@ -1515,7 +1523,7 @@ const expensePressure: Mission = {
     },
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You're rebuilding — does a one-year rental on a $28M wing make sense? Unless you see a clear playoff path, every dollar and pick you spend now delays the rebuild. ",
+      prependText: "You're in rebuild mode. This trade offer is arriving at the wrong time — you're not built to compete this year, and absorbing $28M in salary now burns the cap flexibility you need to build correctly. The real question is whether the pressure to look competitive outweighs your rebuild timeline. ",
     },
     {
       requiredStatus: "star-retained",
@@ -2389,12 +2397,20 @@ const statsLineup: Mission = {
       roundTagCombo: ["share-data", "deeper-analysis"],
       variants: [
         {
-          probability: 1.0,
+          probability: 0.70,
           label: "Full Transparency — Earned Trust",
           scoreΔ: 9,
           narrative:
             "You showed him everything — including where the edge compresses against elite defenses. Coach Hill respected the honesty. 'You're not trying to sell me something.' He integrated the lineup selectively: full deployment against weaker defenses, conditional against playoff teams. Season win rate improved 11%. Relationship intact.",
           applyStatus: ["analytics-forward", "scout-trusted"],
+        },
+        {
+          probability: 0.30,
+          label: "Respected, Not Moved",
+          scoreΔ: 5,
+          narrative:
+            "Coach Hill appreciated the transparency. 'I respect that you're not selling me something.' But he still didn't change the lineup. 'I've seen data be right and teams fall apart. I trust my eyes.' The honest approach preserved the relationship — but the lineup didn't shift and the win-rate bump didn't materialize. Sometimes trust is the slow play.",
+          applyStatus: ["scout-trusted"],
         },
       ],
     },
