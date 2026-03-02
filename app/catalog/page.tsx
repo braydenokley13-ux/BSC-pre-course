@@ -241,9 +241,9 @@ function CatalogContent() {
       <div className="flex gap-5">
         <div className="w-56 flex-shrink-0 hidden lg:block">
           <div className="bsc-card p-0 sticky top-[80px] overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#e2e8f0]">
-              <p className="font-mono text-[10px] tracking-widest uppercase text-[#2563eb]">GM Case Files</p>
-              <p className="font-mono text-[9px] text-[#64748b] mt-0.5">Adaptive Assessment</p>
+            <div className="px-4 py-3 border-b border-[#334155]">
+              <p className="font-mono text-[10px] tracking-widest uppercase text-[#60a5fa]">GM Case Files</p>
+              <p className="font-mono text-[9px] text-[#94a3b8] mt-0.5">Adaptive Assessment</p>
             </div>
             <motion.ul variants={staggerList} initial="hidden" animate="show" className="py-2">
               {CONCEPT_CARDS.map((concept) => {
@@ -254,8 +254,8 @@ function CatalogContent() {
                       onClick={() => router.push(`/catalog?concept=${concept.id}`)}
                       className={`w-full text-left px-4 py-2.5 transition-colors font-mono text-xs flex items-center gap-2 ${
                         isCurrent
-                          ? "bg-[#eff6ff] text-[#2563eb] border-l-2 border-[#2563eb]"
-                          : "text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] border-l-2 border-transparent"
+                          ? "bg-[#0f172a] text-[#60a5fa] border-l-2 border-[#2563eb]"
+                          : "text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#111827] border-l-2 border-transparent"
                       }`}
                     >
                       <span className="text-[10px]">{isCurrent ? "▶" : "◦"}</span>
@@ -284,7 +284,7 @@ function CatalogContent() {
                 <span className="bsc-badge-gold">Adaptive Mode</span>
               </div>
               <button
-                className="text-[#64748b] font-mono text-xs hover:text-[#0f172a] transition-colors"
+                className="text-[#94a3b8] font-mono text-xs hover:text-[#f8fafc] transition-colors"
                 onClick={() => router.push("/hq")}
               >
                 ← HQ
@@ -302,9 +302,9 @@ function CatalogContent() {
               transition={{ duration: 0.3 }}
               className="bsc-card p-6 mb-4 relative overflow-hidden gm-watermark"
             >
-              <p className="font-mono text-sm text-[#0f172a] leading-relaxed mb-5">{card.body}</p>
-              <div className="border-t border-[#e2e8f0] pt-4">
-                <p className="font-mono text-xs text-[#64748b] italic">{card.note}</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed mb-5">{card.body}</p>
+              <div className="border-t border-[#334155] pt-4">
+                <p className="font-mono text-xs text-[#94a3b8] italic">{card.note}</p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -322,7 +322,7 @@ function CatalogContent() {
               transition={{ delay: 0.2 }}
               className="text-center py-4"
             >
-              <p className="text-[#64748b] font-mono text-sm mb-4">
+              <p className="text-[#94a3b8] font-mono text-sm mb-4">
                 Start the check. You will answer {minQuestions} to {maxQuestions} questions.
               </p>
               <motion.button
@@ -479,39 +479,39 @@ function CatalogContent() {
                   >
                     ◎
                   </motion.div>
-                  <h3 className="text-[#0f172a] font-mono font-bold text-lg">Check Complete</h3>
-                  <p className="text-[#64748b] font-mono text-xs mt-1">
+                  <h3 className="text-[#e5e7eb] font-mono font-bold text-lg">Check Complete</h3>
+                  <p className="text-[#94a3b8] font-mono text-xs mt-1">
                     {result.questionCount} questions · Mastery {result.masteryScore.toFixed(2)} / 4.00
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3">
-                    <p className="text-[#64748b] font-mono text-xs">Review Level</p>
+                  <div className="border border-[#334155] rounded px-3 py-3 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs">Review Level</p>
                     <p className={`font-mono text-sm mt-1 ${recommendationColor(result.recommendationBand)}`}>
                       {result.recommendationBand.toUpperCase()}
                     </p>
-                    <p className="text-[#64748b] font-mono text-xs mt-1">
+                    <p className="text-[#94a3b8] font-mono text-xs mt-1">
                       {recommendationText(result.recommendationBand)}
                     </p>
                   </div>
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3">
-                    <p className="text-[#64748b] font-mono text-xs">Confidence</p>
-                    <p className="font-mono text-sm mt-1 text-[#0f172a]">
+                  <div className="border border-[#334155] rounded px-3 py-3 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs">Confidence</p>
+                    <p className="font-mono text-sm mt-1 text-[#e5e7eb]">
                       {result.lowConfidence ? "Less certain score" : "Steady score"}
                     </p>
-                    <p className="text-[#64748b] font-mono text-xs mt-1">
+                    <p className="text-[#94a3b8] font-mono text-xs mt-1">
                       Uncertainty: {result.uncertainty.toFixed(2)}
                     </p>
                   </div>
                 </div>
 
                 {result.objectiveBreakdown.length > 0 && (
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3 mb-4">
-                    <p className="text-[#64748b] font-mono text-xs mb-2">Goal Breakdown</p>
+                  <div className="border border-[#334155] rounded px-3 py-3 mb-4 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs mb-2">Goal Breakdown</p>
                     <div className="space-y-1">
                       {result.objectiveBreakdown.slice(0, 4).map((item) => (
-                        <p key={item.objectiveId} className="text-[#64748b] font-mono text-xs">
+                        <p key={item.objectiveId} className="text-[#cbd5e1] font-mono text-xs">
                           {item.objectiveId}: {item.correctCount}/{item.askedCount} correct · {item.missRate}% miss
                         </p>
                       ))}
@@ -520,11 +520,11 @@ function CatalogContent() {
                 )}
 
                 {result.misconceptionsTop.length > 0 && (
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3 mb-4">
-                    <p className="text-[#64748b] font-mono text-xs mb-2">Top Misconceptions</p>
+                  <div className="border border-[#334155] rounded px-3 py-3 mb-4 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs mb-2">Top Misconceptions</p>
                     <div className="space-y-1">
                       {result.misconceptionsTop.slice(0, 3).map((row) => (
-                        <p key={row.tag} className="text-[#64748b] font-mono text-xs">
+                        <p key={row.tag} className="text-[#cbd5e1] font-mono text-xs">
                           {row.tag}: {row.count}
                         </p>
                       ))}

@@ -67,7 +67,7 @@ export function GlossaryPanel({
         type="button"
       >
         <span className="bsc-section-title mb-0">{heading}</span>
-        <span className="text-[#64748b] text-xs">{open ? "▲" : "▼"}</span>
+        <span className="text-[#94a3b8] text-xs">{open ? "▲" : "▼"}</span>
       </button>
 
       {open ? (
@@ -80,11 +80,11 @@ export function GlossaryPanel({
           />
           <div className="mt-3 max-h-[60vh] overflow-y-auto pr-1">
             {filtered.length === 0 ? (
-              <p className="text-xs text-[#64748b]">No terms found.</p>
+              <p className="text-xs text-[#94a3b8]">No terms found.</p>
             ) : (
               filtered.map((group) => (
                 <div key={group.group} className="mb-4">
-                  <p className="text-[#2563eb] text-xs font-semibold mb-2 tracking-wide uppercase">{group.group}</p>
+                  <p className="text-[#60a5fa] text-xs font-semibold mb-2 tracking-wide uppercase">{group.group}</p>
                   {group.terms.map((term) => {
                     const highlighted = highlightedTermIds.includes(term.id);
                     return (
@@ -93,14 +93,14 @@ export function GlossaryPanel({
                         type="button"
                         className={`w-full text-left rounded border px-2 py-2 mb-2 transition-colors ${
                           highlighted
-                            ? "border-[#bfdbfe] bg-[#eff6ff]"
-                            : "border-[#e2e8f0] hover:border-[#2563eb]/40 hover:bg-[#f8fafc]"
+                            ? "border-[#2563eb]/50 bg-[#0f172a]"
+                            : "border-[#334155] bg-[#111827] hover:border-[#2563eb]/40 hover:bg-[#0f172a]"
                         }`}
                         onClick={() => onTermSelect?.(term.id)}
                       >
-                        <p className="text-xs text-[#0f172a] font-semibold">{term.term}</p>
-                        <p className="text-xs text-[#374151] leading-relaxed mt-1">{term.def}</p>
-                        <p className="text-[11px] text-[#64748b] leading-relaxed mt-1">Why it matters: {term.why}</p>
+                        <p className="text-xs text-[#e5e7eb] font-semibold">{term.term}</p>
+                        <p className="text-xs text-[#cbd5e1] leading-relaxed mt-1">{term.def}</p>
+                        <p className="text-[11px] text-[#94a3b8] leading-relaxed mt-1">Why it matters: {term.why}</p>
                       </button>
                     );
                   })}
@@ -110,7 +110,7 @@ export function GlossaryPanel({
           </div>
         </div>
       ) : (
-        <p className="mt-2 text-xs text-[#64748b]">
+        <p className="mt-2 text-xs text-[#94a3b8]">
           {total} terms across cap rules, contracts, trades, analytics, and team strategy.
         </p>
       )}
