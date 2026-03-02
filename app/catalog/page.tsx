@@ -349,16 +349,16 @@ function CatalogContent() {
               >
                 <div className="flex items-center gap-3 mb-4">
                   <p className="bsc-section-title mb-0">Adaptive Check</p>
-                  <div className="flex-1 h-px bg-[#dbeafe]" />
-                  <span className="text-[10px] font-mono text-[#64748b]">
+                  <div className="flex-1 h-px bg-[#334155]" />
+                  <span className="text-[10px] font-mono text-[#94a3b8]">
                     Question {askedCount} of up to {maxQuestions}
                   </span>
                 </div>
 
                 <div className="mb-4">
-                  <p className="font-mono text-sm text-[#0f172a] mb-2">{currentQuestion.stem}</p>
+                  <p className="font-mono text-sm text-[#e5e7eb] mb-2 leading-relaxed">{currentQuestion.stem}</p>
                   {currentEstimate && (
-                    <p className="font-mono text-[11px] text-[#64748b]">
+                    <p className="font-mono text-[11px] text-[#94a3b8]">
                       Current score: {currentEstimate.masteryScore.toFixed(2)} / 4.00
                     </p>
                   )}
@@ -373,12 +373,12 @@ function CatalogContent() {
                       whileTap={{ scale: 0.99 }}
                       className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
                         selectedOption === index
-                          ? "border-[#2563eb] bg-[#eff6ff] text-[#0f172a]"
-                          : "border-[#e2e8f0] text-[#64748b] hover:border-[#2563eb]/40 hover:text-[#0f172a]"
+                          ? "border-[#2563eb] bg-[#0f172a] text-[#f8fafc]"
+                          : "border-[#334155] text-[#cbd5e1] hover:border-[#2563eb]/40 hover:text-[#f8fafc] hover:bg-[#111827]"
                       }`}
                       onClick={() => setSelectedOption(index)}
                     >
-                      <span className="text-[#64748b] mr-2">{index + 1}.</span>
+                      <span className="text-[#94a3b8] mr-2">{index + 1}.</span>
                       {option}
                     </motion.button>
                   ))}
@@ -393,7 +393,7 @@ function CatalogContent() {
                 >
                   {submitting ? "Saving..." : "Submit and Go On →"}
                 </motion.button>
-                <p className="text-[#64748b] font-mono text-[11px] mt-2">
+                <p className="text-[#94a3b8] font-mono text-[11px] mt-2">
                   We score at the end so the result stays more fair.
                 </p>
               </motion.div>
@@ -414,24 +414,24 @@ function CatalogContent() {
                   <span className={`text-sm font-mono font-semibold ${currentFeedback.isCorrect ? "text-[#16a34a]" : "text-[#dc2626]"}`}>
                     {currentFeedback.isCorrect ? "✓ Correct" : "✗ Incorrect"}
                   </span>
-                  <div className="flex-1 h-px bg-[#e2e8f0]" />
-                  <span className="text-[10px] font-mono text-[#64748b]">
+                  <div className="flex-1 h-px bg-[#334155]" />
+                  <span className="text-[10px] font-mono text-[#94a3b8]">
                     Question {askedCount} of up to {maxQuestions}
                   </span>
                 </div>
 
-                <p className="font-mono text-sm text-[#0f172a] mb-4 leading-relaxed">{currentQuestion.stem}</p>
+                <p className="font-mono text-sm text-[#e5e7eb] mb-4 leading-relaxed">{currentQuestion.stem}</p>
 
                 <div className="space-y-2 mb-5">
                   {currentQuestion.options.map((option, index) => {
                     const isSelected = selectedOption === index;
                     const isCorrect = index === currentFeedback.correctIndex;
-                    let cls = "border-[#e2e8f0] text-[#94a3b8] opacity-50";
+                    let cls = "border-[#334155] text-[#94a3b8] opacity-60";
                     if (isCorrect) cls = "border-[#16a34a] bg-[#f0fdf4] text-[#0f172a] opacity-100";
                     else if (isSelected && !isCorrect) cls = "border-[#dc2626] bg-[#fef2f2] text-[#0f172a] opacity-100";
                     return (
                       <div key={index} className={`px-3 py-2.5 rounded border font-mono text-sm flex items-center gap-2 ${cls}`}>
-                        <span className="text-[#64748b] shrink-0">{index + 1}.</span>
+                        <span className={`${isCorrect || (isSelected && !isCorrect) ? "text-[#64748b]" : "text-[#94a3b8]"} shrink-0`}>{index + 1}.</span>
                         <span className="flex-1">{option}</span>
                         {isCorrect && <span className="text-[#16a34a] text-xs shrink-0">✓</span>}
                         {isSelected && !isCorrect && <span className="text-[#dc2626] text-xs shrink-0">✗</span>}
@@ -440,11 +440,11 @@ function CatalogContent() {
                   })}
                 </div>
 
-                <div className="border border-[#e2e8f0] bg-[#f8fafc] rounded px-3 py-3 mb-5">
-                  <p className="text-[10px] font-mono tracking-widest uppercase text-[#64748b] mb-1.5">
+                <div className="border border-[#334155] bg-[#0f172a] rounded px-3 py-3 mb-5">
+                  <p className="text-[10px] font-mono tracking-widest uppercase text-[#94a3b8] mb-1.5">
                     {currentFeedback.isCorrect ? "Why it is right" : "Why"}
                   </p>
-                  <p className="text-sm font-mono text-[#0f172a] leading-relaxed">
+                  <p className="text-sm font-mono text-[#e5e7eb] leading-relaxed">
                     {currentFeedback.explanation}
                   </p>
                 </div>
