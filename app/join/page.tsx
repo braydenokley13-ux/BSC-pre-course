@@ -15,7 +15,7 @@ function CinematicIntro({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState(0);
   // step 0: blank → 1: BOW text → 2: subtitle → 3/4/5: punchy words → 6: arc → 7: tagline → 8: fade out
   useEffect(() => {
-    const timings = [600, 1200, 1500, 1800, 2100, 2600, 3100, 4100];
+    const timings = [500, 1000, 1250, 1500, 1750, 2150, 2650, 3300];
     const timers = timings.map((t, i) =>
       setTimeout(() => setStep(i + 1), t)
     );

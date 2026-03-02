@@ -371,6 +371,10 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
     where: { teamId_missionId: { teamId: team.id, missionId: input.missionId } },
   });
   if (existingProgress) {
+    const freshTeam = await prisma.team.findUnique({
+      where: { id: team.id },
+      select: { teamStateVersion: true },
+    });
     return {
       ok: true,
       data: {
@@ -382,7 +386,7 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
         nextRoundId: null,
         isComplete: true,
         alreadyResolved: true,
-        stateVersion: team.teamStateVersion,
+        stateVersion: freshTeam?.teamStateVersion ?? team.teamStateVersion,
       },
     };
   }
@@ -460,6 +464,10 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
         where: { teamId_missionId: { teamId: team.id, missionId: input.missionId } },
       });
       if (replay) {
+        const freshTeam = await prisma.team.findUnique({
+          where: { id: team.id },
+          select: { teamStateVersion: true },
+        });
         return {
           ok: true,
           data: {
@@ -471,7 +479,7 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
             nextRoundId: null,
             isComplete: true,
             alreadyResolved: true,
-            stateVersion: team.teamStateVersion,
+            stateVersion: freshTeam?.teamStateVersion ?? team.teamStateVersion,
           },
         };
       }

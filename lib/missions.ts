@@ -351,7 +351,7 @@ const capCrunch: Mission = {
           scoreΔ: 8,
           narrative:
             "Webb signs. The locker room knows the team office is all-in. He posts 29 points per game and drags the team to a 6-seed. The luxury tax bill arrives — $6.3M — and the owner grimaces but pays. The NTC and player option will matter in Year 3.",
-          applyStatus: ["star-retained", "over-luxury-tax"],
+          applyStatus: ["star-retained", "over-luxury-tax", "high-morale"],
         },
         {
           probability: 0.35,
@@ -372,7 +372,7 @@ const capCrunch: Mission = {
           scoreΔ: 9,
           narrative:
             "You accepted the NTC but held the line on the player option. Webb signed — slight annoyance from the agent, but the deal is clean. No opt-out escape hatch in Year 3. You control the contract.",
-          applyStatus: ["star-retained", "over-luxury-tax"],
+          applyStatus: ["star-retained", "over-luxury-tax", "high-morale"],
         },
         {
           probability: 0.25,
@@ -393,7 +393,7 @@ const capCrunch: Mission = {
           scoreΔ: 8,
           narrative:
             "You met his floor. Webb signed before the 48-hour deadline expired. The owner winces at the luxury tax but respects the execution. You're $3M over the tax line — manageable, not repeater territory.",
-          applyStatus: ["star-retained"],
+          applyStatus: ["star-retained", "high-morale"],
         },
         {
           probability: 0.30,
@@ -531,25 +531,25 @@ const contractChoice: Mission = {
   missionNumber: 2,
   title: "Contract Choice",
   department: "CONTRACT OFFICE",
-  tagline: "Supermax rules — one week to decide.",
+  tagline: "One week. $210M. Your franchise's future.",
   scenario:
     "Your young star Darius Cole has made two All-Star teams on his rookie deal and is now eligible for a Designated Player Supermax Extension — 35% of the cap for 5 years, worth $210M+. His agent is leaking interest to two cap-space teams. He has a player option in Year 5 of any extension. What do you offer?",
   scenarioInjections: [
     {
       requiredStatus: "star-retained",
-      prependText: "Webb's extension is locked in — now you need to figure out Cole's future. With Webb already under max money, the cap math is brutal. ",
+      prependText: "Webb's max extension is locked in. Adding Cole's supermax stacks two top-line commitments — the cap math is brutal and there's no easy exit.",
     },
     {
       requiredStatus: "over-luxury-tax",
-      prependText: "You're already over the luxury tax line. A supermax for Cole would push you toward repeater territory for three straight seasons. ",
+      prependText: "You're already over the luxury tax line. Cole's supermax triggers repeater penalties for three consecutive seasons — a compounding cost ownership has already seen.",
     },
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You're in rebuild mode. Cole is your most valuable asset — but he's also your best young player. This decision defines the rebuild's ceiling. ",
+      prependText: "You're rebuilding. Cole is the ceiling asset — but locking him into a 5-year max changes what the rebuild looks like and who it gets built around.",
     },
     {
       requiredStatus: "high-morale",
-      prependText: "Team morale is high right now — Cole is happy and wants to stay. You have power in this talks. ",
+      prependText: "Morale is high and Cole wants to stay. You have leverage — he hasn't asked anyone else for a meeting.",
     },
   ],
   conceptId: "extensions-options",
@@ -595,7 +595,7 @@ const contractChoice: Mission = {
       title: "TEAM PRESIDENT",
       description: "You interface with ownership and handle long-term strategy.",
       privateInfo:
-        "The owner made it clear: 'Sign Cole at whatever it takes — I'm not watching him walk to Houston on national TV.' There is no actual ceiling on this deal from ownership's perspective. But the owner also said the team must be a playoff playoff team every year Cole is here. That's the real limit.",
+        "The owner made it clear: 'Sign Cole at whatever it takes — I'm not watching him walk to Houston on national TV.' There is no actual ceiling on this deal from ownership's perspective. But the owner also said the team must be a playoff-caliber team every year Cole is here. That's the real limit.",
     },
     {
       id: "scout",
@@ -991,25 +991,25 @@ const revenueMix: Mission = {
   missionNumber: 3,
   title: "Revenue Mix",
   department: "PARTNERSHIP OFFICE",
-  tagline: "Largest sponsorship in team history.",
+  tagline: "$125M on the table. Nothing comes free.",
   scenario:
     "NovaTech, a global consumer electronics company, has submitted a formal proposal: a 5-year jersey patch deal worth $25M/year — the largest in team history. Conditions: they want naming rights to your practice facility, 10 mandated social media posts per month from the team account, and first right of refusal on any future arena naming rights. Under the CBA's BRI rules, ~50% of incremental local revenue flows into the shared pool. The owner wants highest local dollars. Players are already grumbling about the social media clause.",
   scenarioInjections: [
     {
       requiredStatus: "high-morale",
-      prependText: "The locker room is buzzing right now — players are happy and the culture is good. A tone-deaf sponsorship deal could undermine everything you've built. Use that goodwill as power. ",
+      prependText: "Locker room culture is strong right now. A heavy-handed sponsorship that forces players into marketing obligations could crack that trust quickly.",
     },
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You're in rebuild mode. Revenue steadiness is now very serious — your payroll is shrinking but your operating costs aren't. A bad deal here could set the team back years. ",
+      prependText: "You're rebuilding. Payroll is shrinking but operating costs aren't — sponsorship revenue is one of the few levers you can pull without touching the roster.",
     },
     {
       requiredStatus: "cap-space-limited",
-      prependText: "Your cap flexibility is already constrained. NovaTech's deal is one of the few tools you have to generate revenue without touching the roster. ",
+      prependText: "Cap flexibility is constrained. This deal is one of the few ways to improve the financial picture without making roster moves.",
     },
     {
       requiredStatus: "star-retained",
-      prependText: "Webb's name is worth money to NovaTech — they specifically mentioned his marketability in their pitch. That's power you should use. ",
+      prependText: "Webb's name is in NovaTech's pitch deck — they mentioned his marketability specifically. That's leverage you can use in the negotiation.",
     },
   ],
   conceptId: "bri-revenue",
@@ -1361,12 +1361,20 @@ const revenueMix: Mission = {
       roundTagCombo: ["negotiate", "creative-integration"],
       variants: [
         {
-          probability: 1.0,
+          probability: 0.75,
           label: "Organic Integration Deal — Best-in-Class",
           scoreΔ: 10,
           narrative:
             "NovaTech's VP of Marketing loved it. '6 premium organic integrations beat 10 ads every time.' Closed at $21M. No naming rights. Players didn't even notice the posts. NovaTech's CMO is presenting the integration strategy at a marketing conference. This is a case study.",
           applyStatus: ["high-morale", "analytics-forward"],
+        },
+        {
+          probability: 0.25,
+          label: "Organic Integration Rejected — Back to Basics",
+          scoreΔ: 6,
+          narrative:
+            "NovaTech's internal brand team overruled their VP of Marketing. 'Our board approved a sponsorship, not an editorial experiment.' They wanted the 10 posts or nothing. You negotiated down to 8 at $19.5M — below forecast, and the players noticed. The organic insight was right; NovaTech's internal politics weren't ready for it.",
+          applyStatus: [],
         },
       ],
     },
@@ -1501,25 +1509,25 @@ const expensePressure: Mission = {
   missionNumber: 4,
   title: "Expense Pressure",
   department: "TRADE OPERATIONS",
-  tagline: "Trade deadline — salary must match.",
+  tagline: "3 PM. Trade deadline. Your window is closing.",
   scenario:
     "It's 3 PM on trade deadline day. You're 2.5 games out of a playoff spot. Dallas wants to offload their star wing, Jordan Reeves — $28M this season, one year remaining. He's averaging 26 points and is exactly what your roster is missing. To match salary under CBA trade rules you must send back 125% of his salary plus $2M — meaning at least $22M outbound. You have a $12M small forward and a $10M backup center who can be combined (aggregated) to hit the line. But taking on Reeves without sending out equal salary triggers Second Apron exposure. The clock runs out at 3 PM.",
   scenarioInjections: [
     {
       requiredStatus: "over-luxury-tax",
-      prependText: "You're already over the luxury tax line. Absorbing Reeves' $28M without matching salary moves you into Second Apron territory — you lose the right to use mid-level exceptions for three years and can't aggregate contracts in future trades. ",
+      prependText: "You're already over the luxury tax line. Absorbing Reeves at $28M without matching salary triggers Second Apron rules — no mid-level exceptions, no contract aggregation for three years.",
     },
     {
       requiredStatus: "trade-assets-rich",
-      prependText: "You have pick capital from prior trades. This is your moment to weaponize those assets — Dallas is desperate and you have what they want. ",
+      prependText: "You have pick capital stockpiled from prior deals. Dallas is desperate to shed salary — you have exactly what they want.",
     },
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You're rebuilding — does a one-year rental on a $28M wing make sense? Unless you see a clear playoff path, every dollar and pick you spend now delays the rebuild. ",
+      prependText: "You entered this season in rebuild mode — but the young roster overperformed and you're suddenly 2.5 games from a playoff spot. Reeves would push you over the line. The question is whether seizing this window is the right call or whether it blows up the rebuild's long-term structure.",
     },
     {
       requiredStatus: "star-retained",
-      prependText: "With Webb locked in, Reeves would give you a true two-man team office story to sell to free agents. The combination could push you from fringe playoff team to genuine threat. ",
+      prependText: "With Webb locked in, Reeves creates a two-star narrative to pitch free agents. The roster math gets tight, but the story gets compelling.",
     },
   ],
   conceptId: "trade-matching",
@@ -2075,19 +2083,19 @@ const statsLineup: Mission = {
   scenarioInjections: [
     {
       requiredStatus: "analytics-forward",
-      prependText: "You've already committed to stats culture in this team. This decision will determine whether that commitment holds under pressure — or collapses when it gets hard. ",
+      prependText: "You've built a stats culture here. This is the moment where it either holds under pressure or collapses when an entrenched coach pushes back.",
     },
     {
       requiredStatus: "coach-conflict",
-      prependText: "Your relationship with the coaching staff is already strained from a previous disagreement. Another stats-driven push could be the breaking point. Tread carefully. ",
+      prependText: "Your relationship with the coaching staff is already strained. Another data-driven mandate could be the breaking point — or the thing that forces a leadership reckoning.",
     },
     {
       requiredStatus: "high-morale",
-      prependText: "The locker room trusts you right now. Players are bought in. That capital is your shield if you need to make an uncomfortable call. ",
+      prependText: "The locker room trusts you. That goodwill gives you political cover to make an uncomfortable call if the data demands it.",
     },
     {
       requiredStatus: "star-retained",
-      prependText: "Webb has publicly said he 'doesn't care about the numbers as long as we win.' He's a traditionalist. Any stats push will need to be sold carefully to the locker room. ",
+      prependText: "Webb has said publicly he doesn't care about the numbers as long as the team wins. He's a traditionalist. The locker room will take cues from him.",
     },
   ],
   conceptId: "analytics",
@@ -2389,12 +2397,20 @@ const statsLineup: Mission = {
       roundTagCombo: ["share-data", "deeper-analysis"],
       variants: [
         {
-          probability: 1.0,
+          probability: 0.70,
           label: "Full Transparency — Earned Trust",
           scoreΔ: 9,
           narrative:
             "You showed him everything — including where the edge compresses against elite defenses. Coach Hill respected the honesty. 'You're not trying to sell me something.' He integrated the lineup selectively: full deployment against weaker defenses, conditional against playoff teams. Season win rate improved 11%. Relationship intact.",
           applyStatus: ["analytics-forward", "scout-trusted"],
+        },
+        {
+          probability: 0.30,
+          label: "Respected, Not Moved",
+          scoreΔ: 5,
+          narrative:
+            "Coach Hill appreciated the transparency. 'I respect that you're not selling me something.' But he still didn't change the lineup. 'I've seen data be right and teams fall apart. I trust my eyes.' The honest approach preserved the relationship — but the lineup didn't shift and the win-rate bump didn't materialize. Sometimes trust is the slow play.",
+          applyStatus: ["scout-trusted"],
         },
       ],
     },
@@ -2571,25 +2587,25 @@ const matchupAdjust: Mission = {
   missionNumber: 6,
   title: "Matchup Adjust",
   department: "MEDICAL BAY",
-  tagline: "Team player showing fatigue signs.",
+  tagline: "Your star is breaking. Playoffs in 11 games.",
   scenario:
     "Your team player, DeShawn Morris — 24 years old, averaging 31.4 points on 38.2 minutes per game — is showing measurable fatigue signs. Fourth-quarter shooting: down 4.8% over the last 12 games. The medical team has flagged 'bilateral plantar fasciitis risk and soft tissue stress indicators' — not a confirmed injury, but a clear warning. Playoffs are 11 games away. The fanbase is selling out every game. The coach wants him on the floor. Morris himself says he's fine. What do you do?",
   scenarioInjections: [
     {
       requiredStatus: "star-retained",
-      prependText: "Webb's long-term contract means you've already committed to building around a cornerstone player. A soft tissue injury now doesn't just end the season — it potentially ends your title window for two years. Every minute he plays carries team-level risk. ",
+      prependText: "Webb's long-term contract is your north star. A soft tissue injury to Morris doesn't just end this season — it could derail two years of your title window.",
     },
     {
       requiredStatus: "coach-conflict",
-      prependText: "Your relationship with the coaching staff is already strained. The coach has been vocal about 'trusting his players' and resents team office health mandates. A load management decision will be fought at every step. ",
+      prependText: "The coaching staff relationship is strained. The coach has been vocal about trusting his players over team office health mandates — any intervention will be contested.",
     },
     {
       requiredStatus: "high-morale",
-      prependText: "Team morale is excellent right now. The players trust the process. That goodwill gives you political cover to make an unpopular but smart call — if you use it. ",
+      prependText: "Team morale is excellent. That goodwill is political cover — if you need to make an unpopular call, this is the moment where it lands softest.",
     },
     {
       requiredStatus: "analytics-forward",
-      prependText: "Your stats culture has built trust with the medical team. Their injury models have 94% accuracy on soft tissue risk at this usage level. The data is clear — the question is whether you act on it. ",
+      prependText: "Your stats infrastructure extends to the medical team. Their injury model shows 94% accuracy on soft tissue risk at this usage level — the data is clear.",
     },
   ],
   conceptId: "roster-health",
@@ -3140,19 +3156,23 @@ const draftTable: Mission = {
   scenarioInjections: [
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You're in rebuild mode. This pick is your centerpiece — not a complement to a star, but the foundation you're building from. The wrong choice here sets the rebuild back three years. ",
+      prependText: "You're rebuilding. This pick isn't a complement — it's the foundation. The wrong call here sets the rebuild back three years.",
     },
     {
       requiredStatus: "analytics-forward",
-      prependText: "Your stats culture has established trust. The model's track record is strong. The question isn't whether to trust data — it's how much you trust it under Draft Night pressure. ",
+      prependText: "Your stats culture has built real credibility. The model's track record is strong — the question is how far you trust it under draft night pressure.",
     },
     {
       requiredStatus: "trade-assets-rich",
-      prependText: "You have draft capital stockpiled. A trade-up or trade-down is genuinely on the table — you're not forced to stay at #6. Other teams are calling. ",
+      prependText: "You have draft capital stockpiled. A trade-up or trade-down is genuinely available — other teams are calling and you're not forced to stay at #6.",
     },
     {
       requiredStatus: "star-retained",
-      prependText: "With Webb locked in, this pick needs to complement an established star — not become one independently. Fit matters as much as ceiling. ",
+      prependText: "With Webb locked in long-term, this pick needs to complement a star — not become one in isolation. Fit is as important as ceiling.",
+    },
+    {
+      requiredStatus: "scout-trusted",
+      prependText: "Your relationship with the scouting department is solid — their evaluations have earned credibility across the war room. Their recommendation here carries real weight.",
     },
   ],
   conceptId: "rookie-scale",
@@ -3693,33 +3713,37 @@ const finalGmCall: Mission = {
   missionNumber: 8,
   title: "Final GM Call",
   department: "OWNERSHIP SUITE",
-  tagline: "The owner wants your three-year plan.",
+  tagline: "Season's over. The owner is waiting.",
   scenario:
     "End of season. The owner has called a private meeting in the Ownership Suite. Your team narrowly missed the playoffs — lost the final play-in game by 4 points. You have one All-Star under contract (2 years remaining), two first-round picks in your vault, and a 14-man roster with 4 rotation-caliber players. The league is in transition — 7 of the last 10 finalists were built through stats-forward drafting, not star free agency. The owner asks: 'Give me your three-year vision. What does this team look like in Year 3?' Your answer defines everything — staff, plan, budget, and your own job security.",
   scenarioInjections: [
     {
       requiredStatus: "star-retained",
-      prependText: "Webb's contract — the deal you made in the Cap Room — is the north star of your three-year plan. Every decision flows from protecting and building around him. The owner knows what you have. Now he wants to know what you do with it. ",
+      prependText: "Webb's extension is the north star of your plan. The owner knows what you have — now he wants to know what you're going to do with it.",
     },
     {
       requiredStatus: "analytics-forward",
-      prependText: "You've built an stats culture inside this team. Your data systems, your model-driven decisions, your coaching plan — it's all on the line in this room. Defend it or evolve it. ",
+      prependText: "You've built a genuine stats culture here. The systems, the decisions, the coaching approach — it's all on the line in this meeting.",
     },
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You gave up stars for assets. You traded short-term performance for long-term equity. Now you have to show the owner the rebuild is working — and that you have a clear path to the other side. ",
+      prependText: "You traded stars for assets and accepted short-term losses — but the team came back faster than expected. Missing the playoffs by 4 points in a rebuild year is ahead of schedule. The owner wants to know whether to stay the course or push the timeline up.",
     },
     {
       requiredStatus: "over-luxury-tax",
-      prependText: "The luxury tax bills have been real. The owner has paid them. Now he's asking whether it was worth it — and whether you have a plan to avoid the repeater penalties that loom. ",
+      prependText: "The luxury tax bills have been significant — the owner has paid them without complaint. But now he's asking directly whether it was worth it.",
     },
     {
       requiredStatus: "coach-conflict",
-      prependText: "The friction with the coaching staff has leaked into the press. The owner is aware of it. He's going to ask about it, directly or indirectly. You need a position on leadership steadiness. ",
+      prependText: "The coaching friction has leaked to the press. The owner is aware. Expect it to come up — directly or indirectly.",
     },
     {
       requiredStatus: "high-morale",
-      prependText: "Player morale has been a strength under your tenure. The locker room trusts you. That culture is a real asset the owner can see in practice — use it as evidence of your leadership. ",
+      prependText: "Player morale has been a consistent strength. The locker room trusts you — that's a visible, concrete result you can point to.",
+    },
+    {
+      requiredStatus: "scout-trusted",
+      prependText: "Your scouting team has built genuine organizational trust. Their track record will be cited as evidence of the front office's evaluation process.",
     },
   ],
   conceptId: "front-office-philosophy",
