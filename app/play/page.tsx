@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
+import { applyRoundOptionMutations } from "@/lib/missionRound";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
 import { TRACK_101_MISSION_OVERRIDES } from "@/lib/track101Content";
@@ -48,6 +49,9 @@ interface TeamStateResponse {
   activeCount: number;
   missionRoundState: MissionRoundState;
   votes: Array<{ studentId: string; optionIndex: number }>;
+  teamStatus?: string[];
+  gameComplete?: boolean;
+  myVote?: number | null;
 }
 
 interface ResolveResult {
@@ -96,6 +100,50 @@ const TEAM_COLOR_MAP: Record<string, string> = {
   blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
   green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
 };
+
+function buildMissionForPlayer(mission: Mission, track: string, teamStatus: string[]): Mission {
+  const t101 = track === "101" ? TRACK_101_MISSION_OVERRIDES[mission.id] : null;
+  const baseMission: Mission = t101
+    ? {
+        ...mission,
+        ...(t101.tagline ? { tagline: t101.tagline } : {}),
+        scenario: t101.scenario ?? mission.scenario,
+        infoCards: mission.infoCards.map((card) => ({
+          ...card,
+          content: t101.infoCardSimplifications?.[card.title] ?? card.content,
+        })),
+        rounds: mission.rounds.map((round) => {
+          const roundOverride = t101.roundSimplifications?.[round.id];
+          if (!roundOverride) return round;
+          return {
+            ...round,
+            ...(roundOverride.prompt ? { prompt: roundOverride.prompt } : {}),
+            ...(roundOverride.context ? { context: roundOverride.context } : {}),
+            options: round.options.map((opt) => ({
+              ...opt,
+              description: roundOverride.options?.[opt.id] ?? opt.description,
+            })),
+          };
+        }),
+      }
+    : mission;
+
+  const injections = baseMission.scenarioInjections
+    ?.filter((injection) => teamStatus.includes(injection.requiredStatus))
+    .map((injection) => injection.prependText) ?? [];
+
+  return injections.length > 0
+    ? { ...baseMission, scenario: `${injections.join("")}${baseMission.scenario}` }
+    : baseMission;
+}
+
+function getHydratedRound(mission: Mission, roundId: string | undefined, teamStatus: string[]): MissionRound | null {
+  if (!roundId || roundId === "resolved") return null;
+  const baseRound = roundId === "rival-response"
+    ? mission.rivalCounter?.responseRound ?? null
+    : mission.rounds.find((round) => round.id === roundId) ?? null;
+  return baseRound ? applyRoundOptionMutations(baseRound, teamStatus) : null;
+}
 
 // ── Voting timer constants ──────────────────────────────────────────────────────
 const VOTE_TIMER_SECS = 45;
@@ -470,6 +518,7 @@ function PlayInner() {
 
   const mission = missionId ? getMissionById(missionId) : null;
   const isLegacy = mission ? isLegacyMission(mission) : false;
+  const rawMission = mission && !isLegacy ? (mission as Mission) : null;
 
   const [phase, setPhase] = useState<MissionPhase>("loading");
   const [teamState, setTeamState] = useState<TeamStateResponse | null>(null);
@@ -501,6 +550,17 @@ function PlayInner() {
     if (mission && isLegacy) { router.replace("/hq"); return; }
   }, [missionId, mission, isLegacy, router]);
 
+  const loadTeamState = useCallback(async (): Promise<TeamStateResponse | null> => {
+    const res = await fetch("/api/team/state", { credentials: "include" });
+    if (res.status === 401) {
+      router.replace("/join");
+      return null;
+    }
+    const data = (await res.json()) as TeamStateResponse;
+    setTeamState(data);
+    return data;
+  }, [router]);
+
   const startMission = useCallback(async () => {
     if (missionStarted.current) return;
     missionStarted.current = true;
@@ -518,7 +578,16 @@ function PlayInner() {
         return;
       }
       const data = (await res.json()) as { currentRound: MissionRound };
-      setCurrentRound(data.currentRound);
+      const freshState = await loadTeamState();
+      const hydratedRound =
+        rawMission && freshState
+          ? getHydratedRound(
+              buildMissionForPlayer(rawMission, freshState.track ?? "201", freshState.teamStatus ?? []),
+              data.currentRound.id,
+              freshState.teamStatus ?? []
+            )
+          : null;
+      setCurrentRound(hydratedRound ?? data.currentRound);
       // Show cinematic intro first, then briefing
       const seenKey = `bsc-intro-seen-${missionId}`;
       if (!localStorage.getItem(seenKey)) {
@@ -532,16 +601,13 @@ function PlayInner() {
       setError("Network error starting mission");
       setPhase("error");
     }
-  }, [missionId]);
+  }, [loadTeamState, missionId, rawMission]);
 
   const fetchState = useCallback(async () => {
-    if (!missionId) return;
+    if (!missionId || !rawMission) return;
     try {
-      const res = await fetch("/api/team/state", { credentials: "include" });
-      if (res.status === 401) { router.replace("/join"); return; }
-      const data: TeamStateResponse = await res.json();
-      setTeamState(data);
-
+      const data = await loadTeamState();
+      if (!data) return;
       const rsm = data.missionRoundState;
 
       if (rsm?.missionId !== missionId && !missionStarted.current) {
@@ -549,7 +615,60 @@ function PlayInner() {
         return;
       }
 
-      if (rsm?.isResolved && rsm?.missionId === missionId) return;
+      if (rsm?.missionId === missionId && rsm.isResolved) {
+        if (phase !== "outcome") {
+          if (data.gameComplete) {
+            router.replace("/complete");
+          } else {
+            router.replace(`/catalog?concept=${rawMission.conceptId}`);
+          }
+        }
+        return;
+      }
+
+      if (rsm?.missionId === missionId) {
+        const teamStatus = data.teamStatus ?? [];
+        const hydratedMission = buildMissionForPlayer(rawMission, data.track ?? "201", teamStatus);
+        const hydratedRound = getHydratedRound(hydratedMission, rsm.currentRoundId, teamStatus);
+
+        if (!hydratedRound) {
+          setError("Mission state could not be loaded");
+          setPhase("error");
+          return;
+        }
+
+        const isRivalRound = rsm.currentRoundId === "rival-response";
+        if (isRivalRound) {
+          setRivalRound(hydratedRound);
+        } else {
+          setCurrentRound(hydratedRound);
+        }
+
+        const hydratedPhase = isRivalRound ? "rival-voting" : "voting";
+        const hydratedWaitingPhase = isRivalRound ? "rival-waiting" : "waiting";
+        const clientRoundId = isRivalRound ? rivalRound?.id : currentRound?.id;
+        const hasVoted = typeof data.myVote === "number";
+
+        if (phase === "loading" || clientRoundId !== hydratedRound.id) {
+          setSelectedOptionIdx(hasVoted ? data.myVote ?? null : null);
+
+          if (hasVoted) {
+            setPhase(hydratedWaitingPhase);
+          } else if (isRivalRound) {
+            setPhase(hydratedPhase);
+          } else {
+            const seenKey = `bsc-intro-seen-${missionId}`;
+            if (!localStorage.getItem(seenKey)) {
+              localStorage.setItem(seenKey, "1");
+              setPhase("intro");
+            } else {
+              setPhase("briefing");
+            }
+          }
+        } else if (hasVoted && selectedOptionIdx === null) {
+          setSelectedOptionIdx(data.myVote ?? null);
+        }
+      }
 
       if (phase === "waiting" || phase === "rival-waiting") {
         const roundId =
@@ -569,8 +688,18 @@ function PlayInner() {
     } catch {
       // silent
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missionId, phase, resolving, startMission, router]);
+  }, [
+    currentRound?.id,
+    loadTeamState,
+    missionId,
+    phase,
+    rawMission,
+    resolving,
+    rivalRound?.id,
+    router,
+    selectedOptionIdx,
+    startMission,
+  ]);
 
   useEffect(() => {
     void fetchState();
@@ -736,6 +865,17 @@ function PlayInner() {
     router.push("/hq");
   }
 
+  const roleCeremonyKey = `bsc-role-seen-${missionId}`;
+
+  useEffect(() => {
+    if (phase !== "briefing" || showRoleCeremony || !teamState || !rawMission) return;
+    const hydratedMission = buildMissionForPlayer(rawMission, teamState.track ?? "201", teamState.teamStatus ?? []);
+    const hydratedRole = hydratedMission.roles.find((role) => role.id === teamState.me.role) ?? null;
+    if (!hydratedRole || localStorage.getItem(roleCeremonyKey)) return;
+    localStorage.setItem(roleCeremonyKey, "1");
+    setShowRoleCeremony(true);
+  }, [phase, rawMission, roleCeremonyKey, showRoleCeremony, teamState]);
+
   // ── Guards ─────────────────────────────────────────────────────────────────
 
   if (!missionId || !mission || isLegacy) {
@@ -774,35 +914,8 @@ function PlayInner() {
     );
   }
 
-  const rawMission = mission as Mission;
-  // Apply Track 101 content overrides when session is on the beginner track
   const track = teamState.track ?? "201";
-
-  const t101 = track === "101" ? TRACK_101_MISSION_OVERRIDES[rawMission.id] : null;
-  const richMission: Mission = t101
-    ? {
-        ...rawMission,
-        ...(t101.tagline ? { tagline: t101.tagline } : {}),
-        scenario: t101.scenario ?? rawMission.scenario,
-        infoCards: rawMission.infoCards.map((card) => ({
-          ...card,
-          content: t101.infoCardSimplifications?.[card.title] ?? card.content,
-        })),
-        rounds: rawMission.rounds.map((round) => {
-          const rs = t101.roundSimplifications?.[round.id];
-          if (!rs) return round;
-          return {
-            ...round,
-            ...(rs.prompt ? { prompt: rs.prompt } : {}),
-            ...(rs.context ? { context: rs.context } : {}),
-            options: round.options.map((opt) => ({
-              ...opt,
-              description: rs.options?.[opt.id] ?? opt.description,
-            })),
-          };
-        }),
-      }
-    : rawMission;
+  const richMission = buildMissionForPlayer(rawMission!, track, teamState.teamStatus ?? []);
 
   const { me, members, activeCount } = teamState;
   const myRole = richMission.roles.find((r) => r.id === me.role) ?? null;
@@ -832,9 +945,6 @@ function PlayInner() {
     : phase;
 
   // ── Render ─────────────────────────────────────────────────────────────────
-
-  // Role ceremony: show once per mission, first time entering briefing
-  const roleCeremonyKey = `bsc-role-seen-${missionId}`;
 
   return (
     <>

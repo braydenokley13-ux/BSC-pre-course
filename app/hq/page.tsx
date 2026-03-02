@@ -52,8 +52,14 @@ interface TeamStateResponse {
 
 type RoomStatus = "completed" | "active" | "unlocked" | "locked";
 
-function getRoomStatus(room: RoomMeta, completed: string[], unlocked: string[]): RoomStatus {
+function getRoomStatus(
+  room: RoomMeta,
+  completed: string[],
+  unlocked: string[],
+  activeMissionId?: string | null
+): RoomStatus {
   if (completed.includes(room.missionId)) return "completed";
+  if (activeMissionId === room.missionId) return "active";
   if (unlocked.includes(room.missionId)) return "unlocked";
   return "locked";
 }
@@ -405,6 +411,10 @@ export default function HQPage() {
 
   const { team, me, unlockedMissions, completedMissions, teamStatus } = state;
   const badges = team.badges ?? [];
+  const activeMissionId =
+    state.missionRoundState?.missionId && !state.missionRoundState.isResolved
+      ? state.missionRoundState.missionId
+      : null;
 
   const teamColor = TEAM_COLOR_MAP[team.color ?? "blue"] ?? "#2563eb";
   const totalRooms = ROOM_LAYOUT.length;
@@ -681,7 +691,7 @@ export default function HQPage() {
 
           {/* Rooms */}
           {ROOM_LAYOUT.map((room) => {
-            const status = getRoomStatus(room, completedMissions, unlockedMissions);
+            const status = getRoomStatus(room, completedMissions, unlockedMissions, activeMissionId);
             return (
               <SVGRoom
                 key={room.missionId}
