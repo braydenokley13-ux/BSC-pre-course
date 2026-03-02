@@ -4,10 +4,10 @@
 
 /* ── Design tokens ────────────────────────────────────────────────────── */
 :root {
-  --bsc-bg: #0a0c10;
-  --bsc-card: #10141c;
-  --bsc-border: #1e2435;
-  --bsc-muted: #6b7280;
+  --bsc-bg: #111827;
+  --bsc-card: #182235;
+  --bsc-border: #334155;
+  --bsc-muted: #94a3b8;
   --bsc-accent: #c9a84c;
   --bsc-gold-light: #e8c56a;
   --bsc-gold-dark: #a07830;
@@ -16,14 +16,14 @@
   --bsc-blue: #3b82f6;
 
   /* Arena tokens */
-  --arena-black: #020408;
-  --arena-deep: #0a0c12;
-  --arena-card: #0d1120;
-  --arena-border: #1a2030;
+  --arena-black: #0f172a;
+  --arena-deep: #162236;
+  --arena-card: #182235;
+  --arena-border: #334155;
   --arena-gold: #c9a84c;
-  --arena-glow-gold: rgba(201, 168, 76, 0.18);
-  --arena-glow-green: rgba(34, 197, 94, 0.18);
-  --arena-glow-red: rgba(239, 68, 68, 0.18);
+  --arena-glow-gold: rgba(201, 168, 76, 0.14);
+  --arena-glow-green: rgba(34, 197, 94, 0.14);
+  --arena-glow-red: rgba(239, 68, 68, 0.14);
 }
 
 * {
@@ -41,64 +41,50 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle scanline on everything */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.035) 2px,
-    rgba(0, 0, 0, 0.035) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
-
 /* ── Component classes ────────────────────────────────────────────────── */
 @layer components {
 
   /* Base card — glass style */
   .bsc-card {
-    background: rgba(13, 17, 32, 0.88);
+    background: rgba(24, 34, 53, 0.86);
     border: 1px solid var(--arena-border);
     border-radius: 10px;
     backdrop-filter: blur(8px);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.025);
+    box-shadow: 0 18px 50px rgba(2, 6, 23, 0.24), 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
   /* Glass card — more transparent, glassy */
   .glass-card {
-    background: rgba(10, 12, 18, 0.82);
-    border: 1px solid rgba(201, 168, 76, 0.1);
+    background: rgba(22, 34, 54, 0.78);
+    border: 1px solid rgba(201, 168, 76, 0.14);
     border-radius: 12px;
     backdrop-filter: blur(16px);
     box-shadow:
-      0 4px 32px rgba(0, 0, 0, 0.6),
-      0 1px 0 rgba(255, 255, 255, 0.03),
-      inset 0 1px 0 rgba(201, 168, 76, 0.04);
+      0 24px 60px rgba(2, 6, 23, 0.28),
+      0 1px 0 rgba(255, 255, 255, 0.04),
+      inset 0 1px 0 rgba(201, 168, 76, 0.05);
   }
 
   /* Arena background */
   .arena-bg {
-    background: radial-gradient(ellipse 90% 65% at 50% 15%, #0d1525 0%, #020408 72%);
+    background:
+      radial-gradient(ellipse 85% 60% at 50% 0%, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0) 58%),
+      linear-gradient(180deg, #1e293b 0%, #111827 48%, #0f172a 100%);
     min-height: 100vh;
   }
 
   /* Gold spotlight radial behind content */
   .spotlight {
-    background: radial-gradient(ellipse 65% 45% at 50% 50%, rgba(201, 168, 76, 0.07) 0%, transparent 70%);
+    background: radial-gradient(ellipse 65% 45% at 50% 50%, rgba(201, 168, 76, 0.1) 0%, transparent 70%);
   }
 
   .spotlight-red {
-    background: radial-gradient(ellipse 65% 45% at 50% 50%, rgba(239, 68, 68, 0.07) 0%, transparent 70%);
+    background: radial-gradient(ellipse 65% 45% at 50% 50%, rgba(239, 68, 68, 0.08) 0%, transparent 70%);
   }
 
   /* Buttons */
   .bsc-btn {
-    @apply px-4 py-2 rounded font-mono text-sm font-semibold tracking-wider uppercase transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#020408];
+    @apply px-4 py-2 rounded font-mono text-sm font-semibold tracking-wider uppercase transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0f172a];
   }
 
   .bsc-btn-gold {
@@ -117,7 +103,7 @@ body::before {
   }
 
   .bsc-btn-ghost {
-    @apply bsc-btn border border-[#1a2030] text-[#6b7280] hover:text-[#e5e7eb] hover:border-[#c9a84c]/50 focus:ring-[#c9a84c];
+    @apply bsc-btn border border-slate-600 text-slate-300 hover:text-slate-50 hover:border-[#c9a84c]/50 hover:bg-slate-800/60 focus:ring-[#c9a84c];
   }
 
   .bsc-btn-green {
@@ -132,16 +118,16 @@ body::before {
 
   /* Inputs */
   .bsc-input {
-    @apply w-full bg-[#0d1120] border border-[#1a2030] rounded px-3 py-2.5 text-sm font-mono text-[#e5e7eb] placeholder-[#6b7280] focus:outline-none focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c] transition-colors;
-    background: rgba(13, 17, 32, 0.9);
+    @apply w-full bg-slate-900/80 border border-slate-600 rounded px-3 py-2.5 text-sm font-mono text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c] transition-colors;
+    background: rgba(15, 23, 42, 0.88);
   }
 
   .bsc-input:focus {
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.08);
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
   }
 
   .bsc-label {
-    @apply block text-xs font-mono tracking-widest uppercase text-[#6b7280] mb-1;
+    @apply block text-xs font-mono tracking-widest uppercase text-slate-400 mb-1;
   }
 
   /* Badges */
@@ -162,7 +148,7 @@ body::before {
   }
 
   .bsc-badge-muted {
-    @apply bsc-badge bg-[#1a2030] text-[#6b7280] border border-[#1a2030];
+    @apply bsc-badge bg-slate-800 text-slate-300 border border-slate-700;
   }
 
   .bsc-section-title {

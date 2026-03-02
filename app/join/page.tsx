@@ -39,7 +39,7 @@ function CinematicIntro({ onDone }: { onDone: () => void }) {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020408]"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#111827]"
         >
           {/* Background grid */}
           <div
@@ -145,7 +145,7 @@ function CinematicIntro({ onDone }: { onDone: () => void }) {
           {/* Skip */}
           <button
             onClick={onDone}
-            className="absolute top-4 right-6 font-mono text-[10px] text-[#374151] hover:text-[#6b7280] transition-colors tracking-widest uppercase"
+            className="absolute top-4 right-6 font-mono text-[10px] text-[#94a3b8] hover:text-[#e2e8f0] transition-colors tracking-widest uppercase"
           >
             skip →
           </button>
@@ -300,7 +300,7 @@ export default function JoinPage() {
       {/* Cinematic intro overlay */}
       {showIntro && <CinematicIntro onDone={() => setShowIntro(false)} />}
 
-      <div className="flex items-center justify-center min-h-[calc(100vh-56px)] px-4">
+      <div className="flex items-center justify-center min-h-screen px-4 py-10">
         <div className="w-full max-w-md">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
