@@ -84,7 +84,7 @@ export default function LobbyPage() {
 
   useEffect(() => {
     fetchState();
-    const id = setInterval(fetchState, 5000);
+    const id = setInterval(fetchState, 3000);
     return () => clearInterval(id);
   }, [fetchState]);
 

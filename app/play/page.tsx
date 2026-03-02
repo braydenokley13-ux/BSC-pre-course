@@ -31,7 +31,7 @@ interface LeaderboardEntry {
   isCurrentTeam: boolean;
 }
 
-interface MemberInfo { id: string; nickname: string; active: boolean; role: string | null }
+interface MemberInfo { id: string; nickname: string; active: boolean; role: string | null; avatarId?: string }
 interface MissionRoundState {
   missionId?: string;
   currentRoundId?: string;
@@ -98,8 +98,8 @@ const TEAM_COLOR_MAP: Record<string, string> = {
 };
 
 // ── Voting timer constants ──────────────────────────────────────────────────────
-const VOTE_TIMER_SECS = 90;
-const RIVAL_TIMER_SECS = 60;
+const VOTE_TIMER_SECS = 45;
+const RIVAL_TIMER_SECS = 35;
 
 // ── Score pop crowd reaction ────────────────────────────────────────────────────
 function getCrowdReaction(delta: number): string {
@@ -574,7 +574,7 @@ function PlayInner() {
 
   useEffect(() => {
     void fetchState();
-    const id = setInterval(() => void fetchState(), 4000);
+    const id = setInterval(() => void fetchState(), 2000);
     return () => clearInterval(id);
   }, [fetchState]);
 
@@ -1188,73 +1188,89 @@ function PlayInner() {
               })}
             </motion.div>
 
-            {/* Waiting state — with live teammate vote indicators */}
+            {/* Waiting state — live vote board */}
             {phase === "waiting" && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center space-y-3"
+                className="bsc-card p-5 text-center"
               >
-                <PulsingDots />
-                <p className="text-[#6b7280] font-mono text-xs">
-                  {votedCount}/{activeCount} votes in — waiting for teammates…
-                </p>
-                {/* Teammate vote indicators */}
-                <div className="flex flex-wrap gap-2 justify-center mt-1">
+                {canReveal ? (
+                  <motion.p
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.2 }}
+                    className="font-mono text-sm font-bold text-[#22c55e] mb-3"
+                  >
+                    🎉 Everyone voted! Revealing…
+                  </motion.p>
+                ) : (
+                  <p className="font-mono text-xs text-[#c9a84c] mb-3 tracking-widest uppercase">
+                    ⏳ Waiting for teammates — {votedCount}/{activeCount} voted
+                  </p>
+                )}
+
+                {/* Big teammate vote bubbles */}
+                <div className="flex flex-wrap gap-4 justify-center mb-4">
                   {members.filter((m) => m.active).map((m) => {
                     const hasVoted = votedIds.includes(m.id);
+                    const av = getAvatar(m.avatarId ?? "hawks");
                     return (
                       <motion.div
                         key={m.id}
-                        initial={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.7 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 18 }}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded border font-mono text-[10px] transition-colors"
-                        style={{
-                          borderColor: hasVoted ? "#c9a84c" : "#1a2030",
-                          background: hasVoted ? "rgba(201,168,76,0.06)" : "transparent",
-                        }}
+                        transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                        className="flex flex-col items-center gap-1.5"
                       >
-                        <div
-                          className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0 bg-[#c9a84c]/20"
-                          style={{ color: "#c9a84c" }}
-                        >
-                          {m.nickname.slice(0, 1).toUpperCase()}
-                        </div>
-                        <span style={{ color: hasVoted ? "#c9a84c" : "#6b7280" }}>
-                          {m.nickname}{m.id === me.id ? " (you)" : ""}
-                        </span>
-                        {hasVoted ? (
-                          <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 400 }}
-                            className="text-[#c9a84c] text-[11px]"
+                        <div className="relative">
+                          <motion.div
+                            className="w-14 h-14 rounded-full flex items-center justify-center font-mono font-bold text-sm border-2"
+                            style={{
+                              backgroundColor: hasVoted ? av.color : "transparent",
+                              color: hasVoted ? av.textColor : "#6b7280",
+                              borderColor: hasVoted ? av.color : "#1a2030",
+                            }}
+                            animate={hasVoted ? { scale: [1, 1.08, 1] } : {}}
+                            transition={{ repeat: 2, duration: 0.4 }}
                           >
-                            ✓
-                          </motion.span>
-                        ) : (
-                          <motion.span
-                            animate={{ opacity: [1, 0.3, 1] }}
-                            transition={{ repeat: Infinity, duration: 1.4 }}
-                            className="w-1.5 h-1.5 rounded-full bg-[#6b7280] flex-shrink-0"
-                          />
-                        )}
+                            {av.abbr}
+                          </motion.div>
+                          <AnimatePresence>
+                            {hasVoted && (
+                              <motion.span
+                                key="check"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                                className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#22c55e] rounded-full flex items-center justify-center text-white text-[11px] font-bold"
+                              >
+                                ✓
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                        <span className="font-mono text-[10px]" style={{ color: hasVoted ? "#e5e7eb" : "#6b7280" }}>
+                          {m.nickname}{m.id === me.id ? " 👤" : ""}
+                        </span>
+                        <span className="font-mono text-[9px]" style={{ color: hasVoted ? "#22c55e" : "#6b7280" }}>
+                          {hasVoted ? "VOTED ✓" : "thinking…"}
+                        </span>
                       </motion.div>
                     );
                   })}
                 </div>
+
                 {canReveal && (
                   <motion.button
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="bsc-btn-gold px-8 py-2"
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="bsc-btn-gold px-10 py-3 text-base"
                     onClick={() => void handleResolveRound(currentRound.id)}
                     disabled={resolving}
                   >
-                    {resolving ? "Counting votes…" : "Reveal Results →"}
+                    {resolving ? "🔢 Counting votes…" : "🏆 Reveal Results →"}
                   </motion.button>
                 )}
               </motion.div>
