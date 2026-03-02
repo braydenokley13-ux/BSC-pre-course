@@ -274,8 +274,11 @@ export default function HQPage() {
   const [rivalPopup, setRivalPopup] = useState<{ message: string; teamColor: string } | null>(null);
   const [banterIdx, setBanterIdx] = useState(0);
   const [leaderScore, setLeaderScore] = useState<number | null>(null);
+  const [autoJoinMission, setAutoJoinMission] = useState<string | null>(null);
+  const [autoJoinCountdown, setAutoJoinCountdown] = useState(3);
   const prevBadgesRef = useRef<string[]>([]);
   const prevRivalCountRef = useRef(0);
+  const autoJoinRef = useRef(false);
 
   const fetchState = useCallback(async () => {
     try {
@@ -290,6 +293,11 @@ export default function HQPage() {
       const rsm = data.missionRoundState;
       if (rsm?.missionId && !rsm.isResolved) {
         setAvatarRoom(rsm.missionId);
+        // Auto-redirect all teammates to the active mission
+        if (!autoJoinRef.current) {
+          autoJoinRef.current = true;
+          setAutoJoinMission(rsm.missionId);
+        }
       }
       // Check for newly earned badges
       const newBadges = data.team.badges ?? [];
@@ -308,9 +316,25 @@ export default function HQPage() {
 
   useEffect(() => {
     fetchState();
-    const id = setInterval(fetchState, 8000);
+    const id = setInterval(fetchState, 5000);
     return () => clearInterval(id);
   }, [fetchState]);
+
+  // Auto-join countdown: redirect teammates to active mission
+  useEffect(() => {
+    if (!autoJoinMission) return;
+    setAutoJoinCountdown(3);
+    let n = 3;
+    const tick = setInterval(() => {
+      n -= 1;
+      setAutoJoinCountdown(n);
+      if (n <= 0) {
+        clearInterval(tick);
+        router.push(`/play?missionId=${autoJoinMission}`);
+      }
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [autoJoinMission, router]);
 
   useEffect(() => {
     async function fetchRivals() {
@@ -389,6 +413,51 @@ export default function HQPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
+      {/* ── Auto-join mission overlay ────────────────────────────────────── */}
+      <AnimatePresence>
+        {autoJoinMission && (
+          <motion.div
+            key="auto-join"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#020408]/90"
+          >
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22 }}
+              className="bsc-card p-10 text-center max-w-sm mx-4"
+              style={{ boxShadow: "0 0 0 1px rgba(34,197,94,0.4), 0 0 40px rgba(34,197,94,0.08)" }}
+            >
+              <motion.p
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ repeat: Infinity, duration: 1 }}
+                className="text-4xl mb-4"
+              >
+                🏀
+              </motion.p>
+              <p className="font-mono text-[10px] tracking-[0.4em] uppercase text-[#22c55e] mb-3">
+                Mission Active!
+              </p>
+              <p className="font-mono font-bold text-[#e5e7eb] text-xl mb-2">
+                Your team is on the court
+              </p>
+              <p className="font-mono text-xs text-[#6b7280] mb-6">
+                Joining in {autoJoinCountdown}…
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="bsc-btn-gold w-full py-3"
+                onClick={() => router.push(`/play?missionId=${autoJoinMission}`)}
+              >
+                Join Now →
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Top bar ─────────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: -12 }}
