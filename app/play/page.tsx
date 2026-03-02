@@ -8,6 +8,7 @@ import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
 import { TRACK_101_MISSION_OVERRIDES } from "@/lib/track101Content";
 import { getAvatar } from "@/lib/nbaAvatars";
+import { getTeamColorHex } from "@/lib/teamColors";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -92,13 +93,6 @@ const slideFromRight: Variants = {
 const scalePopIn: Variants = {
   hidden: { scale: 0, opacity: 0 },
   show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 320, damping: 16 } },
-};
-
-// ── Color map (color name → hex, matches team.color stored values) ─────────────
-
-const TEAM_COLOR_MAP: Record<string, string> = {
-  blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
-  green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
 };
 
 function buildMissionForPlayer(mission: Mission, track: string, teamStatus: string[]): Mission {
@@ -835,7 +829,7 @@ function PlayInner() {
           setShowScorePop(true);
           setTimeout(() => setShowScorePop(false), 2000);
           // 🎉 Fire confetti for positive outcomes
-          const teamColor = TEAM_COLOR_MAP[teamState?.team?.color ?? "gold"] ?? "#c9a84c";
+          const teamColor = getTeamColorHex(teamState?.team?.color, "gold");
           fireConfetti(teamColor);
         }
         // Set breaking news headline from winning tags
@@ -1584,7 +1578,7 @@ function PlayInner() {
                 <div className="flex items-center gap-2 mb-1.5">
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ background: TEAM_COLOR_MAP[rivalPopup.teamColor] ?? rivalPopup.teamColor }}
+                    style={{ background: getTeamColorHex(rivalPopup.teamColor, "blue") }}
                   />
                   <p className="text-[9px] font-mono tracking-widest uppercase text-[#6b7280]">League Wire</p>
                 </div>
@@ -1785,7 +1779,7 @@ function PlayInner() {
                         <span className="font-mono text-[10px] text-[#6b7280] w-5">#{entry.rank}</span>
                         <div
                           className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ background: TEAM_COLOR_MAP[entry.color] ?? "#6b7280" }}
+                          style={{ background: getTeamColorHex(entry.color, "black") }}
                         />
                         <span
                           className="font-mono text-xs"

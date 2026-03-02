@@ -5,13 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ROOM_LAYOUT, RoomMeta } from "@/lib/missionGraph";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
-
-// ── Color map (color name → hex, matches team.color stored values) ─────────────
-
-const TEAM_COLOR_MAP: Record<string, string> = {
-  blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
-  green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
-};
+import { getTeamColorHex } from "@/lib/teamColors";
 
 // ── Idle league banter (shown when no real rival events yet) ─────────────────
 const LEAGUE_BANTER = [
@@ -441,7 +435,7 @@ export default function HQPage() {
       : null;
   const displayMissionId = navigating ? avatarRoom : activeMissionId;
 
-  const teamColor = TEAM_COLOR_MAP[team.color ?? "blue"] ?? "#2563eb";
+  const teamColor = getTeamColorHex(team.color, "blue");
   const totalRooms = ROOM_LAYOUT.length;
   const completedCount = completedMissions.length;
   const progressPct = (completedCount / totalRooms) * 100;
@@ -805,7 +799,7 @@ export default function HQPage() {
               <div className="flex items-center gap-2 mb-1.5">
                 <div
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  style={{ background: TEAM_COLOR_MAP[rivalPopup.teamColor] ?? rivalPopup.teamColor }}
+                  style={{ background: getTeamColorHex(rivalPopup.teamColor, "blue") }}
                 />
                 <p className="text-[9px] tracking-widest uppercase text-[#64748b] font-medium">League Wire</p>
               </div>

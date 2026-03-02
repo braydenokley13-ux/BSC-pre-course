@@ -1,19 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getTeamColorHex } from "@/lib/teamColors";
 
 interface TeamInfo { id: string; name: string; joinCode: string; color: string }
-
-const TRACK_COLORS: Record<string, string> = {
-  blue: "#3b82f6",
-  gold: "#c9a84c",
-  purple: "#7c3aed",
-  red: "#ef4444",
-  green: "#22c55e",
-  teal: "#14b8a6",
-  orange: "#f97316",
-  black: "#374151",
-};
 
 export default function TeacherSetupPage() {
   const router = useRouter();
@@ -112,7 +102,7 @@ export default function TeacherSetupPage() {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <span
                     className="inline-block w-3 h-3 rounded-full"
-                    style={{ backgroundColor: TRACK_COLORS[team.color] ?? "#3b82f6" }}
+                    style={{ backgroundColor: getTeamColorHex(team.color, "blue") }}
                   />
                   <p className="text-[#e5e7eb] font-mono font-bold text-lg">{team.name}</p>
                 </div>

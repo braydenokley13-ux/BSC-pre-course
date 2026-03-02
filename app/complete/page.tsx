@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CONCEPT_CARDS } from "@/lib/concepts";
+import { getTeamColorHex } from "@/lib/teamColors";
 
 interface TeamState {
   team: { id: string; name: string; badges: string[]; score: number; missionIndex: number; completedMissions?: string[]; completedAt?: string | null; branchStateJson?: string };
@@ -31,11 +32,6 @@ interface LeaderboardEntry {
   badgeCount: number;
   isCurrentTeam: boolean;
 }
-
-const TEAM_COLOR_MAP: Record<string, string> = {
-  blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
-  green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
-};
 
 // ── Animated score counter ─────────────────────────────────────────────────────
 
@@ -75,7 +71,7 @@ function Podium({ entries, myTeamId }: { entries: LeaderboardEntry[]; myTeamId: 
     <div className="flex items-end justify-center gap-3 mb-8">
       {slots.map((entry, slotIdx) => {
         const isCenter = slotIdx === 1;
-        const teamColor = TEAM_COLOR_MAP[entry.color] ?? "#2563eb";
+        const teamColor = getTeamColorHex(entry.color, "blue");
         const isMine = entry.teamId === myTeamId;
         const rankIdx = entry.rank - 1;
 

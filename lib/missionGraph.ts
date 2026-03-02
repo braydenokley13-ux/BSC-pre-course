@@ -1,79 +1,27 @@
-type PrereqMode = "all" | "any" | "count";
-
-interface MissionNode {
-  prereqs: string[];
-  prereqMode: PrereqMode;
-  prereqCount?: number; // used when mode === "count"
-}
-
-export const MISSION_GRAPH: Record<string, MissionNode> = {
-  "cap-crunch": {
-    prereqs: [],
-    prereqMode: "all",
-  },
-  "contract-choice": {
-    prereqs: ["cap-crunch"],
-    prereqMode: "all",
-  },
-  "revenue-mix": {
-    prereqs: ["cap-crunch"],
-    prereqMode: "all",
-  },
-  "stats-lineup": {
-    prereqs: ["cap-crunch"],
-    prereqMode: "all",
-  },
-  "expense-pressure": {
-    prereqs: ["contract-choice", "revenue-mix", "stats-lineup"],
-    prereqMode: "count",
-    prereqCount: 2,
-  },
-  "matchup-adjust": {
-    prereqs: ["contract-choice", "stats-lineup"],
-    prereqMode: "any",
-  },
-  "draft-table": {
-    prereqs: ["revenue-mix", "stats-lineup"],
-    prereqMode: "any",
-  },
-  "final-gm-call": {
-    prereqs: [],
-    prereqMode: "count",
-    prereqCount: 6,
-  },
-};
-
-function isMissionUnlocked(
-  missionId: string,
-  completed: string[]
-): boolean {
-  const node = MISSION_GRAPH[missionId];
-  if (!node) return false;
-  if (completed.includes(missionId)) return false; // already done
-
-  const { prereqs, prereqMode, prereqCount } = node;
-
-  if (prereqMode === "all") {
-    return prereqs.every((p) => completed.includes(p));
-  }
-  if (prereqMode === "any") {
-    return prereqs.length === 0 || prereqs.some((p) => completed.includes(p));
-  }
-  if (prereqMode === "count") {
-    if (prereqs.length === 0) {
-      // "final-gm-call" uses total completed count
-      return completed.length >= (prereqCount ?? 0);
-    }
-    const matchCount = prereqs.filter((p) => completed.includes(p)).length;
-    return matchCount >= (prereqCount ?? 0);
-  }
-  return false;
-}
+export const MISSION_ORDER = [
+  "cap-crunch",
+  "contract-choice",
+  "revenue-mix",
+  "expense-pressure",
+  "stats-lineup",
+  "matchup-adjust",
+  "draft-table",
+  "final-gm-call",
+] as const;
 
 export function getUnlockedMissions(completed: string[]): string[] {
-  return Object.keys(MISSION_GRAPH).filter((id) =>
-    isMissionUnlocked(id, completed)
-  );
+  const completedSet = new Set(completed);
+
+  for (let i = 0; i < MISSION_ORDER.length; i += 1) {
+    const missionId = MISSION_ORDER[i];
+    if (completedSet.has(missionId)) continue;
+
+    const prereqs = MISSION_ORDER.slice(0, i);
+    const ready = prereqs.every((prereqId) => completedSet.has(prereqId));
+    return ready ? [missionId] : [];
+  }
+
+  return [];
 }
 
 export function isGameComplete(completed: string[]): boolean {

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStudentFromRequest } from "@/lib/getStudent";
 import { getMissionById, isLegacyMission, Mission } from "@/lib/missions";
+import { applyRoundOptionMutations } from "@/lib/missionRound";
+import { parseJson } from "@/lib/json";
 import { recordTeamEvent } from "@/lib/teamEvents";
 
 export async function POST(req: NextRequest) {
@@ -30,8 +32,10 @@ export async function POST(req: NextRequest) {
   const richMission = mission as Mission;
 
   // Validate optionIndex is in range for this round
-  const round = richMission.rounds.find((r) => r.id === roundId)
+  const rawRound = richMission.rounds.find((r) => r.id === roundId)
     ?? richMission.rivalCounter?.responseRound;
+  const teamStatus = parseJson<string[]>(team.teamStatus, []);
+  const round = rawRound ? applyRoundOptionMutations(rawRound, teamStatus) : null;
 
   if (!round) return NextResponse.json({ error: "Round not found" }, { status: 404 });
   if (optionIndex < 0 || optionIndex >= round.options.length) {

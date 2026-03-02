@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAvatar } from "@/lib/nbaAvatars";
+import { getTeamColorHex } from "@/lib/teamColors";
 
 interface Member {
   id: string;
@@ -10,11 +11,6 @@ interface Member {
   active: boolean;
   avatarId?: string;
 }
-
-const TEAM_COLOR_MAP: Record<string, string> = {
-  blue: "#3b82f6", gold: "#c9a84c", purple: "#7c3aed", red: "#ef4444",
-  green: "#22c55e", teal: "#14b8a6", orange: "#f97316", black: "#6b7280",
-};
 
 interface TeamState {
   team: { id: string; name: string; joinCode: string; color?: string; missionIndex: number; completedAt: string | null };
@@ -150,7 +146,7 @@ export default function LobbyPage() {
     setTimeout(tick, 700);
   }
 
-  const teamColor = state ? (TEAM_COLOR_MAP[state.team.color ?? ""] ?? "#c9a84c") : "#c9a84c";
+  const teamColor = state ? getTeamColorHex(state.team.color, "gold") : "#c9a84c";
 
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
@@ -294,7 +290,7 @@ export default function LobbyPage() {
           <p className="bsc-section-title mb-3">League Activity</p>
           <div className="space-y-2">
             {rivalTeams.map((t, i) => {
-              const hex = TEAM_COLOR_MAP[t.color] ?? "#6b7280";
+              const hex = getTeamColorHex(t.color, "black");
               return (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hex, boxShadow: `0 0 6px ${hex}80` }} />

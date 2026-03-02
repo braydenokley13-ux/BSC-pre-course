@@ -127,6 +127,12 @@ export function parseMissionRoundState(raw: string | null | undefined): MissionR
 export function applyRoundOptionMutations(round: MissionRound, teamStatus: string[]): MissionRound {
   const patchedOptions: RoundOption[] = round.options
     .map((opt) => {
+      if (opt.blockedByStatus && teamStatus.includes(opt.blockedByStatus)) {
+        return null;
+      }
+      if (opt.requiresStatus && !teamStatus.includes(opt.requiresStatus)) {
+        return null;
+      }
       if (!opt.mutations) return opt;
       let patched = { ...opt };
       for (const mut of opt.mutations) {
@@ -190,9 +196,11 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
   }
 
   const isRivalRound = input.roundId === "rival-response";
-  const roundDef = isRivalRound
+  const rawRoundDef = isRivalRound
     ? richMission.rivalCounter?.responseRound
     : richMission.rounds.find((r) => r.id === input.roundId);
+  const teamStatus = parseJson<string[]>(team.teamStatus, []);
+  const roundDef = rawRoundDef ? applyRoundOptionMutations(rawRoundDef, teamStatus) : undefined;
 
   if (!roundDef) {
     return {
@@ -324,12 +332,10 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
       },
       select: {
         teamStateVersion: true,
-        teamStatus: true,
       },
     });
 
     const rawNextRound = richMission.rounds.find((r) => r.id === nextRoundId);
-    const teamStatus = parseJson<string[]>(updatedTeam.teamStatus, []);
     const nextRound = rawNextRound ? applyRoundOptionMutations(rawNextRound, teamStatus) : undefined;
 
     await recordTeamEvent({
