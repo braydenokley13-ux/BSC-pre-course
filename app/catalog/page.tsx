@@ -65,9 +65,9 @@ const fadeSlideUp: Variants = {
 };
 
 function recommendationText(band: "heavy" | "medium" | "light"): string {
-  if (band === "heavy") return "Teach this concept heavily in class.";
-  if (band === "medium") return "Review this concept with guided practice.";
-  return "Light review is enough for this concept.";
+  if (band === "heavy") return "Spend more class time on this concept.";
+  if (band === "medium") return "Review this concept with guided work.";
+  return "A light review is enough.";
 }
 
 function recommendationColor(band: "heavy" | "medium" | "light"): string {
@@ -290,7 +290,7 @@ function CatalogContent() {
               className="text-center py-4"
             >
               <p className="text-[#6b7280] font-mono text-sm mb-4">
-                Start an adaptive check. You will answer between {minQuestions} and {maxQuestions} questions.
+                Start the check. You will answer {minQuestions} to {maxQuestions} questions.
               </p>
               <motion.button
                 whileHover={{ scale: 1.03 }}
@@ -315,7 +315,7 @@ function CatalogContent() {
                 className="bsc-card p-6"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <p className="bsc-section-title mb-0">Adaptive Assessment</p>
+                  <p className="bsc-section-title mb-0">Adaptive Check</p>
                   <div className="flex-1 h-px bg-[#c9a84c]/20" />
                   <span className="text-[10px] font-mono text-[#6b7280]">
                     Question {askedCount} of up to {maxQuestions}
@@ -326,7 +326,7 @@ function CatalogContent() {
                   <p className="font-mono text-sm text-[#e5e7eb] mb-2">{currentQuestion.stem}</p>
                   {currentEstimate && (
                     <p className="font-mono text-[11px] text-[#6b7280]">
-                      Current estimate: {currentEstimate.masteryScore.toFixed(2)} / 4.00
+                      Current score: {currentEstimate.masteryScore.toFixed(2)} / 4.00
                     </p>
                   )}
                 </div>
@@ -358,10 +358,10 @@ function CatalogContent() {
                   onClick={submitAdaptiveAnswer}
                   disabled={selectedOption === null || submitting}
                 >
-                  {submitting ? "Saving..." : "Submit and Continue →"}
+                  {submitting ? "Saving..." : "Submit and Go On →"}
                 </motion.button>
                 <p className="text-[#6b7280] font-mono text-[11px] mt-2">
-                  Answers are scored at the end so we can estimate understanding more accurately.
+                  We score at the end so the result stays more fair.
                 </p>
               </motion.div>
             )}
@@ -385,7 +385,7 @@ function CatalogContent() {
                   >
                     ◎
                   </motion.div>
-                  <h3 className="text-[#e5e7eb] font-mono font-bold text-lg">Adaptive Summary Complete</h3>
+                  <h3 className="text-[#e5e7eb] font-mono font-bold text-lg">Check Complete</h3>
                   <p className="text-[#6b7280] font-mono text-xs mt-1">
                     {result.questionCount} questions · Mastery {result.masteryScore.toFixed(2)} / 4.00
                   </p>
@@ -393,7 +393,7 @@ function CatalogContent() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                   <div className="border border-[#1a2030] rounded px-3 py-3">
-                    <p className="text-[#6b7280] font-mono text-xs">Recommendation Band</p>
+                    <p className="text-[#6b7280] font-mono text-xs">Review Level</p>
                     <p className={`font-mono text-sm mt-1 ${recommendationColor(result.recommendationBand)}`}>
                       {result.recommendationBand.toUpperCase()}
                     </p>
@@ -404,7 +404,7 @@ function CatalogContent() {
                   <div className="border border-[#1a2030] rounded px-3 py-3">
                     <p className="text-[#6b7280] font-mono text-xs">Confidence</p>
                     <p className="font-mono text-sm mt-1 text-[#e5e7eb]">
-                      {result.lowConfidence ? "Lower confidence estimate" : "Stable estimate"}
+                      {result.lowConfidence ? "Less certain score" : "Steady score"}
                     </p>
                     <p className="text-[#9ca3af] font-mono text-xs mt-1">
                       Uncertainty: {result.uncertainty.toFixed(2)}
@@ -414,7 +414,7 @@ function CatalogContent() {
 
                 {result.objectiveBreakdown.length > 0 && (
                   <div className="border border-[#1a2030] rounded px-3 py-3 mb-4">
-                    <p className="text-[#6b7280] font-mono text-xs mb-2">Objective Breakdown</p>
+                    <p className="text-[#6b7280] font-mono text-xs mb-2">Goal Breakdown</p>
                     <div className="space-y-1">
                       {result.objectiveBreakdown.slice(0, 4).map((item) => (
                         <p key={item.objectiveId} className="text-[#9ca3af] font-mono text-xs">

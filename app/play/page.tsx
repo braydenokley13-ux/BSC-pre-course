@@ -114,15 +114,15 @@ function getCrowdReaction(delta: number): string {
 // ── Breaking news headline after outcome ────────────────────────────────────────
 const TAG_HEADLINES: Record<string, string> = {
   aggressive:    "AGGRESSIVE MOVE SHAKES UP LEAGUE",
-  conservative:  "GM PLAYS IT SAFE — ANALYSTS DIVIDED",
-  "data-driven": "ANALYTICS DESK VINDICATED",
-  culture:       "LOCKER ROOM CHEMISTRY PRIORITIZED",
-  rebuild:       "TEARDOWN BEGINS — FANS REACT",
-  "star-power":  "MARQUEE SIGNING ROCKS OFFSEASON",
+  conservative:  "GM PLAYS IT SAFE - EXPERTS SPLIT",
+  "data-driven": "DATA DESK PROVEN RIGHT",
+  culture:       "TEAM CHEMISTRY COMES FIRST",
+  rebuild:       "REBUILD BEGINS - FANS REACT",
+  "star-power":  "BIG SIGNING SHAKES OFFSEASON",
   flexibility:   "GM KEEPS OPTIONS OPEN",
   risk:          "HIGH-STAKES BET ON FUTURE",
-  balanced:      "CALCULATED APPROACH EARNS PRAISE",
-  creative:      "UNCONVENTIONAL MOVE SURPRISES LEAGUE",
+  balanced:      "SMART PLAN EARNS PRAISE",
+  creative:      "UNUSUAL MOVE SURPRISES LEAGUE",
 };
 
 function getBroadcastHeadline(teamName: string, tags: string[]): string {
@@ -135,16 +135,16 @@ function getBroadcastHeadline(teamName: string, tags: string[]): string {
 
 // ── Idle rival ticker banter ────────────────────────────────────────────────────
 const LEAGUE_BANTER = [
-  "Lakers GM spotted at Starbucks reviewing spreadsheets at 2am.",
-  "Celtics front office declines comment on mystery trade call.",
-  "Warriors analytics department argues over parking spot allocations.",
-  "Nuggets GM posts cryptic emoji — league on high alert.",
-  "Knicks reportedly very confident about something. Details unclear.",
-  "Heat GM seen power-walking through airport. Sources: unrelated.",
+  "Lakers GM seen at Starbucks checking sheets at 2am.",
+  "Celtics front office will not comment on a strange trade call.",
+  "Warriors data team argues over parking spots.",
+  "Nuggets GM posts odd emoji - league pays attention.",
+  "Knicks seem very sure about something. Details unclear.",
+  "Heat GM seen speed-walking through airport. Sources say it means nothing.",
   "League office reminds all GMs: the deadline is real this time.",
-  "Bucks front office reportedly 'vibing.' No other details available.",
-  "76ers GM cited for excessive use of the phrase 'trust the process.'",
-  "Spurs front office described as 'suspiciously calm.' Insiders worried.",
+  "Bucks front office is reportedly 'vibing.' No more details.",
+  "76ers GM keeps saying 'trust the process.'",
+  "Spurs front office looks 'too calm.' Insiders worry.",
 ];
 
 // ── Confetti burst helper ──────────────────────────────────────────────────────
@@ -408,7 +408,7 @@ function InfoCardReveal({
                 className="w-1.5 h-1.5 rounded-full bg-[#c9a84c]"
               />
               <p className="font-mono text-xs text-[#c9a84c]/70 tracking-widest uppercase">
-                📡 Incoming Transmission
+                Briefing coming in
               </p>
             </div>
             {delay > 0 && (
@@ -432,7 +432,7 @@ function InfoCardReveal({
         >
           {isRoleRestricted && (
             <p className="text-[10px] font-mono tracking-widest uppercase text-[#c9a84c] mb-1 opacity-80">
-              ⚡ Role-Restricted — Your Eyes Only
+              ⚡ Role Only - For You
             </p>
           )}
           <p className="text-[10px] font-mono tracking-widest uppercase text-[#6b7280] mb-1">{title}</p>
@@ -723,7 +723,7 @@ function PlayInner() {
         setPhase("voting");
       }
     } catch {
-      setError("Failed to resolve round — try refreshing");
+      setError("Could not end the round - try refreshing");
       setPhase("error");
     } finally {
       setResolving(false);
@@ -768,7 +768,7 @@ function PlayInner() {
           >
             ◈
           </motion.div>
-          <p className="text-[#6b7280] font-mono text-sm">Entering the building…</p>
+          <p className="text-[#6b7280] font-mono text-sm">Heading inside...</p>
         </div>
       </div>
     );

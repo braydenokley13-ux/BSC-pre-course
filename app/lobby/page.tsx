@@ -330,7 +330,7 @@ export default function LobbyPage() {
         className="bsc-card p-6 text-center"
       >
         <p className="text-[#e5e7eb] font-mono text-sm mb-4">
-          8 missions. 8 concepts. One front office philosophy.
+          8 missions. 8 concepts. One team style.
         </p>
         {canStart ? (
           <motion.button
@@ -348,7 +348,7 @@ export default function LobbyPage() {
           </button>
         )}
         <p className="text-[#6b7280] font-mono text-xs mt-3">
-          {state.activeCount} active now · Auto-refreshes every 5s
+          {state.activeCount} active now · Updates every 5s
         </p>
       </motion.div>
 

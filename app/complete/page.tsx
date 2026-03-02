@@ -517,8 +517,8 @@ export default function CompletePage() {
         transition={{ delay: myEntry ? 1.7 : 1.3 }}
         className="text-center text-[#6b7280] font-mono text-xs mt-6 leading-relaxed"
       >
-        You&apos;ll go deeper on all 8 concepts in the course. The cap math, analytics models, and
-        trade mechanics will click much faster now that you&apos;ve made the decisions yourself.
+        You&apos;ll go deeper on all 8 concepts in the course. Cap math, data models, and
+        trade rules will make more sense now that you&apos;ve made the choices yourself.
       </motion.p>
     </div>
   );

@@ -157,7 +157,7 @@ export default function TeacherSetupPage() {
       <div className="bsc-broadcast-shell p-5 md:p-6">
         <div className="text-center mb-5">
           <div className="text-[#c9a84c] font-mono text-2xl font-bold mb-1">New Session</div>
-          <p className="text-[#6b7280] font-mono text-xs">Creates teams and generates join codes</p>
+          <p className="text-[#6b7280] font-mono text-xs">Makes teams and join codes</p>
         </div>
 
         <div className="bsc-score-grid mb-4">
@@ -223,8 +223,8 @@ export default function TeacherSetupPage() {
                 </div>
                 <p className="text-[#6b7280] font-mono text-xs mt-1">
                   {track === "101"
-                    ? "Simplified language, everyday analogies, grade 6 reading level."
-                    : "Full complexity — salary cap jargon, multi-step tradeoffs."}
+                    ? "Simple language, daily examples, grade 6 reading level."
+                    : "Full detail - cap terms and multi-step choices."}
                 </p>
               </div>
 
@@ -241,7 +241,7 @@ export default function TeacherSetupPage() {
                   ))}
                 </select>
                 <p className="text-[#6b7280] font-mono text-xs mt-1">
-                  Ideal: 3-4 students per team. Each team plays at its own pace.
+                  Best: 3-4 students per team. Teams can move at their own pace.
                 </p>
               </div>
 
@@ -266,8 +266,8 @@ export default function TeacherSetupPage() {
             <div className="border border-[#c9a84c]/20 bg-[#c9a84c]/5 rounded px-4 py-3">
               <p className="text-[#c9a84c] font-mono text-xs font-bold mb-1">Note</p>
               <p className="text-[#6b7280] font-mono text-xs">
-                Creating a new session will archive any currently active session.
-                Old data is preserved and exportable.
+                A new session will archive the active one.
+                Old data stays saved and can still be exported.
               </p>
             </div>
             <div className="mt-4 space-y-2 font-mono text-xs text-[#9ca3af]">
