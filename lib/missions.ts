@@ -1523,7 +1523,7 @@ const expensePressure: Mission = {
     },
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You're in rebuild mode. This trade offer arrives at the wrong time — absorbing $28M in salary now burns the flexibility you need to build correctly.",
+      prependText: "You entered this season in rebuild mode — but the young roster overperformed and you're suddenly 2.5 games from a playoff spot. Reeves would push you over the line. The question is whether seizing this window is the right call or whether it blows up the rebuild's long-term structure.",
     },
     {
       requiredStatus: "star-retained",
@@ -3727,7 +3727,7 @@ const finalGmCall: Mission = {
     },
     {
       requiredStatus: "rebuild-mode",
-      prependText: "You traded stars for assets and accepted short-term losses. The owner wants to see that the rebuild is on track — and that you have a clear path to the other side.",
+      prependText: "You traded stars for assets and accepted short-term losses — but the team came back faster than expected. Missing the playoffs by 4 points in a rebuild year is ahead of schedule. The owner wants to know whether to stay the course or push the timeline up.",
     },
     {
       requiredStatus: "over-luxury-tax",
