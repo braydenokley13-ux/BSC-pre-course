@@ -52,9 +52,14 @@ interface TeamStateResponse {
 
 type RoomStatus = "completed" | "active" | "unlocked" | "locked";
 
-function getRoomStatus(room: RoomMeta, completed: string[], unlocked: string[], avatarRoom: string | null): RoomStatus {
+function getRoomStatus(
+  room: RoomMeta,
+  completed: string[],
+  unlocked: string[],
+  currentMissionId?: string | null
+): RoomStatus {
   if (completed.includes(room.missionId)) return "completed";
-  if (avatarRoom === room.missionId) return "active";
+  if (currentMissionId === room.missionId) return "active";
   if (unlocked.includes(room.missionId)) return "unlocked";
   return "locked";
 }
@@ -315,12 +320,13 @@ export default function HQPage() {
       }
       setState(data);
       const rsm = data.missionRoundState;
-      if (rsm?.missionId && !rsm.isResolved) {
-        setAvatarRoom(rsm.missionId);
+      const nextActiveMissionId = rsm?.missionId && !rsm.isResolved ? rsm.missionId : null;
+      setAvatarRoom((current) => (navigating ? current : nextActiveMissionId));
+      if (nextActiveMissionId) {
         // Auto-redirect all teammates to the active mission
         if (!autoJoinRef.current) {
           autoJoinRef.current = true;
-          setAutoJoinMission(rsm.missionId);
+          setAutoJoinMission(nextActiveMissionId);
         }
       }
       // Check for newly earned badges
@@ -336,7 +342,7 @@ export default function HQPage() {
     } catch {
       setError("Connection error — retrying…");
     }
-  }, [router]);
+  }, [router, navigating]);
 
   useEffect(() => {
     fetchState();
@@ -429,6 +435,11 @@ export default function HQPage() {
 
   const { team, me, unlockedMissions, completedMissions, teamStatus } = state;
   const badges = team.badges ?? [];
+  const activeMissionId =
+    state.missionRoundState?.missionId && !state.missionRoundState.isResolved
+      ? state.missionRoundState.missionId
+      : null;
+  const displayMissionId = navigating ? avatarRoom : activeMissionId;
 
   const teamColor = TEAM_COLOR_MAP[team.color ?? "blue"] ?? "#2563eb";
   const totalRooms = ROOM_LAYOUT.length;
@@ -706,13 +717,13 @@ export default function HQPage() {
 
           {/* Rooms */}
           {ROOM_LAYOUT.map((room) => {
-            const status = getRoomStatus(room, completedMissions, unlockedMissions, avatarRoom);
+            const status = getRoomStatus(room, completedMissions, unlockedMissions, displayMissionId);
             return (
               <SVGRoom
                 key={room.missionId}
                 missionId={room.missionId}
                 status={status}
-                isAvatar={avatarRoom === room.missionId}
+                isAvatar={displayMissionId === room.missionId}
                 onClick={() => handleRoomClick(room.missionId, status)}
               />
             );
