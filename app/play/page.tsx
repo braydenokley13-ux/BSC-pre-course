@@ -126,9 +126,7 @@ function buildMissionForPlayer(mission: Mission, track: string, teamStatus: stri
     ?.filter((injection) => teamStatus.includes(injection.requiredStatus))
     .map((injection) => injection.prependText) ?? [];
 
-  return injections.length > 0
-    ? { ...baseMission, scenario: `${injections.join("")}${baseMission.scenario}` }
-    : baseMission;
+  return baseMission;
 }
 
 function getHydratedRound(mission: Mission, roundId: string | undefined, teamStatus: string[]): MissionRound | null {
@@ -950,6 +948,9 @@ function PlayInner() {
 
   const track = teamState.track ?? "201";
   const richMission = buildMissionForPlayer(rawMission!, track, teamState.teamStatus ?? []);
+  const contextBlocks = (rawMission!.scenarioInjections ?? [])
+    .filter((inj) => (teamState.teamStatus ?? []).includes(inj.requiredStatus))
+    .map((inj) => inj.prependText);
 
   const { me, members, activeCount } = teamState;
   const myRole = richMission.roles.find((r) => r.id === me.role) ?? null;
@@ -1058,6 +1059,24 @@ function PlayInner() {
               <span className="text-[#1a2030]">|</span>
               <span className="text-[#e5e7eb] font-mono text-sm font-bold">{richMission.title}</span>
             </motion.div>
+
+            {/* Front Office Context — status-based intel, only shown when active statuses apply */}
+            {contextBlocks.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.04 }}
+                className="bsc-card p-4 mb-3 border-[#c9a84c]/30"
+                style={{ background: "rgba(201,168,76,0.06)" }}
+              >
+                <p className="bsc-section-title">Front Office Context</p>
+                {contextBlocks.map((block, i) => (
+                  <p key={i} className="font-mono text-xs text-[#c9a84c] leading-relaxed mb-1.5 last:mb-0">
+                    {block}
+                  </p>
+                ))}
+              </motion.div>
+            )}
 
             {/* Scenario */}
             <motion.div
