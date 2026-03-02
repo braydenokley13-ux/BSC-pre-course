@@ -5,10 +5,11 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { getMissionById, isLegacyMission, Mission, MissionRound } from "@/lib/missions";
 import { applyRoundOptionMutations } from "@/lib/missionRound";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
-import { CONCEPT_CARDS } from "@/lib/concepts";
+import { CONCEPT_CARDS, GLOSSARY_TERMS } from "@/lib/concepts";
 import { TRACK_101_MISSION_OVERRIDES } from "@/lib/track101Content";
 import { getAvatar } from "@/lib/nbaAvatars";
 import { getTeamColorHex } from "@/lib/teamColors";
+import { GlossaryPanel } from "@/components/GlossaryPanel";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -576,6 +577,8 @@ function PlayInner() {
   const prevRivalCountRef = useRef(0);
   const missionStarted = useRef(false);
   const resolvedRef = useRef<string>("");
+  const resolvingRef = useRef(false);       // synchronous guard — avoids stale-closure redirect race
+  const outcomeReachedRef = useRef(false);  // set true once we decide to show the outcome screen
 
   useEffect(() => {
     if (!missionId) { router.replace("/hq"); return; }
@@ -648,7 +651,10 @@ function PlayInner() {
       }
 
       if (rsm?.missionId === missionId && rsm.isResolved) {
-        if (phase !== "outcome") {
+        // Guard: don't redirect if handleResolveRound is mid-flight or has already
+        // determined we should show the outcome screen. Stale closures on 'phase'
+        // can cause a redirect to catalog/HQ before the outcome renders.
+        if (phase !== "outcome" && !resolvingRef.current && !outcomeReachedRef.current) {
           if (data.gameComplete) {
             router.replace("/complete");
           } else {
@@ -843,7 +849,10 @@ function PlayInner() {
   }
 
   async function handleResolveRound(roundId: string, timedOut = false) {
-    if (resolving) return;
+    // Use a ref (not state) so the guard is synchronous — state updates are
+    // async/batched and a stale fetchState closure would bypass a state check.
+    if (resolvingRef.current) return;
+    resolvingRef.current = true;
     setResolving(true);
     try {
       const res = await fetch("/api/mission/resolve-round", {
@@ -863,14 +872,15 @@ function PlayInner() {
         return;
       }
       if (data.isComplete) {
+        // Mark outcome reached BEFORE setting phase so any concurrent fetchState
+        // poll (with a stale phase closure) won't redirect away to catalog/HQ.
+        outcomeReachedRef.current = true;
         if ((data.outcome?.scoreΔ ?? 0) > 0) {
           setShowScorePop(true);
           setTimeout(() => setShowScorePop(false), 2000);
-          // 🎉 Fire confetti for positive outcomes
           const teamColor = getTeamColorHex(teamState?.team?.color, "gold");
           fireConfetti(teamColor);
         }
-        // Set breaking news headline from winning tags
         const teamName = teamState?.team?.name ?? "Front Office";
         setHeadline(getBroadcastHeadline(teamName, data.winningTags ?? []));
         setShowHeadline(true);
@@ -887,6 +897,7 @@ function PlayInner() {
       setError("Could not end the round - try refreshing");
       setPhase("error");
     } finally {
+      resolvingRef.current = false;
       setResolving(false);
     }
   }
@@ -1181,6 +1192,24 @@ function PlayInner() {
                 />
               ))}
             </div>
+
+            {/* Cap Glossary — relevant terms for this mission */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mb-5"
+            >
+              <GlossaryPanel
+                groups={GLOSSARY_TERMS}
+                track={track}
+                title="Cap Glossary — Mission Terms"
+                highlightedTermIds={
+                  CONCEPT_CARDS.find((c) => c.id === richMission.conceptId)?.termIds ?? []
+                }
+                initiallyOpen={false}
+              />
+            </motion.div>
 
             {/* CTA */}
             <motion.button
@@ -1480,7 +1509,6 @@ function PlayInner() {
                 whileTap={{ scale: 0.98 }}
                 className="bsc-btn-gold w-full py-3"
                 onClick={() => {
-                  setCurrentRound(rivalRound);
                   setSelectedOptionIdx(null);
                   setPhase("rival-voting");
                 }}
