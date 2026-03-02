@@ -324,9 +324,13 @@ function RoleCeremony({ role, onDone }: { role: RoleInfo; onDone: () => void }) 
 
 function MissionIntro({ mission, onDone }: { mission: { title: string; department: string; tagline?: string; missionNumber?: number }; onDone: () => void }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 2600);
+    const t = setTimeout(onDone, 3400);
     return () => clearTimeout(t);
   }, [onDone]);
+
+  const missionLabel = mission.missionNumber != null
+    ? `MISSION ${String(mission.missionNumber).padStart(2, "0")}`
+    : null;
 
   return (
     <motion.div
@@ -344,19 +348,37 @@ function MissionIntro({ mission, onDone }: { mission: { title: string; departmen
         }}
       />
       <div className="relative z-10 text-center px-6">
+        {missionLabel && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.4 }}
+            className="font-mono text-[10px] tracking-[0.5em] uppercase text-[#4b5563] mb-3"
+          >
+            {missionLabel}
+          </motion.p>
+        )}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="font-mono text-[10px] tracking-[0.45em] uppercase text-[#c9a84c] mb-4"
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="font-mono text-[10px] tracking-[0.45em] uppercase text-[#c9a84c] mb-2"
         >
           {mission.department}
         </motion.p>
         <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+          className="flex justify-center mb-4"
+        >
+          <div className="h-px w-14 bg-[#c9a84c]/40" />
+        </motion.div>
+        <motion.div
           initial={{ opacity: 0, letterSpacing: "0.02em" }}
           animate={{ opacity: 1, letterSpacing: "0.15em" }}
-          transition={{ delay: 0.45, duration: 0.7 }}
-          className="font-mono font-bold text-[#c9a84c] mb-4"
+          transition={{ delay: 0.65, duration: 0.7 }}
+          className="font-mono font-bold text-[#c9a84c] mb-5"
           style={{ fontSize: "clamp(2.8rem, 9vw, 5.5rem)" }}
         >
           {mission.title.toUpperCase()}
@@ -365,8 +387,8 @@ function MissionIntro({ mission, onDone }: { mission: { title: string; departmen
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.1, duration: 0.6 }}
-            className="font-mono text-sm text-[#6b7280] tracking-widest"
+            transition={{ delay: 1.3, duration: 0.6 }}
+            className="font-mono text-sm text-[#9ca3af] tracking-widest"
           >
             {mission.tagline}
           </motion.p>
@@ -376,11 +398,11 @@ function MissionIntro({ mission, onDone }: { mission: { title: string; departmen
         className="absolute bottom-0 left-0 h-0.5 bg-[#c9a84c]/60"
         initial={{ width: "0%" }}
         animate={{ width: "100%" }}
-        transition={{ delay: 0.3, duration: 2.2, ease: "linear" }}
+        transition={{ delay: 0.3, duration: 3.0, ease: "linear" }}
       />
       <button
         onClick={onDone}
-        className="absolute top-4 right-6 font-mono text-[10px] text-[#374151] hover:text-[#6b7280] transition-colors tracking-widest uppercase"
+        className="absolute top-4 right-6 font-mono text-[10px] text-[#6b7280] hover:text-[#9ca3af] transition-colors tracking-widest uppercase"
       >
         skip →
       </button>

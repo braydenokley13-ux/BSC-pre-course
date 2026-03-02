@@ -34,7 +34,7 @@ export interface AdaptiveResponseUpdate {
 }
 
 const MIN_QUESTIONS = 3;
-const MAX_QUESTIONS = 7;
+const MAX_QUESTIONS = 5;
 const THETA_STEP = 0.55;
 const DIFFICULTY_TO_CHALLENGE: Record<number, number> = {
   1: -1.0,

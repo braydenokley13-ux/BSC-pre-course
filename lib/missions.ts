@@ -531,7 +531,7 @@ const contractChoice: Mission = {
   missionNumber: 2,
   title: "Contract Choice",
   department: "CONTRACT OFFICE",
-  tagline: "Supermax rules — one week to decide.",
+  tagline: "One week. $210M. Your franchise's future.",
   scenario:
     "Your young star Darius Cole has made two All-Star teams on his rookie deal and is now eligible for a Designated Player Supermax Extension — 35% of the cap for 5 years, worth $210M+. His agent is leaking interest to two cap-space teams. He has a player option in Year 5 of any extension. What do you offer?",
   scenarioInjections: [
@@ -991,7 +991,7 @@ const revenueMix: Mission = {
   missionNumber: 3,
   title: "Revenue Mix",
   department: "PARTNERSHIP OFFICE",
-  tagline: "Largest sponsorship in team history.",
+  tagline: "$125M on the table. Nothing comes free.",
   scenario:
     "NovaTech, a global consumer electronics company, has submitted a formal proposal: a 5-year jersey patch deal worth $25M/year — the largest in team history. Conditions: they want naming rights to your practice facility, 10 mandated social media posts per month from the team account, and first right of refusal on any future arena naming rights. Under the CBA's BRI rules, ~50% of incremental local revenue flows into the shared pool. The owner wants highest local dollars. Players are already grumbling about the social media clause.",
   scenarioInjections: [
@@ -1501,7 +1501,7 @@ const expensePressure: Mission = {
   missionNumber: 4,
   title: "Expense Pressure",
   department: "TRADE OPERATIONS",
-  tagline: "Trade deadline — salary must match.",
+  tagline: "3 PM. Trade deadline. Your window is closing.",
   scenario:
     "It's 3 PM on trade deadline day. You're 2.5 games out of a playoff spot. Dallas wants to offload their star wing, Jordan Reeves — $28M this season, one year remaining. He's averaging 26 points and is exactly what your roster is missing. To match salary under CBA trade rules you must send back 125% of his salary plus $2M — meaning at least $22M outbound. You have a $12M small forward and a $10M backup center who can be combined (aggregated) to hit the line. But taking on Reeves without sending out equal salary triggers Second Apron exposure. The clock runs out at 3 PM.",
   scenarioInjections: [
@@ -2571,7 +2571,7 @@ const matchupAdjust: Mission = {
   missionNumber: 6,
   title: "Matchup Adjust",
   department: "MEDICAL BAY",
-  tagline: "Team player showing fatigue signs.",
+  tagline: "Your star is breaking. Playoffs in 11 games.",
   scenario:
     "Your team player, DeShawn Morris — 24 years old, averaging 31.4 points on 38.2 minutes per game — is showing measurable fatigue signs. Fourth-quarter shooting: down 4.8% over the last 12 games. The medical team has flagged 'bilateral plantar fasciitis risk and soft tissue stress indicators' — not a confirmed injury, but a clear warning. Playoffs are 11 games away. The fanbase is selling out every game. The coach wants him on the floor. Morris himself says he's fine. What do you do?",
   scenarioInjections: [
@@ -3693,7 +3693,7 @@ const finalGmCall: Mission = {
   missionNumber: 8,
   title: "Final GM Call",
   department: "OWNERSHIP SUITE",
-  tagline: "The owner wants your three-year plan.",
+  tagline: "Season's over. The owner is waiting.",
   scenario:
     "End of season. The owner has called a private meeting in the Ownership Suite. Your team narrowly missed the playoffs — lost the final play-in game by 4 points. You have one All-Star under contract (2 years remaining), two first-round picks in your vault, and a 14-man roster with 4 rotation-caliber players. The league is in transition — 7 of the last 10 finalists were built through stats-forward drafting, not star free agency. The owner asks: 'Give me your three-year vision. What does this team look like in Year 3?' Your answer defines everything — staff, plan, budget, and your own job security.",
   scenarioInjections: [
