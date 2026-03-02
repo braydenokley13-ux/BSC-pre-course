@@ -241,9 +241,9 @@ function CatalogContent() {
       <div className="flex gap-5">
         <div className="w-56 flex-shrink-0 hidden lg:block">
           <div className="bsc-card p-0 sticky top-[80px] overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#e2e8f0]">
-              <p className="font-mono text-[10px] tracking-widest uppercase text-[#2563eb]">GM Case Files</p>
-              <p className="font-mono text-[9px] text-[#64748b] mt-0.5">Adaptive Assessment</p>
+            <div className="px-4 py-3 border-b border-[#334155]">
+              <p className="font-mono text-[10px] tracking-widest uppercase text-[#60a5fa]">GM Case Files</p>
+              <p className="font-mono text-[9px] text-[#94a3b8] mt-0.5">Adaptive Assessment</p>
             </div>
             <motion.ul variants={staggerList} initial="hidden" animate="show" className="py-2">
               {CONCEPT_CARDS.map((concept) => {
@@ -254,8 +254,8 @@ function CatalogContent() {
                       onClick={() => router.push(`/catalog?concept=${concept.id}`)}
                       className={`w-full text-left px-4 py-2.5 transition-colors font-mono text-xs flex items-center gap-2 ${
                         isCurrent
-                          ? "bg-[#eff6ff] text-[#2563eb] border-l-2 border-[#2563eb]"
-                          : "text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] border-l-2 border-transparent"
+                          ? "bg-[#0f172a] text-[#60a5fa] border-l-2 border-[#2563eb]"
+                          : "text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#111827] border-l-2 border-transparent"
                       }`}
                     >
                       <span className="text-[10px]">{isCurrent ? "▶" : "◦"}</span>
@@ -284,7 +284,7 @@ function CatalogContent() {
                 <span className="bsc-badge-gold">Adaptive Mode</span>
               </div>
               <button
-                className="text-[#64748b] font-mono text-xs hover:text-[#0f172a] transition-colors"
+                className="text-[#94a3b8] font-mono text-xs hover:text-[#f8fafc] transition-colors"
                 onClick={() => router.push("/hq")}
               >
                 ← HQ
@@ -302,9 +302,9 @@ function CatalogContent() {
               transition={{ duration: 0.3 }}
               className="bsc-card p-6 mb-4 relative overflow-hidden gm-watermark"
             >
-              <p className="font-mono text-sm text-[#0f172a] leading-relaxed mb-5">{card.body}</p>
-              <div className="border-t border-[#e2e8f0] pt-4">
-                <p className="font-mono text-xs text-[#64748b] italic">{card.note}</p>
+              <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed mb-5">{card.body}</p>
+              <div className="border-t border-[#334155] pt-4">
+                <p className="font-mono text-xs text-[#94a3b8] italic">{card.note}</p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -322,7 +322,7 @@ function CatalogContent() {
               transition={{ delay: 0.2 }}
               className="text-center py-4"
             >
-              <p className="text-[#64748b] font-mono text-sm mb-4">
+              <p className="text-[#94a3b8] font-mono text-sm mb-4">
                 Start the check. You will answer {minQuestions} to {maxQuestions} questions.
               </p>
               <motion.button
@@ -349,16 +349,16 @@ function CatalogContent() {
               >
                 <div className="flex items-center gap-3 mb-4">
                   <p className="bsc-section-title mb-0">Adaptive Check</p>
-                  <div className="flex-1 h-px bg-[#dbeafe]" />
-                  <span className="text-[10px] font-mono text-[#64748b]">
+                  <div className="flex-1 h-px bg-[#334155]" />
+                  <span className="text-[10px] font-mono text-[#94a3b8]">
                     Question {askedCount} of up to {maxQuestions}
                   </span>
                 </div>
 
                 <div className="mb-4">
-                  <p className="font-mono text-sm text-[#0f172a] mb-2">{currentQuestion.stem}</p>
+                  <p className="font-mono text-sm text-[#e5e7eb] mb-2 leading-relaxed">{currentQuestion.stem}</p>
                   {currentEstimate && (
-                    <p className="font-mono text-[11px] text-[#64748b]">
+                    <p className="font-mono text-[11px] text-[#94a3b8]">
                       Current score: {currentEstimate.masteryScore.toFixed(2)} / 4.00
                     </p>
                   )}
@@ -373,12 +373,12 @@ function CatalogContent() {
                       whileTap={{ scale: 0.99 }}
                       className={`w-full text-left px-3 py-2.5 rounded border font-mono text-sm transition-colors ${
                         selectedOption === index
-                          ? "border-[#2563eb] bg-[#eff6ff] text-[#0f172a]"
-                          : "border-[#e2e8f0] text-[#64748b] hover:border-[#2563eb]/40 hover:text-[#0f172a]"
+                          ? "border-[#2563eb] bg-[#0f172a] text-[#f8fafc]"
+                          : "border-[#334155] text-[#cbd5e1] hover:border-[#2563eb]/40 hover:text-[#f8fafc] hover:bg-[#111827]"
                       }`}
                       onClick={() => setSelectedOption(index)}
                     >
-                      <span className="text-[#64748b] mr-2">{index + 1}.</span>
+                      <span className="text-[#94a3b8] mr-2">{index + 1}.</span>
                       {option}
                     </motion.button>
                   ))}
@@ -393,7 +393,7 @@ function CatalogContent() {
                 >
                   {submitting ? "Saving..." : "Submit and Go On →"}
                 </motion.button>
-                <p className="text-[#64748b] font-mono text-[11px] mt-2">
+                <p className="text-[#94a3b8] font-mono text-[11px] mt-2">
                   We score at the end so the result stays more fair.
                 </p>
               </motion.div>
@@ -414,24 +414,24 @@ function CatalogContent() {
                   <span className={`text-sm font-mono font-semibold ${currentFeedback.isCorrect ? "text-[#16a34a]" : "text-[#dc2626]"}`}>
                     {currentFeedback.isCorrect ? "✓ Correct" : "✗ Incorrect"}
                   </span>
-                  <div className="flex-1 h-px bg-[#e2e8f0]" />
-                  <span className="text-[10px] font-mono text-[#64748b]">
+                  <div className="flex-1 h-px bg-[#334155]" />
+                  <span className="text-[10px] font-mono text-[#94a3b8]">
                     Question {askedCount} of up to {maxQuestions}
                   </span>
                 </div>
 
-                <p className="font-mono text-sm text-[#0f172a] mb-4 leading-relaxed">{currentQuestion.stem}</p>
+                <p className="font-mono text-sm text-[#e5e7eb] mb-4 leading-relaxed">{currentQuestion.stem}</p>
 
                 <div className="space-y-2 mb-5">
                   {currentQuestion.options.map((option, index) => {
                     const isSelected = selectedOption === index;
                     const isCorrect = index === currentFeedback.correctIndex;
-                    let cls = "border-[#e2e8f0] text-[#94a3b8] opacity-50";
+                    let cls = "border-[#334155] text-[#94a3b8] opacity-60";
                     if (isCorrect) cls = "border-[#16a34a] bg-[#f0fdf4] text-[#0f172a] opacity-100";
                     else if (isSelected && !isCorrect) cls = "border-[#dc2626] bg-[#fef2f2] text-[#0f172a] opacity-100";
                     return (
                       <div key={index} className={`px-3 py-2.5 rounded border font-mono text-sm flex items-center gap-2 ${cls}`}>
-                        <span className="text-[#64748b] shrink-0">{index + 1}.</span>
+                        <span className={`${isCorrect || (isSelected && !isCorrect) ? "text-[#64748b]" : "text-[#94a3b8]"} shrink-0`}>{index + 1}.</span>
                         <span className="flex-1">{option}</span>
                         {isCorrect && <span className="text-[#16a34a] text-xs shrink-0">✓</span>}
                         {isSelected && !isCorrect && <span className="text-[#dc2626] text-xs shrink-0">✗</span>}
@@ -440,11 +440,11 @@ function CatalogContent() {
                   })}
                 </div>
 
-                <div className="border border-[#e2e8f0] bg-[#f8fafc] rounded px-3 py-3 mb-5">
-                  <p className="text-[10px] font-mono tracking-widest uppercase text-[#64748b] mb-1.5">
+                <div className="border border-[#334155] bg-[#0f172a] rounded px-3 py-3 mb-5">
+                  <p className="text-[10px] font-mono tracking-widest uppercase text-[#94a3b8] mb-1.5">
                     {currentFeedback.isCorrect ? "Why it is right" : "Why"}
                   </p>
-                  <p className="text-sm font-mono text-[#0f172a] leading-relaxed">
+                  <p className="text-sm font-mono text-[#e5e7eb] leading-relaxed">
                     {currentFeedback.explanation}
                   </p>
                 </div>
@@ -479,39 +479,39 @@ function CatalogContent() {
                   >
                     ◎
                   </motion.div>
-                  <h3 className="text-[#0f172a] font-mono font-bold text-lg">Check Complete</h3>
-                  <p className="text-[#64748b] font-mono text-xs mt-1">
+                  <h3 className="text-[#e5e7eb] font-mono font-bold text-lg">Check Complete</h3>
+                  <p className="text-[#94a3b8] font-mono text-xs mt-1">
                     {result.questionCount} questions · Mastery {result.masteryScore.toFixed(2)} / 4.00
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3">
-                    <p className="text-[#64748b] font-mono text-xs">Review Level</p>
+                  <div className="border border-[#334155] rounded px-3 py-3 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs">Review Level</p>
                     <p className={`font-mono text-sm mt-1 ${recommendationColor(result.recommendationBand)}`}>
                       {result.recommendationBand.toUpperCase()}
                     </p>
-                    <p className="text-[#64748b] font-mono text-xs mt-1">
+                    <p className="text-[#94a3b8] font-mono text-xs mt-1">
                       {recommendationText(result.recommendationBand)}
                     </p>
                   </div>
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3">
-                    <p className="text-[#64748b] font-mono text-xs">Confidence</p>
-                    <p className="font-mono text-sm mt-1 text-[#0f172a]">
+                  <div className="border border-[#334155] rounded px-3 py-3 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs">Confidence</p>
+                    <p className="font-mono text-sm mt-1 text-[#e5e7eb]">
                       {result.lowConfidence ? "Less certain score" : "Steady score"}
                     </p>
-                    <p className="text-[#64748b] font-mono text-xs mt-1">
+                    <p className="text-[#94a3b8] font-mono text-xs mt-1">
                       Uncertainty: {result.uncertainty.toFixed(2)}
                     </p>
                   </div>
                 </div>
 
                 {result.objectiveBreakdown.length > 0 && (
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3 mb-4">
-                    <p className="text-[#64748b] font-mono text-xs mb-2">Goal Breakdown</p>
+                  <div className="border border-[#334155] rounded px-3 py-3 mb-4 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs mb-2">Goal Breakdown</p>
                     <div className="space-y-1">
                       {result.objectiveBreakdown.slice(0, 4).map((item) => (
-                        <p key={item.objectiveId} className="text-[#64748b] font-mono text-xs">
+                        <p key={item.objectiveId} className="text-[#cbd5e1] font-mono text-xs">
                           {item.objectiveId}: {item.correctCount}/{item.askedCount} correct · {item.missRate}% miss
                         </p>
                       ))}
@@ -520,11 +520,11 @@ function CatalogContent() {
                 )}
 
                 {result.misconceptionsTop.length > 0 && (
-                  <div className="border border-[#e2e8f0] rounded px-3 py-3 mb-4">
-                    <p className="text-[#64748b] font-mono text-xs mb-2">Top Misconceptions</p>
+                  <div className="border border-[#334155] rounded px-3 py-3 mb-4 bg-[#111827]">
+                    <p className="text-[#94a3b8] font-mono text-xs mb-2">Top Misconceptions</p>
                     <div className="space-y-1">
                       {result.misconceptionsTop.slice(0, 3).map((row) => (
-                        <p key={row.tag} className="text-[#64748b] font-mono text-xs">
+                        <p key={row.tag} className="text-[#cbd5e1] font-mono text-xs">
                           {row.tag}: {row.count}
                         </p>
                       ))}

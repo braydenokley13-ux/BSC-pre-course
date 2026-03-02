@@ -219,36 +219,47 @@ function RoleCeremony({ role, onDone }: { role: RoleInfo; onDone: () => void }) 
   const [stage, setStage] = useState<"scanning" | "lock" | "done">("scanning");
   const [displayRole, setDisplayRole] = useState(ALL_ROLES[0]);
   const doneRef = useRef(false);
+  const onDoneRef = useRef(onDone);
 
   useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
+
+  useEffect(() => {
+    doneRef.current = false;
     let idx = 0;
     const intervals: number[] = [160, 160, 120, 120, 90, 90, 70, 70, 55, 55];
     let step = 0;
+    let cycleTimeout: ReturnType<typeof setTimeout> | null = null;
+    let lockTimeout: ReturnType<typeof setTimeout> | null = null;
+    let doneTimeout: ReturnType<typeof setTimeout> | null = null;
 
     function cycle() {
       if (step >= intervals.length) {
         setDisplayRole(role.title);
         setStage("lock");
-        const t = setTimeout(() => {
+        lockTimeout = setTimeout(() => {
           setStage("done");
           if (!doneRef.current) {
             doneRef.current = true;
-            setTimeout(onDone, 400);
+            doneTimeout = setTimeout(() => onDoneRef.current(), 400);
           }
         }, 900);
-        return () => clearTimeout(t);
+        return;
       }
       idx = (idx + 1) % ALL_ROLES.length;
       setDisplayRole(ALL_ROLES[idx]);
       step++;
-      const t = setTimeout(cycle, intervals[step] ?? 55);
-      return () => clearTimeout(t);
+      cycleTimeout = setTimeout(cycle, intervals[step] ?? 55);
     }
 
-    const t = setTimeout(cycle, intervals[0]);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    cycleTimeout = setTimeout(cycle, intervals[0]);
+    return () => {
+      if (cycleTimeout) clearTimeout(cycleTimeout);
+      if (lockTimeout) clearTimeout(lockTimeout);
+      if (doneTimeout) clearTimeout(doneTimeout);
+    };
+  }, [role.title]);
 
   return (
     <motion.div
@@ -311,7 +322,7 @@ function RoleCeremony({ role, onDone }: { role: RoleInfo; onDone: () => void }) 
         )}
       </div>
       <button
-        onClick={() => { if (!doneRef.current) { doneRef.current = true; onDone(); } }}
+        onClick={() => { if (!doneRef.current) { doneRef.current = true; onDoneRef.current(); } }}
         className="absolute top-4 right-6 font-mono text-[10px] text-[#374151] hover:text-[#6b7280] transition-colors tracking-widest uppercase"
       >
         skip →
@@ -323,6 +334,8 @@ function RoleCeremony({ role, onDone }: { role: RoleInfo; onDone: () => void }) 
 // ── Mission intro cinematic component ─────────────────────────────────────────
 
 function MissionIntro({ mission, onDone }: { mission: { title: string; department: string; tagline?: string; missionNumber?: number }; onDone: () => void }) {
+  const onDoneRef = useRef(onDone);
+
   useEffect(() => {
     const t = setTimeout(onDone, 3400);
     return () => clearTimeout(t);
@@ -435,14 +448,19 @@ function InfoCardReveal({
 }) {
   const [visible, setVisible] = useState(false);
   const [secsLeft, setSecsLeft] = useState(Math.ceil(delay));
+  const onRevealRef = useRef(onReveal);
+
+  useEffect(() => {
+    onRevealRef.current = onReveal;
+  }, [onReveal]);
 
   useEffect(() => {
     const t = setTimeout(() => {
       setVisible(true);
-      onReveal?.(title);
+      onRevealRef.current?.(title);
     }, delay * 1000);
     return () => clearTimeout(t);
-  }, [delay, title, onReveal]);
+  }, [delay, title]);
 
   useEffect(() => {
     if (visible || delay === 0) return;

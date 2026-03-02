@@ -503,11 +503,11 @@ export default function HQPage() {
           >
             {team.name}
           </h1>
-          <p className="text-[#64748b] text-xs mt-1">
+          <p className="text-[#94a3b8] text-xs mt-1">
             Welcome back,{" "}
-            <span className="text-[#0f172a] font-medium">{me.nickname}</span>
+            <span className="text-[#e5e7eb] font-medium">{me.nickname}</span>
             {me.role && (
-              <span className="ml-2 text-[#2563eb]">— {me.role.toUpperCase()}</span>
+              <span className="ml-2 text-[#60a5fa]">— {me.role.toUpperCase()}</span>
             )}
           </p>
         </div>
@@ -515,10 +515,10 @@ export default function HQPage() {
         <div className="flex items-center gap-6">
           {/* Score ring */}
           <div className="text-center">
-            <p className="text-[#64748b] text-[9px] uppercase tracking-widest mb-1 font-medium">Score</p>
+            <p className="text-[#94a3b8] text-[9px] uppercase tracking-widest mb-1 font-medium">Score</p>
             <div className="relative w-14 h-14">
               <svg viewBox="0 0 56 56" className="w-14 h-14 -rotate-90">
-                <circle cx="28" cy="28" r="22" fill="none" stroke="#e2e8f0" strokeWidth="4" />
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#334155" strokeWidth="4" />
                 <motion.circle
                   cx="28" cy="28" r="22" fill="none"
                   stroke={teamColor} strokeWidth="4"
@@ -538,11 +538,11 @@ export default function HQPage() {
           </div>
 
           <div className="text-right">
-            <p className="text-[#64748b] text-[9px] uppercase tracking-widest mb-1 font-medium">Progress</p>
-            <p className="text-[#0f172a] text-xl font-bold">
-              {completedCount}<span className="text-[#64748b] text-sm">/{totalRooms}</span>
+            <p className="text-[#94a3b8] text-[9px] uppercase tracking-widest mb-1 font-medium">Progress</p>
+            <p className="text-[#e5e7eb] text-xl font-bold">
+              {completedCount}<span className="text-[#94a3b8] text-sm">/{totalRooms}</span>
             </p>
-            <p className="text-[#64748b] text-[9px] uppercase tracking-widest font-medium">Missions</p>
+            <p className="text-[#94a3b8] text-[9px] uppercase tracking-widest font-medium">Missions</p>
           </div>
         </div>
       </motion.div>
@@ -554,11 +554,11 @@ export default function HQPage() {
         transition={{ delay: 0.15, duration: 0.4 }}
         className="mb-5"
       >
-        <div className="flex justify-between text-[9px] text-[#64748b] tracking-widest uppercase mb-1.5 font-medium">
+        <div className="flex justify-between text-[9px] text-[#94a3b8] tracking-widest uppercase mb-1.5 font-medium">
           <span>Floor Progress</span>
           <span>{completedCount} of {totalRooms} departments cleared</span>
         </div>
-        <div className="h-1.5 bg-[#e2e8f0] rounded-full overflow-hidden">
+        <div className="h-1.5 bg-[#1e293b] rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full"
             style={{
@@ -623,8 +623,8 @@ export default function HQPage() {
           >
             <span className="text-2xl">🏆</span>
             <div>
-              <p className="text-[10px] tracking-widest uppercase text-[#2563eb] font-semibold">Badge Unlocked</p>
-              <p className="text-sm text-[#0f172a] font-bold">{badgeToast}</p>
+              <p className="text-[10px] tracking-widest uppercase text-[#60a5fa] font-semibold">Badge Unlocked</p>
+              <p className="text-sm text-[#e5e7eb] font-bold">{badgeToast}</p>
             </div>
           </motion.div>
         )}
@@ -738,11 +738,11 @@ export default function HQPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-white/80 flex items-center justify-center z-20 backdrop-blur-sm rounded-xl"
+              className="absolute inset-0 bg-[#020408]/82 flex items-center justify-center z-20 backdrop-blur-sm rounded-xl"
             >
               <div className="text-center">
                 <div className="w-8 h-8 border-2 border-[#2563eb]/20 border-t-[#2563eb] rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-[#2563eb] text-xs tracking-widest uppercase font-medium">
+                <p className="text-[#60a5fa] text-xs tracking-widest uppercase font-medium">
                   Entering {ROOM_SVG[navigating]?.label ?? "room"}…
                 </p>
               </div>
@@ -801,9 +801,9 @@ export default function HQPage() {
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{ background: getTeamColorHex(rivalPopup.teamColor, "blue") }}
                 />
-                <p className="text-[9px] tracking-widest uppercase text-[#64748b] font-medium">League Wire</p>
+                <p className="text-[9px] tracking-widest uppercase text-[#94a3b8] font-medium">League Wire</p>
               </div>
-              <p className="text-xs text-[#0f172a] leading-snug">{rivalPopup.message}</p>
+              <p className="text-xs text-[#e5e7eb] leading-snug">{rivalPopup.message}</p>
             </div>
           </motion.div>
         )}
