@@ -5,7 +5,13 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { CONCEPT_CARDS, GLOSSARY_TERMS } from "@/lib/concepts";
 import { GlossaryPanel } from "@/components/GlossaryPanel";
 
-type CheckPhase = "card" | "adaptive" | "result";
+type CheckPhase = "card" | "adaptive" | "feedback" | "result";
+
+interface FeedbackPayload {
+  isCorrect: boolean;
+  correctIndex: number;
+  explanation: string;
+}
 
 interface AdaptiveQuestionPayload {
   id: string;
@@ -27,6 +33,7 @@ interface AdaptiveStartResponse {
 
 interface AdaptiveContinueResponse {
   done: false;
+  feedback: FeedbackPayload;
   askedCount: number;
   minQuestions: number;
   maxQuestions: number;
@@ -39,6 +46,7 @@ interface AdaptiveContinueResponse {
 
 interface AdaptiveDoneResponse {
   done: true;
+  feedback?: FeedbackPayload;
   masteryScore: number;
   uncertainty: number;
   questionCount: number;
@@ -91,6 +99,9 @@ function CatalogContent() {
   const [maxQuestions, setMaxQuestions] = useState(7);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [result, setResult] = useState<AdaptiveDoneResponse | null>(null);
+  const [currentFeedback, setCurrentFeedback] = useState<FeedbackPayload | null>(null);
+  const [pendingQuestion, setPendingQuestion] = useState<AdaptiveQuestionPayload | null>(null);
+  const [pendingResult, setPendingResult] = useState<AdaptiveDoneResponse | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loadingAdaptive, setLoadingAdaptive] = useState(false);
   const [error, setError] = useState("");
@@ -111,6 +122,9 @@ function CatalogContent() {
     setAskedCount(0);
     setSelectedOption(null);
     setResult(null);
+    setCurrentFeedback(null);
+    setPendingQuestion(null);
+    setPendingResult(null);
     setError("");
   }, [conceptId]);
 
@@ -168,21 +182,37 @@ function CatalogContent() {
       }
 
       if (data.done) {
-        setResult(data);
-        setPhase("result");
+        setCurrentFeedback(data.feedback ?? null);
+        setPendingResult(data);
+        setPhase("feedback");
         return;
       }
 
+      setCurrentFeedback(data.feedback);
+      setPendingQuestion(data.nextQuestion);
       setAskedCount(data.askedCount);
-      setCurrentQuestion(data.nextQuestion);
       setCurrentEstimate(data.currentEstimate);
       setMinQuestions(data.minQuestions);
       setMaxQuestions(data.maxQuestions);
-      setSelectedOption(null);
+      setPhase("feedback");
     } catch {
       setError("Network error while submitting answer.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function handleFeedbackContinue() {
+    setCurrentFeedback(null);
+    if (pendingResult) {
+      setResult(pendingResult);
+      setPendingResult(null);
+      setPhase("result");
+    } else if (pendingQuestion) {
+      setCurrentQuestion(pendingQuestion);
+      setPendingQuestion(null);
+      setSelectedOption(null);
+      setPhase("adaptive");
     }
   }
 
@@ -192,6 +222,9 @@ function CatalogContent() {
     setAttemptId(null);
     setCurrentQuestion(null);
     setSelectedOption(null);
+    setCurrentFeedback(null);
+    setPendingQuestion(null);
+    setPendingResult(null);
     await startAdaptiveAttempt();
   }
 
@@ -363,6 +396,67 @@ function CatalogContent() {
                 <p className="text-[#64748b] font-mono text-[11px] mt-2">
                   Answers are scored at the end so we can estimate understanding more accurately.
                 </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {phase === "feedback" && currentFeedback && currentQuestion && (
+              <motion.div
+                key="feedback-panel"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="bsc-card p-6"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <span className={`text-sm font-mono font-semibold ${currentFeedback.isCorrect ? "text-[#16a34a]" : "text-[#dc2626]"}`}>
+                    {currentFeedback.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                  </span>
+                  <div className="flex-1 h-px bg-[#e2e8f0]" />
+                  <span className="text-[10px] font-mono text-[#64748b]">
+                    Question {askedCount} of up to {maxQuestions}
+                  </span>
+                </div>
+
+                <p className="font-mono text-sm text-[#0f172a] mb-4 leading-relaxed">{currentQuestion.stem}</p>
+
+                <div className="space-y-2 mb-5">
+                  {currentQuestion.options.map((option, index) => {
+                    const isSelected = selectedOption === index;
+                    const isCorrect = index === currentFeedback.correctIndex;
+                    let cls = "border-[#e2e8f0] text-[#94a3b8] opacity-50";
+                    if (isCorrect) cls = "border-[#16a34a] bg-[#f0fdf4] text-[#0f172a] opacity-100";
+                    else if (isSelected && !isCorrect) cls = "border-[#dc2626] bg-[#fef2f2] text-[#0f172a] opacity-100";
+                    return (
+                      <div key={index} className={`px-3 py-2.5 rounded border font-mono text-sm flex items-center gap-2 ${cls}`}>
+                        <span className="text-[#64748b] shrink-0">{index + 1}.</span>
+                        <span className="flex-1">{option}</span>
+                        {isCorrect && <span className="text-[#16a34a] text-xs shrink-0">✓</span>}
+                        {isSelected && !isCorrect && <span className="text-[#dc2626] text-xs shrink-0">✗</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="border border-[#e2e8f0] bg-[#f8fafc] rounded px-3 py-3 mb-5">
+                  <p className="text-[10px] font-mono tracking-widest uppercase text-[#64748b] mb-1.5">
+                    {currentFeedback.isCorrect ? "Why this is correct" : "Explanation"}
+                  </p>
+                  <p className="text-sm font-mono text-[#0f172a] leading-relaxed">
+                    {currentFeedback.explanation}
+                  </p>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bsc-btn-gold w-full py-3"
+                  onClick={handleFeedbackContinue}
+                >
+                  {pendingResult ? "View Results →" : "Next Question →"}
+                </motion.button>
               </motion.div>
             )}
           </AnimatePresence>
