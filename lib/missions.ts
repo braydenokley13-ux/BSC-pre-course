@@ -507,6 +507,69 @@ const capCrunch: Mission = {
         },
       ],
     },
+    {
+      roundTagCombo: ["sign-max", "counter-both"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Webb Signs Reluctantly",
+          scoreΔ: 6,
+          narrative:
+            "Webb's agent spent a week pushing back on the restricted NTC and no player option. In the end, Webb signed — but only after LA's offer fell through due to a failed physical on their end. He's on the roster, but the agent told two reporters the team 'tried to lock him in a cage.' The deal works on paper. The relationship has a crack in it.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.45,
+          label: "Webb Walks — Hardball Backfired",
+          scoreΔ: 3,
+          narrative:
+            "Your counter on both non-financial terms pushed Webb over the edge. His agent called it 'disrespectful to a two-time All-Star.' He signed with Miami at full terms — NTC, player option, everything you tried to take off the table. You saved cap space but lost your best player because of contract language, not money.",
+          applyStatus: ["rebuild-mode", "cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["call-bluff", "counter-90"],
+      variants: [
+        {
+          probability: 0.50,
+          label: "Webb Accepts the Counter",
+          scoreΔ: 7,
+          narrative:
+            "Your 90% counter landed in the sweet spot — close enough to LA's offer that Webb didn't want to uproot his family, far enough below the max that your cap sheet stays manageable. He signed. The 72-hour wait was excruciating, but the outcome is strong: star retained at a below-market number.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.50,
+          label: "Webb Takes LA's Full Offer",
+          scoreΔ: 3,
+          narrative:
+            "Webb's agent called back within hours: 'LA is offering 100%. You're offering 90%. That's the difference between respect and a discount.' He signed with LA. You saved 10% on a contract that doesn't exist. The city watched him leave over what amounted to $6.4M in total value.",
+          applyStatus: ["rebuild-mode", "cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["explore-trade", "reject-trades"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Extension Talks Reopen — Deal Gets Done",
+          scoreΔ: 7,
+          narrative:
+            "Rejecting both trade packages sent a message: you want Webb. His agent noticed. Extension talks reopened the next day at $14.5M/year — below his original ask, above your first counter. Clean deal, no drama. The trade exploration gave you information and leverage without costing anything.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.40,
+          label: "Webb Learns About the Trade Calls",
+          scoreΔ: 4,
+          narrative:
+            "Webb's agent found out about the trade conversations from a league source. Webb is furious — 'You shopped me while telling me you wanted me here.' He signed the extension but the trust is broken. He requested a limited no-trade clause as a condition, and you had no leverage to refuse.",
+          applyStatus: ["star-retained", "coach-conflict"],
+        },
+      ],
+    },
   ],
 
   defaultOutcome: {
@@ -879,6 +942,48 @@ const contractChoice: Mission = {
       ],
     },
     {
+      roundTagCombo: ["offer-supermax", "no-extras"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Cole Signs — No Extras, No Drama",
+          scoreΔ: 7,
+          narrative:
+            "Cole's agent pushed for two weeks, then accepted. The supermax money spoke louder than the missing non-financial terms. Cole signed, told reporters 'the commitment is in the dollars,' and showed up to camp focused. No opt-out, no NTC — you control the contract for 5 years.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.45,
+          label: "Cole Rejects — Tests Free Agency",
+          scoreΔ: 3,
+          narrative:
+            "Cole's agent called it a 'take it or leave it that disrespects a franchise player.' Cole left it. Houston signed him at the full supermax with a Year 4 option and a 28-team NTC — everything you refused to include. You saved $0 and lost your cornerstone over non-financial terms.",
+          applyStatus: ["rebuild-mode", "cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["team-friendly", "add-incentives"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Incentive Structure Accepted",
+          scoreΔ: 8,
+          narrative:
+            "Cole's agent negotiated the incentive triggers for three days, then accepted. Base at 30% of cap, $3M/year in achievable bonuses tied to All-Star selections and games played. He made All-Star Year 1 and earned the full bonus. Year 2 TBD. The structure protects you if he declines and rewards him if he performs.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.40,
+          label: "Cole Accepts — Publicly Resentful",
+          scoreΔ: 5,
+          narrative:
+            "Cole signed but told a reporter the incentive structure felt like 'being graded every year like a rookie.' He earned $2.1M of the $3M bonus in Year 1 — the games-played trigger missed by 4 games due to a minor ankle sprain. His agent is already requesting a restructure. The deal works financially. The trust gap is real.",
+          applyStatus: ["star-retained", "coach-conflict"],
+        },
+      ],
+    },
+    {
       roundTagCombo: ["qualifying-offer", "match-offer-sheet"],
       variants: [
         {
@@ -1128,7 +1233,6 @@ const revenueMix: Mission = {
           label: "Propose organic integration — 6 'unbranded' posts at $21M",
           description: "Use the marketing insight: organic content outperforms hard ads 4:1. Sell NovaTech on quality over quantity.",
           tags: ["creative-integration", "analytics-forward"],
-          requiresStatus: "analytics-forward",
         },
         {
           id: "escalate-to-owner",
@@ -1488,6 +1592,69 @@ const revenueMix: Mission = {
         },
       ],
     },
+    {
+      roundTagCombo: ["accept-full", "renegotiate-social"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Social Terms Revised — Deal Salvaged",
+          scoreΔ: 7,
+          narrative:
+            "NovaTech's marketing team agreed to reduce the social mandate from 10 to 6 posts per season and drop the highlight clip requirement. The naming rights and facility branding stayed. Revenue held at $24M — slightly below the original $25M. Players noticed the reduced social load and stopped complaining. A pragmatic middle ground.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.35,
+          label: "Social Renegotiation Stalls — Original Terms Reinstated",
+          scoreΔ: 5,
+          narrative:
+            "NovaTech's CMO pushed back hard: 'The social exposure is the whole point of the deal.' After two weeks of negotiation, you ended up back at the original 10-post mandate with minor language tweaks. Players see it as performative. The deal went through at $25M, but the renegotiation attempt cost you credibility with both the sponsor and the locker room.",
+          applyStatus: ["over-luxury-tax", "coach-conflict"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["negotiate", "escalate-to-owner"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Owner Closes the Deal",
+          scoreΔ: 7,
+          narrative:
+            "The owner met NovaTech's CEO over dinner. Two hours later, the deal was done at $23M — higher than your $20M target, lower than the original $25M ask. No naming rights. 8 social posts. The owner is satisfied. Your team office ceded the negotiation to ownership — that sets a precedent. Next time a big deal comes up, the owner may bypass you entirely.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.45,
+          label: "Owner Overreaches — Deal Terms Worse",
+          scoreΔ: 4,
+          narrative:
+            "The owner got excited at dinner and agreed to $24M — but with facility naming rights added back in, the exact term you spent weeks removing. He called it 'a great deal.' You now have naming rights on the arena that two starters have publicly criticized. The revenue is real. The team office's authority is diminished.",
+          applyStatus: ["over-luxury-tax"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["performance-based", "walk-away"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Walk-Away Triggers Re-Engagement",
+          scoreΔ: 6,
+          narrative:
+            "NovaTech called back within a week — their board had approved the performance structure but the VP of partnerships wanted to test your resolve. Walking away proved it. The deal closed at $17M base + $5M in playoff triggers. Clean terms, no naming rights. Patience worked.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.45,
+          label: "Walk-Away — NovaTech Signs With Rival",
+          scoreΔ: 2,
+          narrative:
+            "NovaTech didn't call back. They signed a full sponsorship deal with Charlotte two weeks later at $22M. The owner saw the announcement and called an emergency meeting. You walked away from a deal that would have closed at $17M minimum — and now you have nothing. The summer market is thin.",
+          applyStatus: ["cap-space-limited"],
+        },
+      ],
+    },
   ],
 
   defaultOutcome: {
@@ -1678,7 +1845,7 @@ const expensePressure: Mission = {
     },
     {
       id: "terms-pick",
-      prompt: "Atlanta wants clarity on the pick. Unprotected is non-negotiable for them. What do you offer?",
+      prompt: "Dallas wants clarity on the pick. Unprotected is non-negotiable for them. What do you offer?",
       context: "Attaching any first is painful. The question is how much protection you wrap around it.",
       dependsOnRoundId: "direction",
       dependsOnTag: "add-pick",
@@ -1686,13 +1853,13 @@ const expensePressure: Mission = {
         {
           id: "unprotected-first",
           label: "Attach an unprotected 2026 first",
-          description: "Maximum sweetener. Atlanta accepts immediately. You're betting the lottery ticket.",
+          description: "Maximum sweetener. Dallas accepts immediately. You're betting the lottery ticket.",
           tags: ["unprotected-first", "asset-cost"],
           mutations: [
             {
               ifStatus: "rebuild-mode",
               labelSuffix: " ⚠ REBUILD CONFLICT",
-              descriptionPrefix: "You're rebuilding — your lottery odds are elevated. Handing Atlanta an unprotected first could gift them a top-5 pick in a draft you need for yourself. ",
+              descriptionPrefix: "You're rebuilding — your lottery odds are elevated. Handing Dallas an unprotected first could gift them a top-5 pick in a draft you need for yourself. ",
             },
             {
               ifStatus: "over-luxury-tax",
@@ -1704,7 +1871,7 @@ const expensePressure: Mission = {
         {
           id: "top-10-protected",
           label: "Top-10 protected 2026 first",
-          description: "If you miss the playoffs, the pick conveys protected — you keep it. If healthy, Atlanta gets it.",
+          description: "If you miss the playoffs, the pick conveys protected — you keep it. If healthy, Dallas gets it.",
           tags: ["top-10-protected", "risk-managed"],
           mutations: [
             {
@@ -1717,7 +1884,7 @@ const expensePressure: Mission = {
         {
           id: "two-seconds",
           label: "Offer two unprotected 2nd-round picks instead",
-          description: "No first. Atlanta gets volume, not premium. They'll negotiate.",
+          description: "No first. Dallas gets volume, not premium. They'll negotiate.",
           tags: ["two-seconds", "asset-light"],
           mutations: [
             {
@@ -1750,10 +1917,10 @@ const expensePressure: Mission = {
           ],
         },
         {
-          id: "revisit-atlanta",
+          id: "revisit-dallas",
           label: "Re-open trade talks on new terms",
-          description: "Call Atlanta back. You have leverage now — the deadline is gone and they still need to move the contract.",
-          tags: ["revisit-atlanta", "negotiate"],
+          description: "Call Dallas back. You have leverage now — the deadline is gone and they still need to move the contract.",
+          tags: ["revisit-dallas", "negotiate"],
           mutations: [
             {
               ifStatus: "over-luxury-tax",
@@ -1913,6 +2080,27 @@ const expensePressure: Mission = {
       ],
     },
     {
+      roundTagCombo: ["three-team", "abandon-three-team"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Pivoted to Direct Deal — Simplicity Wins",
+          scoreΔ: 6,
+          narrative:
+            "You abandoned the three-team complexity and called Dallas directly. The 1-for-1 deal was worse on paper — your $12M SF straight up for Reeves with Dallas eating the salary difference. But it cleared in 15 minutes. Reeves played that night. Sometimes the simple path is the right one.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.45,
+          label: "No Deal — Deadline Passed",
+          scoreΔ: 3,
+          narrative:
+            "Abandoning the three-team structure killed the only viable deal framework. Dallas needed a third team to absorb salary — without one, the numbers never worked. The deadline passed with your roster unchanged. You missed the playoffs by 2 games with the same team you had in November.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
       roundTagCombo: ["add-pick"],
       variants: [
         {
@@ -1954,7 +2142,7 @@ const expensePressure: Mission = {
           label: "Trade Completed — Premium Asset Spent",
           scoreΔ: 8,
           narrative:
-            "The offer was too good for Atlanta to decline. The deal closed within 24 hours — you get the wing, they get an unprotected chip that could land anywhere from 5 to 25. The risk is real, but so is the talent you just added.",
+            "The offer was too good for Dallas to decline. The deal closed within 24 hours — you get the wing, they get an unprotected chip that could land anywhere from 5 to 25. The risk is real, but so is the talent you just added.",
           applyStatus: ["trade-assets-rich"],
         },
         {
@@ -1975,7 +2163,7 @@ const expensePressure: Mission = {
           label: "Trade Completed — Smart Protection",
           scoreΔ: 8,
           narrative:
-            "Atlanta accepted the top-10 protection structure. The deal closed, you landed the wing, and if this season goes sideways, you keep the pick. Best-case scenario: healthy team, you never trigger the protection.",
+            "Dallas accepted the top-10 protection structure. The deal closed, you landed the wing, and if this season goes sideways, you keep the pick. Best-case scenario: healthy team, you never trigger the protection.",
           applyStatus: ["trade-assets-rich"],
         },
       ],
@@ -1985,18 +2173,18 @@ const expensePressure: Mission = {
       variants: [
         {
           probability: 0.50,
-          label: "Atlanta Accepts",
+          label: "Dallas Accepts",
           scoreΔ: 7,
           narrative:
-            "Two seconds isn't a first, but volume has value. Atlanta's front office reviewed the picks' projected positions and accepted. You kept your first-round capital and still made the move.",
+            "Two seconds isn't a first, but volume has value. Dallas's front office reviewed the picks' projected positions and accepted. You kept your first-round capital and still made the move.",
           applyStatus: ["trade-assets-rich"],
         },
         {
           probability: 0.50,
-          label: "Atlanta Counters — Talks Collapse",
+          label: "Dallas Counters — Talks Collapse",
           scoreΔ: 3,
           narrative:
-            "Atlanta's GM said no directly: the picks don't move the needle for a franchise trying to compete now. Talks collapsed within the hour. You're heading into the stretch run with the same roster you had this morning.",
+            "Dallas's GM said no directly: the picks don't move the needle for a franchise trying to shed salary. Talks collapsed within the hour. You're heading into the stretch run with the same roster you had this morning.",
           applyStatus: [],
         },
       ],
@@ -2023,22 +2211,22 @@ const expensePressure: Mission = {
       ],
     },
     {
-      roundTagCombo: ["stand-pat", "revisit-atlanta"],
+      roundTagCombo: ["stand-pat", "revisit-dallas"],
       variants: [
         {
           probability: 0.55,
           label: "Deal Done at Better Terms",
           scoreΔ: 7,
           narrative:
-            "Atlanta picked up immediately — their leverage dropped to zero the moment the deadline passed. You renegotiated the pick protection from unprotected to top-12 and closed the deal the same day. Standing pat gave you a better deal than deadline pressure would have.",
+            "Dallas picked up immediately — their leverage dropped to zero the moment the deadline passed. You renegotiated the pick protection from unprotected to top-12 and closed the deal the same day. Standing pat gave you a better deal than deadline pressure would have.",
           applyStatus: ["trade-assets-rich"],
         },
         {
           probability: 0.45,
-          label: "Atlanta Moves On",
+          label: "Dallas Moves On",
           scoreΔ: 3,
           narrative:
-            "Atlanta had already pivoted. They found another trade partner, moved the contract internally, and aren't looking to reopen talks. The post-deadline window closed before you called.",
+            "Dallas had already pivoted. They found another trade partner, moved Reeves internally, and aren't looking to reopen talks. The post-deadline window closed before you called.",
           applyStatus: [],
         },
       ],
@@ -2474,6 +2662,27 @@ const statsLineup: Mission = {
           narrative:
             "He was gone within the week. The team went 6-14 under the interim coach while absorbing the roster disruption. The stats were right. The execution destroyed the season.",
           applyStatus: ["coach-conflict", "rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["mandate-changes", "pull-back-mandate"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Walk-Back Earns Goodwill",
+          scoreΔ: 6,
+          narrative:
+            "Coach Hill respected the reversal. 'That took guts,' he told the staff. You restarted the conversation as a collaboration — walked through the data together, let him design the implementation timeline. The bench lineup got 10 minutes per game by March. Not the full deployment, but the relationship survived and the door stayed open.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.40,
+          label: "Walk-Back Seen as Weakness",
+          scoreΔ: 3,
+          narrative:
+            "Coach Hill saw the reversal as confirmation that the team office doesn't have conviction. He told three assistants: 'They blinked.' The bench lineup never got deployed. The data team feels undermined. You lost credibility with both sides — the coach doesn't respect you, and the analytics staff doesn't trust you to back their work.",
+          applyStatus: ["coach-conflict"],
         },
       ],
     },
@@ -2915,6 +3124,27 @@ const matchupAdjust: Mission = {
       ],
     },
     {
+      roundTagCombo: ["hard-limit", "pay-bonus"],
+      variants: [
+        {
+          probability: 0.70,
+          label: "Bonus Paid — Player Protected",
+          scoreΔ: 8,
+          narrative:
+            "You paid the $3M load management bonus without hesitation. Morris's agent was pleasantly surprised — 'Most teams would have tried to reclassify.' Morris sat 5 of the last 11 games, arrived at the playoffs fully healthy, and averaged 33 points in the first round. The $3M was a rounding error against his long-term value.",
+          applyStatus: ["high-morale"],
+        },
+        {
+          probability: 0.30,
+          label: "Bonus Paid — Owner Questions the Spend",
+          scoreΔ: 5,
+          narrative:
+            "The $3M triggered immediately. Morris rested and arrived healthy — but the owner flagged the bonus as 'avoidable contract mismanagement.' He asked why the front office signed a contract with a load management trigger if they planned to load manage. The medical decision was right. The contract language should have been better.",
+          applyStatus: [],
+        },
+      ],
+    },
+    {
       roundTagCombo: ["hard-limit", "reclassify-rest"],
       variants: [
         {
@@ -2974,6 +3204,27 @@ const matchupAdjust: Mission = {
           narrative:
             "Three games rest helped but wasn't enough. The grade-2 fasciitis progressed during Game 3 of the first round. He finished the game — but missed Game 4 and 5. Out in the first round.",
           applyStatus: ["rebuild-mode"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["push-through", "game-time-decisions"],
+      variants: [
+        {
+          probability: 0.50,
+          label: "Game-Time Approach Works — Morris Manages Himself",
+          scoreΔ: 6,
+          narrative:
+            "Morris and the medical staff found a rhythm. He sat Game 9 voluntarily, played 28 minutes in Game 10, and went full-out in Game 11 for seeding. The grade-2 held. He entered the playoffs at 88% — not perfect, but functional. The game-time model worked because Morris took ownership of the process.",
+          applyStatus: [],
+        },
+        {
+          probability: 0.50,
+          label: "Game-Time Decisions — No One Decides",
+          scoreΔ: 3,
+          narrative:
+            "Without a formal protocol, every game night became a negotiation between Morris, Coach Hill, and the medical staff. Morris played 36 minutes in a game he should have sat. The fasciitis worsened to grade-2+ by the regular season finale. He played in the first round at 70% and the team lost in 5. No one made the call because everyone shared the responsibility.",
+          applyStatus: ["coach-conflict"],
         },
       ],
     },
@@ -3528,6 +3779,27 @@ const draftTable: Mission = {
       ],
     },
     {
+      roundTagCombo: ["take-cole", "call-trade-now"],
+      variants: [
+        {
+          probability: 0.55,
+          label: "Trade Down — Cole Still Available at #12",
+          scoreΔ: 8,
+          narrative:
+            "The shot chart data changed your confidence in Cole at #6 — but not in Cole entirely. Memphis accepted the trade. Cole was still there at 12. You took him at a discount with the Memphis 2026 first as insurance. The late pivot was the best decision of the night.",
+          applyStatus: ["trade-assets-rich"],
+        },
+        {
+          probability: 0.45,
+          label: "Trade Down — Cole Taken at #9",
+          scoreΔ: 5,
+          narrative:
+            "Memphis accepted the trade. Cole went at #9 to Sacramento. You took the best available wing at 12 — a solid rotation player, not a franchise piece. The Memphis 2026 first is in the vault. You got two assets but neither is the star the model identified.",
+          applyStatus: ["trade-assets-rich"],
+        },
+      ],
+    },
+    {
       roundTagCombo: ["trade-down", "take-cole-at-12"],
       variants: [
         {
@@ -3562,23 +3834,23 @@ const draftTable: Mission = {
       ],
     },
     {
-      roundTagCombo: ["trade-up", "emergency-trade-up"],
+      roundTagCombo: ["trade-down", "best-available"],
       variants: [
         {
-          probability: 0.70,
-          label: "Moved Up — Secured Cole",
-          scoreΔ: 9,
+          probability: 0.60,
+          label: "Best Available Hits — Disciplined Process",
+          scoreΔ: 7,
           narrative:
-            "The move to #4 worked. Cole went to you. Golden State had been targeting a center at #5 — the Cole bluff was real. You gave up a future first but secured the model's top target. Year 3 All-Star. The cost was real but proportionate.",
-          applyStatus: ["analytics-forward"],
+            "Neither Cole nor Silva was available at 12 — both went in the 7-10 range. You took the best available player on your board: a 20-year-old combo guard with elite defensive metrics. Year 1: immediate rotation contributor. Year 2: starter. The Memphis 2026 first adds another asset. Discipline over narrative.",
+          applyStatus: ["trade-assets-rich"],
         },
         {
-          probability: 0.30,
-          label: "Moved Up — Cole Wasn't Golden State's Target",
-          scoreΔ: 6,
+          probability: 0.40,
+          label: "Best Available — Reach at #12",
+          scoreΔ: 4,
           narrative:
-            "Golden State took a center. Cole would have been there at #6. You paid a future first to jump one spot unnecessarily. Cole became a star — the pick was right, the execution cost extra.",
-          applyStatus: ["analytics-forward"],
+            "The board thinned out faster than expected. Your best available at 12 was a project big man — two years away from contributing. Cole went at #9 and became a star. Silva went at #7. You traded down for assets and missed both targets. The Memphis 2026 first softens the blow, but the war room knows this draft got away from you.",
+          applyStatus: ["trade-assets-rich"],
         },
       ],
     },
@@ -4124,6 +4396,69 @@ const finalGmCall: Mission = {
           narrative:
             "Not hard enough for a real run, not disciplined enough for a true rebuild. Year 3: mediocre roster in the middle of nothing. The worst outcome: neither vision executed.",
           applyStatus: ["cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["controlled-rebuild", "let-window-close"],
+      variants: [
+        {
+          probability: 0.50,
+          label: "Market Deal — Cap Flexibility Preserved",
+          scoreΔ: 7,
+          narrative:
+            "Webb hit free agency. Two teams offered the supermax. You offered a 3-year deal at 90% of max — shorter commitment, mutual flexibility. Webb signed it. The market rate saved you $22M over the life of the deal compared to the supermax. He's motivated to perform every year. The risk: if he makes All-NBA, he'll opt out and test the market again.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.50,
+          label: "Webb Signs Elsewhere — Extension Window Wasted",
+          scoreΔ: 3,
+          narrative:
+            "Webb's agent was furious you let the supermax window close — 'You had the only tool that guaranteed he'd stay, and you chose not to use it.' He signed with Miami on a 4-year max. The market deal you planned to offer never got made. You lost your franchise player because of a financial strategy that assumed he'd choose flexibility over security.",
+          applyStatus: ["rebuild-mode", "cap-space-limited"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["hybrid-build", "scouts-primary"],
+      variants: [
+        {
+          probability: 0.60,
+          label: "Traditional Core — Modern Verification",
+          scoreΔ: 7,
+          narrative:
+            "Scouts led every major decision. Analytics verified. The model flagged two character concerns that scouts had missed — one saved you from a disastrous signing. Year 3: playoff team with a strong locker room culture. The model improved scouting outcomes by 18% without replacing a single scout.",
+          applyStatus: ["scout-trusted", "high-morale"],
+        },
+        {
+          probability: 0.40,
+          label: "Scouts Lead — Analytics Marginalized",
+          scoreΔ: 4,
+          narrative:
+            "The verification role felt performative. Analytics flagged a draft prospect as a top-3 talent — scouts overruled with a consensus pick. The consensus pick was fine. The analytics pick became an All-Star elsewhere. Year 3: competitive but not contending. The data team requested reassignment to another franchise.",
+          applyStatus: ["scout-trusted"],
+        },
+      ],
+    },
+    {
+      roundTagCombo: ["win-now", "pivot-from-win-now"],
+      variants: [
+        {
+          probability: 0.65,
+          label: "Pivot Earns Credibility",
+          scoreΔ: 7,
+          narrative:
+            "The owner respected the pivot. 'You just saved me $40M in luxury tax over three years,' he said. The modified hybrid plan — extend Webb, keep one pick, pursue a mid-level free agent — hit the floor running. Year 1: 6th seed. Year 3: still competitive with cap flexibility. The pivot from win-now to sustainability was the smartest move of the meeting.",
+          applyStatus: ["star-retained"],
+        },
+        {
+          probability: 0.35,
+          label: "Pivot Seen as Indecision",
+          scoreΔ: 4,
+          narrative:
+            "The owner frowned. 'You walked in with win-now and walked out with something else. Which is it?' The pivot undermined your credibility. He approved the modified plan but hired an outside consultant to 'review the front office strategy' — code for a second opinion. The plan is sound. Your job security is not.",
+          applyStatus: [],
         },
       ],
     },

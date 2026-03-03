@@ -9,7 +9,7 @@ import {
   OutcomeVariant,
   RoundOption,
 } from "@/lib/missions";
-import { applyStatuses } from "@/lib/statusEffects";
+import { applyStatuses, getMoralBonus } from "@/lib/statusEffects";
 import { generateTeamClaimCode } from "@/lib/claimCode";
 import { parseJson } from "@/lib/json";
 import { recordTeamEvent } from "@/lib/teamEvents";
@@ -402,7 +402,7 @@ export async function resolveMissionRound(input: ResolveRoundInput): Promise<Res
     completedMissions.push(input.missionId);
   }
 
-  const newScore = team.score + variant.scoreΔ;
+  const newScore = team.score + variant.scoreΔ + getMoralBonus(currentStatus);
   const badges = parseJson<string[]>(team.badges, []);
   if (!badges.includes(richMission.conceptId)) {
     badges.push(richMission.conceptId);
