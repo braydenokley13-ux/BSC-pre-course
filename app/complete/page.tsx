@@ -234,6 +234,7 @@ export default function CompletePage() {
   const badges = state.team.badges;
   const missionCount = (state.team.completedMissions ?? []).length;
   const myEntry = leaderboard.find((e) => e.isCurrentTeam);
+  const myTeamColor = myEntry ? getTeamColorHex(myEntry.color, "blue") : "#3b82f6";
   const topThree = leaderboard.slice(0, 3);
 
   const totalDecisions = decisions.length;
@@ -272,9 +273,11 @@ export default function CompletePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.65 }}
-          className="text-[#e5e7eb] font-mono text-base"
+          className="font-mono text-base"
         >
-          {state.me.nickname} · Team {state.team.name}
+          <span className="text-[#e5e7eb]">{state.me.nickname}</span>
+          <span className="text-[#64748b]"> · </span>
+          <span style={{ color: myTeamColor, textShadow: `0 0 16px ${myTeamColor}40` }}>{state.team.name}</span>
         </motion.p>
         <motion.p
           initial={{ opacity: 0 }}
@@ -315,16 +318,27 @@ export default function CompletePage() {
           {/* Full standings below podium if more than 3 teams */}
           {leaderboard.length > 3 && (
             <div className="border-t border-[#334155] pt-4 space-y-2">
-              {leaderboard.slice(3).map((entry) => (
-                <div
-                  key={entry.teamId}
-                  className={`flex items-center justify-between py-1.5 px-3 rounded ${entry.isCurrentTeam ? "bg-[#0f172a] border border-[#2563eb]/30" : "bg-[#111827]/60"}`}
-                >
-                  <span className="font-mono text-xs text-[#94a3b8]">#{entry.rank}</span>
-                  <span className={`font-mono text-xs ${entry.isCurrentTeam ? "text-[#60a5fa]" : "text-[#e5e7eb]"}`}>{entry.teamName}</span>
-                  <span className="font-mono text-xs text-[#94a3b8]">{entry.score} pts</span>
-                </div>
-              ))}
+              {leaderboard.slice(3).map((entry) => {
+                const entryColor = getTeamColorHex(entry.color, "blue");
+                return (
+                  <div
+                    key={entry.teamId}
+                    className="flex items-center justify-between py-1.5 px-3 rounded"
+                    style={entry.isCurrentTeam
+                      ? { background: `${entryColor}10`, border: `1px solid ${entryColor}40` }
+                      : { background: "rgba(17,24,39,0.6)" }}
+                  >
+                    <span className="font-mono text-xs text-[#94a3b8]">#{entry.rank}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: entryColor }} />
+                      <span className="font-mono text-xs" style={{ color: entry.isCurrentTeam ? entryColor : "#e5e7eb", fontWeight: entry.isCurrentTeam ? "bold" : "normal" }}>
+                        {entry.teamName}
+                      </span>
+                    </div>
+                    <span className="font-mono text-xs text-[#94a3b8]">{entry.score} pts</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </motion.div>
@@ -346,14 +360,17 @@ export default function CompletePage() {
           initial={{ opacity: 0, y: 16, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 1.1, type: "spring", stiffness: 200, damping: 22 }}
-          className="bsc-card p-6 mb-5 border-[#2563eb]/30"
-          style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(37,99,235,0.06) 0%, transparent 70%)" }}
+          className="bsc-card p-6 mb-5"
+          style={{
+            borderColor: `${myTeamColor}30`,
+            background: `radial-gradient(ellipse 70% 50% at 50% 20%, ${myTeamColor}0a 0%, transparent 70%)`,
+          }}
         >
           <p className="text-[9px] font-mono tracking-widest uppercase text-[#64748b] mb-3">Your GM Identity</p>
           <div className="flex items-start gap-4">
             <span className="text-4xl">{myEntry.gmEmoji}</span>
             <div>
-              <p className="font-mono text-xl font-bold text-[#2563eb] mb-1">{myEntry.gmTitle}</p>
+              <p className="font-mono text-xl font-bold mb-1" style={{ color: myTeamColor }}>{myEntry.gmTitle}</p>
               <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{myEntry.gmDesc}</p>
               <p className="font-mono text-xs text-[#94a3b8] mt-2">{myEntry.badgeCount}/{CONCEPT_CARDS.length} concept badges earned</p>
             </div>

@@ -6,6 +6,7 @@ import { ROOM_LAYOUT, MISSION_ORDER, RoomMeta } from "@/lib/missionGraph";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
 import { getTeamColorHex } from "@/lib/teamColors";
+import teamsData from "@/data/teams.json";
 
 // ── Idle league banter (shown when no real rival events yet) ─────────────────
 const LEAGUE_BANTER = [
@@ -164,11 +165,13 @@ function SVGRoom({
   missionId,
   status,
   isAvatar,
+  teamColor,
   onClick,
 }: {
   missionId: string;
   status: RoomStatus;
   isAvatar: boolean;
+  teamColor: string;
   onClick: () => void;
 }) {
   const r = ROOM_SVG[missionId];
@@ -273,11 +276,14 @@ function SVGRoom({
       {/* Avatar dot */}
       {isAvatar && (
         <g>
-          <circle cx={r.x + 20} cy={r.y + r.h - 20} r="10"
-            fill="#2563eb" stroke="rgba(37,99,235,0.3)" strokeWidth="4"
+          <circle cx={r.x + 20} cy={r.y + r.h - 20} r="12"
+            fill={`${teamColor}22`} stroke={teamColor} strokeWidth="3"
           />
-          <text x={r.x + 20} y={r.y + r.h - 16} textAnchor="middle"
-            fill="#fff" fontSize="7" fontWeight="900" fontFamily="sans-serif"
+          <circle cx={r.x + 20} cy={r.y + r.h - 20} r="6"
+            fill={teamColor}
+          />
+          <text x={r.x + 20} y={r.y + r.h - 8} textAnchor="middle"
+            fill={teamColor} fontSize="6" fontWeight="900" fontFamily="sans-serif" opacity="0.8"
           >GM</text>
         </g>
       )}
@@ -436,6 +442,7 @@ export default function HQPage() {
   const displayMissionId = navigating ? avatarRoom : activeMissionId;
 
   const teamColor = getTeamColorHex(team.color, "blue");
+  const teamProfile = (teamsData as Array<{ name: string; storyline: string; marketSize: string; ownerTemperament: string; startingRoster: string[] }>).find((t) => t.name.endsWith(team.name)) ?? null;
   const totalRooms = ROOM_LAYOUT.length;
   const completedCount = completedMissions.length;
   const progressPct = (completedCount / totalRooms) * 100;
@@ -494,12 +501,12 @@ export default function HQPage() {
         transition={{ duration: 0.4 }}
         className="flex items-start justify-between mb-5 gap-4 flex-wrap"
       >
-        <div>
+        <div style={{ borderLeft: `3px solid ${teamColor}`, paddingLeft: "12px" }}>
           <p className="text-[#64748b] text-[10px] tracking-widest uppercase mb-0.5 font-medium">
             General Manager
           </p>
           <h1 className="text-2xl font-bold tracking-tight"
-            style={{ color: teamColor }}
+            style={{ color: teamColor, textShadow: `0 0 16px ${teamColor}40` }}
           >
             {team.name}
           </h1>
@@ -507,7 +514,7 @@ export default function HQPage() {
             Welcome back,{" "}
             <span className="text-[#e5e7eb] font-medium">{me.nickname}</span>
             {me.role && (
-              <span className="ml-2 text-[#60a5fa]">— {me.role.toUpperCase()}</span>
+              <span className="ml-2" style={{ color: teamColor }}>— {me.role.toUpperCase()}</span>
             )}
           </p>
         </div>
@@ -539,7 +546,7 @@ export default function HQPage() {
 
           <div className="text-right">
             <p className="text-[#94a3b8] text-[9px] uppercase tracking-widest mb-1 font-medium">Progress</p>
-            <p className="text-[#e5e7eb] text-xl font-bold">
+            <p className="text-xl font-bold" style={{ color: teamColor }}>
               {completedCount}<span className="text-[#94a3b8] text-sm">/{totalRooms}</span>
             </p>
             <p className="text-[#94a3b8] text-[9px] uppercase tracking-widest font-medium">Missions</p>
@@ -583,8 +590,8 @@ export default function HQPage() {
                 className="absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full"
                 style={{
                   left: 0,
-                  background: "linear-gradient(90deg, #15803d 0%, #22c55e 100%)",
-                  boxShadow: "0 0 6px rgba(34,197,94,0.45)",
+                  background: `linear-gradient(90deg, ${teamColor}80 0%, ${teamColor} 100%)`,
+                  boxShadow: `0 0 6px ${teamColor}55`,
                 }}
                 initial={{ width: "0%" }}
                 animate={{ width: `${fillPct}%` }}
@@ -663,7 +670,7 @@ export default function HQPage() {
                     boxShadow: isActive
                       ? "0 0 0 3px rgba(201,168,76,0.20), 0 0 16px rgba(201,168,76,0.30)"
                       : isCompleted
-                      ? "0 0 8px rgba(34,197,94,0.25)"
+                      ? `0 0 10px ${teamColor}40, 0 0 4px ${teamColor}30`
                       : "none",
                     flexShrink: 0,
                   }}
@@ -729,6 +736,34 @@ export default function HQPage() {
         )}
       </motion.div>
 
+      {/* ── Front Office Profile ─────────────────────────────────────────── */}
+      {teamProfile && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="bsc-card p-4 mb-5"
+          style={{ borderLeft: `3px solid ${teamColor}`, borderLeftColor: teamColor }}
+        >
+          <p className="text-[9px] text-[#64748b] tracking-widest uppercase mb-2 font-medium">Front Office Profile</p>
+          <p className="font-mono text-xs text-[#e5e7eb] leading-relaxed mb-3">{teamProfile.storyline}</p>
+          <div className="flex flex-wrap gap-2">
+            <span
+              className="text-[9px] font-mono px-2 py-0.5 rounded uppercase tracking-wider"
+              style={{ background: `${teamColor}12`, color: `${teamColor}cc`, border: `1px solid ${teamColor}28` }}
+            >
+              {teamProfile.marketSize} market
+            </span>
+            <span
+              className="text-[9px] font-mono px-2 py-0.5 rounded uppercase tracking-wider"
+              style={{ background: `${teamColor}12`, color: `${teamColor}cc`, border: `1px solid ${teamColor}28` }}
+            >
+              owner: {teamProfile.ownerTemperament}
+            </span>
+          </div>
+        </motion.div>
+      )}
+
       {/* ── Status effects ───────────────────────────────────────────────── */}
       <AnimatePresence>
         {teamStatus.length > 0 && (
@@ -786,17 +821,19 @@ export default function HQPage() {
               <div
                 key={card.id}
                 className={`text-center py-2 px-1 rounded border transition-colors ${
-                  earned
-                    ? "border-[#3b82f6]/40 bg-[#3b82f6]/08"
-                    : "border-[#1e293b] opacity-40"
+                  earned ? "" : "border-[#1e293b] opacity-40"
                 }`}
-                style={earned ? { background: "rgba(59,130,246,0.08)" } : {}}
+                style={earned ? {
+                  borderColor: `${teamColor}50`,
+                  background: `${teamColor}0e`,
+                  color: teamColor,
+                } : {}}
                 title={card.title}
               >
-                <div className={`text-lg mb-0.5 ${earned ? "text-[#3b82f6]" : "text-[#334155]"}`}>
+                <div className="text-lg mb-0.5">
                   {earned ? "★" : "○"}
                 </div>
-                <p className={`text-[9px] leading-tight ${earned ? "text-[#2563eb] font-medium" : "text-[#94a3b8]"}`}>
+                <p className={`text-[9px] leading-tight ${earned ? "font-medium" : "text-[#94a3b8]"}`}>
                   {card.title.split(" ").slice(0, 3).join(" ")}
                 </p>
               </div>
@@ -857,6 +894,7 @@ export default function HQPage() {
                 missionId={room.missionId}
                 status={status}
                 isAvatar={displayMissionId === room.missionId}
+                teamColor={teamColor}
                 onClick={() => handleRoomClick(room.missionId, status)}
               />
             );
