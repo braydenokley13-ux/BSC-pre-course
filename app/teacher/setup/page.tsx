@@ -96,21 +96,28 @@ export default function TeacherSetupPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {teams.map((team, i) => (
-              <div key={team.id} className="bsc-card p-5 text-center">
-                <p className="text-[#6b7280] font-mono text-xs mb-1">Breakout Room {i + 1}</p>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span
-                    className="inline-block w-3 h-3 rounded-full"
-                    style={{ backgroundColor: getTeamColorHex(team.color, "blue") }}
-                  />
-                  <p className="text-[#e5e7eb] font-mono font-bold text-lg">{team.name}</p>
+            {teams.map((team, i) => {
+              const hex = getTeamColorHex(team.color, "blue");
+              return (
+                <div
+                  key={team.id}
+                  className="bsc-card p-5 text-center"
+                  style={{ borderColor: `${hex}35`, boxShadow: `0 0 0 1px ${hex}18` }}
+                >
+                  <p className="text-[#6b7280] font-mono text-xs mb-1">Breakout Room {i + 1}</p>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span
+                      className="inline-block w-4 h-4 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: hex, boxShadow: `0 0 8px ${hex}80` }}
+                    />
+                    <p className="font-mono font-bold text-lg" style={{ color: hex }}>{team.name}</p>
+                  </div>
+                  <div className="bsc-badge-gold text-lg px-4 py-2 tracking-widest font-bold">
+                    {team.joinCode}
+                  </div>
                 </div>
-                <div className="bsc-badge-gold text-lg px-4 py-2 tracking-widest font-bold">
-                  {team.joinCode}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="bsc-card p-5 mb-5">

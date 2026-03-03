@@ -332,7 +332,7 @@ function RoleCeremony({ role, onDone }: { role: RoleInfo; onDone: () => void }) 
 
 // ── Mission intro cinematic component ─────────────────────────────────────────
 
-function MissionIntro({ mission, onDone }: { mission: { title: string; department: string; tagline?: string; missionNumber?: number }; onDone: () => void }) {
+function MissionIntro({ mission, teamColor = "#c9a84c", onDone }: { mission: { title: string; department: string; tagline?: string; missionNumber?: number }; teamColor?: string; onDone: () => void }) {
   const onDoneRef = useRef(onDone);
 
   useEffect(() => {
@@ -374,7 +374,8 @@ function MissionIntro({ mission, onDone }: { mission: { title: string; departmen
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="font-mono text-[10px] tracking-[0.45em] uppercase text-[#c9a84c] mb-2"
+          className="font-mono text-[10px] tracking-[0.45em] uppercase mb-2"
+          style={{ color: teamColor }}
         >
           {mission.department}
         </motion.p>
@@ -384,14 +385,14 @@ function MissionIntro({ mission, onDone }: { mission: { title: string; departmen
           transition={{ delay: 0.4, duration: 0.4 }}
           className="flex justify-center mb-4"
         >
-          <div className="h-px w-14 bg-[#c9a84c]/40" />
+          <div className="h-px w-14" style={{ background: `${teamColor}60` }} />
         </motion.div>
         <motion.div
           initial={{ opacity: 0, letterSpacing: "0.02em" }}
           animate={{ opacity: 1, letterSpacing: "0.15em" }}
           transition={{ delay: 0.65, duration: 0.7 }}
-          className="font-mono font-bold text-[#c9a84c] mb-5"
-          style={{ fontSize: "clamp(2.8rem, 9vw, 5.5rem)" }}
+          className="font-mono font-bold mb-5"
+          style={{ fontSize: "clamp(2.8rem, 9vw, 5.5rem)", color: teamColor }}
         >
           {mission.title.toUpperCase()}
         </motion.div>
@@ -407,7 +408,8 @@ function MissionIntro({ mission, onDone }: { mission: { title: string; departmen
         )}
       </div>
       <motion.div
-        className="absolute bottom-0 left-0 h-0.5 bg-[#c9a84c]/60"
+        className="absolute bottom-0 left-0 h-0.5"
+        style={{ background: `${teamColor}80` }}
         initial={{ width: "0%" }}
         animate={{ width: "100%" }}
         transition={{ delay: 0.3, duration: 3.0, ease: "linear" }}
@@ -565,6 +567,7 @@ function PlayInner() {
   const [showScorePop, setShowScorePop] = useState(false);
   const [rivalEvents, setRivalEvents] = useState<Array<{ message: string; teamColor: string }>>([]);
   const [rivalPopup, setRivalPopup] = useState<{ message: string; teamColor: string } | null>(null);
+  const [rivalTeamColor, setRivalTeamColor] = useState("#ef4444");
   const [timerSec, setTimerSec] = useState(VOTE_TIMER_SECS);
   const [timerFlash, setTimerFlash] = useState(false);
   const [headline, setHeadline] = useState("");
@@ -865,6 +868,11 @@ function PlayInner() {
       setResolveResult(data);
 
       if (data.rivalFired && data.rivalResponseRound) {
+        // Pick the rival team's color from the most recent rival event; fall back to red
+        const rColor = rivalEvents.length > 0
+          ? getTeamColorHex(rivalEvents[0].teamColor, "red")
+          : "#ef4444";
+        setRivalTeamColor(rColor);
         setRivalMessage(data.rivalMessage ?? "");
         setRivalRound(data.rivalResponseRound);
         setSelectedOptionIdx(null);
@@ -959,6 +967,7 @@ function PlayInner() {
 
   const track = teamState.track ?? "201";
   const richMission = buildMissionForPlayer(rawMission!, track, teamState.teamStatus ?? []);
+  const currentTeamColor = getTeamColorHex(teamState.team?.color, "gold");
   const contextBlocks = (rawMission!.scenarioInjections ?? [])
     .filter((inj) => (teamState.teamStatus ?? []).includes(inj.requiredStatus))
     .map((inj) => inj.prependText);
@@ -999,6 +1008,7 @@ function PlayInner() {
         {phase === "intro" && (
           <MissionIntro
             mission={richMission}
+            teamColor={currentTeamColor}
             onDone={() => {
               setPhase("briefing");
               // Trigger role ceremony after intro
@@ -1341,11 +1351,10 @@ function PlayInner() {
                   >
                     <div className="flex items-start gap-3">
                       <span
-                        className={`flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5 transition-colors duration-150 ${
-                          isSelected
-                            ? "border-[#c9a84c] bg-[#c9a84c] text-black font-bold"
-                            : "border-[#1a2030] text-[#6b7280]"
-                        }`}
+                        className="flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5 transition-colors duration-150"
+                        style={isSelected
+                          ? { borderColor: currentTeamColor, backgroundColor: currentTeamColor, color: "black", fontWeight: 700 }
+                          : { borderColor: "#1a2030", color: "#6b7280" }}
                       >
                         {String.fromCharCode(65 + i)}
                       </span>
@@ -1362,7 +1371,8 @@ function PlayInner() {
                           <div className={`mt-2.5 ${phase === "voting" && selectedOptionIdx === null ? "opacity-50" : ""}`}>
                             <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
                               <motion.div
-                                className={`h-full rounded-full ${isSelected ? "bg-[#c9a84c]" : "bg-[#2a3050]"}`}
+                                className="h-full rounded-full"
+                                style={{ background: isSelected ? currentTeamColor : "#2a3050" }}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${thisPct}%` }}
                                 transition={{ type: "spring", stiffness: 110, damping: 22 }}
@@ -1486,16 +1496,22 @@ function PlayInner() {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.18, type: "spring", stiffness: 200, damping: 20 }}
-              className="bsc-card p-6 mb-5 border-[#ef4444]/40"
-              style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(239,68,68,0.06) 0%, transparent 70%)" }}
+              className="bsc-card p-6 mb-5"
+              style={{
+                borderColor: `${rivalTeamColor}50`,
+                background: `radial-gradient(ellipse 70% 50% at 50% 20%, ${rivalTeamColor}0a 0%, transparent 70%)`,
+              }}
             >
               <div className="flex items-center gap-2 mb-3">
                 <motion.span
                   animate={{ opacity: [1, 0.2, 1] }}
                   transition={{ repeat: Infinity, duration: 1.1 }}
-                  className="w-2 h-2 rounded-full bg-[#ef4444]"
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ background: rivalTeamColor }}
                 />
-                <p className="text-[10px] font-mono tracking-widest uppercase text-[#ef4444]">Rival Move Detected</p>
+                <p className="text-[10px] font-mono tracking-widest uppercase" style={{ color: rivalTeamColor }}>
+                  Rival Move Detected
+                </p>
               </div>
               <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalMessage}</p>
             </motion.div>
@@ -1531,7 +1547,10 @@ function PlayInner() {
             </motion.div>
 
             <div className="flex items-center justify-between mb-5">
-              <span className="text-[#ef4444] font-mono text-xs tracking-widest uppercase">⚡ Responding to Rival Move</span>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: rivalTeamColor }} />
+                <span className="font-mono text-xs tracking-widest uppercase" style={{ color: rivalTeamColor }}>⚡ Responding to Rival Move</span>
+              </div>
               <div className="flex items-center gap-3">
                 <span className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} student{activeCount !== 1 ? "s" : ""} voted</span>
                 {/* Rival countdown ring */}
@@ -1540,7 +1559,7 @@ function PlayInner() {
                     <circle cx="16" cy="16" r="13" fill="none" stroke="#1a2030" strokeWidth="3" />
                     <circle
                       cx="16" cy="16" r="13" fill="none"
-                      stroke={timerSec > 30 ? "#c9a84c" : timerSec > 10 ? "#f97316" : "#ef4444"}
+                      stroke={timerSec > 30 ? rivalTeamColor : timerSec > 10 ? "#f97316" : "#ef4444"}
                       strokeWidth="3" strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 13}`}
                       strokeDashoffset={`${2 * Math.PI * 13 * (1 - timerSec / RIVAL_TIMER_SECS)}`}
@@ -1549,7 +1568,7 @@ function PlayInner() {
                   </svg>
                   <span
                     className="absolute inset-0 flex items-center justify-center font-mono text-[9px]"
-                    style={{ color: timerSec > 30 ? "#c9a84c" : timerSec > 10 ? "#f97316" : "#ef4444" }}
+                    style={{ color: timerSec > 30 ? rivalTeamColor : timerSec > 10 ? "#f97316" : "#ef4444" }}
                   >
                     {timerSec}
                   </span>
@@ -1557,8 +1576,8 @@ function PlayInner() {
               </div>
             </div>
 
-            <div className="bsc-card p-5 mb-5 border-[#ef4444]/20">
-              <p className="bsc-section-title" style={{ color: "#ef4444" }}>How do you respond?</p>
+            <div className="bsc-card p-5 mb-5" style={{ borderColor: `${rivalTeamColor}25` }}>
+              <p className="bsc-section-title" style={{ color: rivalTeamColor }}>How do you respond?</p>
               <p className="font-mono text-sm text-[#e5e7eb] leading-relaxed">{rivalRound.prompt}</p>
             </div>
 
@@ -1583,19 +1602,19 @@ function PlayInner() {
                     whileHover={!disabled ? { scale: 1.02 } : {}}
                     whileTap={!disabled ? { scale: 0.985 } : {}}
                     transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
-                    className={`mission-option text-left w-full border-[#ef4444]/20 ${
-                      isSelected ? "border-[#ef4444]/60 bg-[#ef4444]/5" : ""
-                    } ${disabled && !isSelected ? "cursor-default" : ""}`}
+                    className={`mission-option text-left w-full ${disabled && !isSelected ? "cursor-default" : ""}`}
+                    style={isSelected
+                      ? { borderColor: `${rivalTeamColor}60`, background: `${rivalTeamColor}08` }
+                      : { borderColor: `${rivalTeamColor}18` }}
                     onClick={() => !disabled && void handleRivalVote(i)}
                     disabled={disabled}
                   >
                     <div className="flex items-start gap-3">
                       <span
-                        className={`flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5 ${
-                          isSelected
-                            ? "border-[#ef4444] bg-[#ef4444] text-white"
-                            : "border-[#1a2030] text-[#6b7280]"
-                        }`}
+                        className="flex-shrink-0 w-7 h-7 rounded border font-mono text-xs flex items-center justify-center mt-0.5"
+                        style={isSelected
+                          ? { borderColor: rivalTeamColor, backgroundColor: rivalTeamColor, color: "white", fontWeight: 700 }
+                          : { borderColor: "#1a2030", color: "#6b7280" }}
                       >
                         {String.fromCharCode(65 + i)}
                       </span>
@@ -1606,7 +1625,8 @@ function PlayInner() {
                           <div className="mt-2.5">
                             <div className="h-1 bg-[#1a2030] rounded-full overflow-hidden">
                               <motion.div
-                                className="h-full rounded-full bg-[#ef4444]/50"
+                                className="h-full rounded-full"
+                                style={{ background: isSelected ? rivalTeamColor : `${rivalTeamColor}50` }}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${thisPct}%` }}
                                 transition={{ type: "spring", stiffness: 110, damping: 22 }}
@@ -1630,7 +1650,7 @@ function PlayInner() {
                 animate={{ opacity: 1 }}
                 className="text-center space-y-3"
               >
-                <PulsingDots color="#ef4444" />
+                <PulsingDots color={rivalTeamColor} />
                 <p className="text-[#6b7280] font-mono text-xs">{votedCount}/{activeCount} responses in…</p>
                 {canReveal && (
                   <motion.button
@@ -1860,7 +1880,7 @@ function PlayInner() {
                       className={`flex items-center justify-between py-1.5 border-b border-[#1a2030] last:border-0 ${
                         entry.isCurrentTeam ? "-mx-2 px-2 rounded" : ""
                       }`}
-                      style={entry.isCurrentTeam ? { background: "rgba(201,168,76,0.05)" } : {}}
+                      style={entry.isCurrentTeam ? { background: `${currentTeamColor}08` } : {}}
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[10px] text-[#6b7280] w-5">#{entry.rank}</span>
@@ -1870,17 +1890,17 @@ function PlayInner() {
                         />
                         <span
                           className="font-mono text-xs"
-                          style={{ color: entry.isCurrentTeam ? "#c9a84c" : "#e5e7eb", fontWeight: entry.isCurrentTeam ? "bold" : "normal" }}
+                          style={{ color: entry.isCurrentTeam ? currentTeamColor : "#e5e7eb", fontWeight: entry.isCurrentTeam ? "bold" : "normal" }}
                         >
                           {entry.teamName}
                         </span>
                         {entry.isCurrentTeam && (
-                          <span className="font-mono text-[9px] text-[#c9a84c]">← YOU</span>
+                          <span className="font-mono text-[9px]" style={{ color: currentTeamColor }}>← YOU</span>
                         )}
                       </div>
                       <span
                         className="font-mono text-sm font-bold"
-                        style={{ color: entry.isCurrentTeam ? "#22c55e" : "#e5e7eb" }}
+                        style={{ color: entry.isCurrentTeam ? currentTeamColor : "#e5e7eb" }}
                       >
                         {entry.score}
                       </span>

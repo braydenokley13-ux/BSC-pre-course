@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAvatar } from "@/lib/nbaAvatars";
 import { getTeamColorHex } from "@/lib/teamColors";
+import teamsData from "@/data/teams.json";
 
 interface Member {
   id: string;
@@ -147,6 +148,9 @@ export default function LobbyPage() {
   }
 
   const teamColor = state ? getTeamColorHex(state.team.color, "gold") : "#c9a84c";
+  const teamProfile = state
+    ? (teamsData as Array<{ name: string; storyline: string; marketSize: string; ownerTemperament: string; startingRoster: string[] }>).find((t) => t.name.endsWith(state.team.name)) ?? null
+    : null;
 
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
@@ -160,11 +164,20 @@ export default function LobbyPage() {
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020408]"
           >
+            {/* Team color radial glow backdrop */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              style={{ background: `radial-gradient(ellipse 60% 40% at 50% 50%, ${teamColor}18 0%, transparent 70%)` }}
+            />
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4 }}
-              className="font-mono text-xs tracking-[0.3em] text-[#c9a84c] uppercase mb-4"
+              className="font-mono text-xs tracking-[0.3em] uppercase mb-4 relative z-10"
+              style={{ color: `${teamColor}aa` }}
             >
               Your Team Is
             </motion.p>
@@ -172,8 +185,8 @@ export default function LobbyPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.5 }}
-              className="font-mono font-bold text-5xl tracking-widest"
-              style={{ color: teamColor }}
+              className="font-mono font-bold text-5xl tracking-widest relative z-10"
+              style={{ color: teamColor, textShadow: `0 0 40px ${teamColor}60` }}
             >
               {state.team.name}
             </motion.h1>
@@ -187,16 +200,63 @@ export default function LobbyPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="bsc-card p-6 mb-4 text-center"
+        style={{
+          borderColor: `${teamColor}40`,
+          boxShadow: `0 0 0 1px ${teamColor}20, 0 0 28px ${teamColor}0a`,
+        }}
       >
         <p className="bsc-section-title">Your Team</p>
         <motion.h1
           initial={{ opacity: 0, letterSpacing: "0.05em" }}
           animate={{ opacity: 1, letterSpacing: "0.1em" }}
           transition={{ delay: 0.15, duration: 0.6 }}
-          className="text-[#c9a84c] font-mono text-3xl font-bold mb-2"
+          className="font-mono text-3xl font-bold mb-2"
+          style={{ color: teamColor, textShadow: `0 0 20px ${teamColor}40` }}
         >
           {state.team.name}
         </motion.h1>
+
+        {/* Team profile flavor from teams.json */}
+        {teamProfile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-2 mb-3"
+          >
+            <p className="font-mono text-xs text-[#94a3b8] leading-relaxed italic">
+              {teamProfile.storyline}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+              <span
+                className="text-[9px] font-mono px-2 py-0.5 rounded uppercase tracking-wider"
+                style={{ background: `${teamColor}15`, color: `${teamColor}cc`, border: `1px solid ${teamColor}30` }}
+              >
+                {teamProfile.marketSize} market
+              </span>
+              <span
+                className="text-[9px] font-mono px-2 py-0.5 rounded uppercase tracking-wider"
+                style={{ background: `${teamColor}15`, color: `${teamColor}cc`, border: `1px solid ${teamColor}30` }}
+              >
+                owner: {teamProfile.ownerTemperament}
+              </span>
+            </div>
+            {/* Star players */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+              {teamProfile.startingRoster.slice(0, 3).map((player) => (
+                <span key={player} className="font-mono text-[9px] text-[#6b7280] bg-[#0d1117] px-1.5 py-0.5 rounded">
+                  {player}
+                </span>
+              ))}
+              {teamProfile.startingRoster.length > 3 && (
+                <span className="font-mono text-[9px] text-[#4b5563]">
+                  +{teamProfile.startingRoster.length - 3} more
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         <div className="flex items-center justify-center gap-2 mt-2">
           <span className="text-[#6b7280] font-mono text-xs">Team Code:</span>
           <motion.span
@@ -393,16 +453,17 @@ export default function LobbyPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: "spring", stiffness: 260, damping: 20 }}
               className="bsc-card p-10 text-center"
-              style={{ boxShadow: "0 0 0 1px rgba(201,168,76,0.5), 0 0 40px rgba(201,168,76,0.12)" }}
+              style={{ boxShadow: `0 0 0 1px ${teamColor}50, 0 0 40px ${teamColor}12` }}
             >
               <motion.p
                 animate={{ opacity: [0.6, 1, 0.6] }}
                 transition={{ repeat: Infinity, duration: 1.2 }}
-                className="font-mono text-[10px] tracking-[0.4em] uppercase text-[#c9a84c] mb-4"
+                className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4"
+                style={{ color: teamColor }}
               >
                 ◈ Full Roster
               </motion.p>
-              <p className="font-mono font-bold text-[#e5e7eb] text-2xl tracking-widest mb-2">
+              <p className="font-mono font-bold text-2xl tracking-widest mb-2" style={{ color: teamColor }}>
                 TEAM ASSEMBLED
               </p>
               <p className="font-mono text-xs text-[#6b7280]">
@@ -433,7 +494,10 @@ export default function LobbyPage() {
                 className="text-center select-none"
               >
                 {countNum > 0 ? (
-                  <span className="font-mono font-bold text-[#c9a84c]" style={{ fontSize: "8rem" }}>
+                  <span
+                    className="font-mono font-bold"
+                    style={{ fontSize: "8rem", color: teamColor, textShadow: `0 0 60px ${teamColor}60` }}
+                  >
                     {countNum}
                   </span>
                 ) : (
