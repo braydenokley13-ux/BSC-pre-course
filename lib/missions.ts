@@ -1128,7 +1128,6 @@ const revenueMix: Mission = {
           label: "Propose organic integration — 6 'unbranded' posts at $21M",
           description: "Use the marketing insight: organic content outperforms hard ads 4:1. Sell NovaTech on quality over quantity.",
           tags: ["creative-integration", "analytics-forward"],
-          requiresStatus: "analytics-forward",
         },
         {
           id: "escalate-to-owner",
@@ -1678,7 +1677,7 @@ const expensePressure: Mission = {
     },
     {
       id: "terms-pick",
-      prompt: "Atlanta wants clarity on the pick. Unprotected is non-negotiable for them. What do you offer?",
+      prompt: "Dallas wants clarity on the pick. Unprotected is non-negotiable for them. What do you offer?",
       context: "Attaching any first is painful. The question is how much protection you wrap around it.",
       dependsOnRoundId: "direction",
       dependsOnTag: "add-pick",
@@ -1686,13 +1685,13 @@ const expensePressure: Mission = {
         {
           id: "unprotected-first",
           label: "Attach an unprotected 2026 first",
-          description: "Maximum sweetener. Atlanta accepts immediately. You're betting the lottery ticket.",
+          description: "Maximum sweetener. Dallas accepts immediately. You're betting the lottery ticket.",
           tags: ["unprotected-first", "asset-cost"],
           mutations: [
             {
               ifStatus: "rebuild-mode",
               labelSuffix: " ⚠ REBUILD CONFLICT",
-              descriptionPrefix: "You're rebuilding — your lottery odds are elevated. Handing Atlanta an unprotected first could gift them a top-5 pick in a draft you need for yourself. ",
+              descriptionPrefix: "You're rebuilding — your lottery odds are elevated. Handing Dallas an unprotected first could gift them a top-5 pick in a draft you need for yourself. ",
             },
             {
               ifStatus: "over-luxury-tax",
@@ -1704,7 +1703,7 @@ const expensePressure: Mission = {
         {
           id: "top-10-protected",
           label: "Top-10 protected 2026 first",
-          description: "If you miss the playoffs, the pick conveys protected — you keep it. If healthy, Atlanta gets it.",
+          description: "If you miss the playoffs, the pick conveys protected — you keep it. If healthy, Dallas gets it.",
           tags: ["top-10-protected", "risk-managed"],
           mutations: [
             {
@@ -1717,7 +1716,7 @@ const expensePressure: Mission = {
         {
           id: "two-seconds",
           label: "Offer two unprotected 2nd-round picks instead",
-          description: "No first. Atlanta gets volume, not premium. They'll negotiate.",
+          description: "No first. Dallas gets volume, not premium. They'll negotiate.",
           tags: ["two-seconds", "asset-light"],
           mutations: [
             {
@@ -1750,10 +1749,10 @@ const expensePressure: Mission = {
           ],
         },
         {
-          id: "revisit-atlanta",
+          id: "revisit-dallas",
           label: "Re-open trade talks on new terms",
-          description: "Call Atlanta back. You have leverage now — the deadline is gone and they still need to move the contract.",
-          tags: ["revisit-atlanta", "negotiate"],
+          description: "Call Dallas back. You have leverage now — the deadline is gone and they still need to move the contract.",
+          tags: ["revisit-dallas", "negotiate"],
           mutations: [
             {
               ifStatus: "over-luxury-tax",
@@ -1954,7 +1953,7 @@ const expensePressure: Mission = {
           label: "Trade Completed — Premium Asset Spent",
           scoreΔ: 8,
           narrative:
-            "The offer was too good for Atlanta to decline. The deal closed within 24 hours — you get the wing, they get an unprotected chip that could land anywhere from 5 to 25. The risk is real, but so is the talent you just added.",
+            "The offer was too good for Dallas to decline. The deal closed within 24 hours — you get the wing, they get an unprotected chip that could land anywhere from 5 to 25. The risk is real, but so is the talent you just added.",
           applyStatus: ["trade-assets-rich"],
         },
         {
@@ -1975,7 +1974,7 @@ const expensePressure: Mission = {
           label: "Trade Completed — Smart Protection",
           scoreΔ: 8,
           narrative:
-            "Atlanta accepted the top-10 protection structure. The deal closed, you landed the wing, and if this season goes sideways, you keep the pick. Best-case scenario: healthy team, you never trigger the protection.",
+            "Dallas accepted the top-10 protection structure. The deal closed, you landed the wing, and if this season goes sideways, you keep the pick. Best-case scenario: healthy team, you never trigger the protection.",
           applyStatus: ["trade-assets-rich"],
         },
       ],
@@ -1985,18 +1984,18 @@ const expensePressure: Mission = {
       variants: [
         {
           probability: 0.50,
-          label: "Atlanta Accepts",
+          label: "Dallas Accepts",
           scoreΔ: 7,
           narrative:
-            "Two seconds isn't a first, but volume has value. Atlanta's front office reviewed the picks' projected positions and accepted. You kept your first-round capital and still made the move.",
+            "Two seconds isn't a first, but volume has value. Dallas's front office reviewed the picks' projected positions and accepted. You kept your first-round capital and still made the move.",
           applyStatus: ["trade-assets-rich"],
         },
         {
           probability: 0.50,
-          label: "Atlanta Counters — Talks Collapse",
+          label: "Dallas Counters — Talks Collapse",
           scoreΔ: 3,
           narrative:
-            "Atlanta's GM said no directly: the picks don't move the needle for a franchise trying to compete now. Talks collapsed within the hour. You're heading into the stretch run with the same roster you had this morning.",
+            "Dallas's GM said no directly: the picks don't move the needle for a franchise trying to shed salary. Talks collapsed within the hour. You're heading into the stretch run with the same roster you had this morning.",
           applyStatus: [],
         },
       ],
@@ -2023,22 +2022,22 @@ const expensePressure: Mission = {
       ],
     },
     {
-      roundTagCombo: ["stand-pat", "revisit-atlanta"],
+      roundTagCombo: ["stand-pat", "revisit-dallas"],
       variants: [
         {
           probability: 0.55,
           label: "Deal Done at Better Terms",
           scoreΔ: 7,
           narrative:
-            "Atlanta picked up immediately — their leverage dropped to zero the moment the deadline passed. You renegotiated the pick protection from unprotected to top-12 and closed the deal the same day. Standing pat gave you a better deal than deadline pressure would have.",
+            "Dallas picked up immediately — their leverage dropped to zero the moment the deadline passed. You renegotiated the pick protection from unprotected to top-12 and closed the deal the same day. Standing pat gave you a better deal than deadline pressure would have.",
           applyStatus: ["trade-assets-rich"],
         },
         {
           probability: 0.45,
-          label: "Atlanta Moves On",
+          label: "Dallas Moves On",
           scoreΔ: 3,
           narrative:
-            "Atlanta had already pivoted. They found another trade partner, moved the contract internally, and aren't looking to reopen talks. The post-deadline window closed before you called.",
+            "Dallas had already pivoted. They found another trade partner, moved Reeves internally, and aren't looking to reopen talks. The post-deadline window closed before you called.",
           applyStatus: [],
         },
       ],
