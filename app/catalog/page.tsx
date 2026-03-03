@@ -550,6 +550,7 @@ function CatalogContent() {
             groups={GLOSSARY_TERMS}
             track={track}
             title={`Cap Glossary${track === "101" ? " (Track 101)" : ""}`}
+            highlightedTermIds={card?.termIds ?? []}
           />
         </div>
       </div>

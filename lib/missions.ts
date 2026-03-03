@@ -2986,7 +2986,7 @@ const matchupAdjust: Mission = {
         {
           id: "trust-game-read",
           label: "Trust the coach's in-game judgment",
-          description: "You hired Coach Morris to make real-time decisions. Two games over the mark isn't a pattern — yet.",
+          description: "You hired Coach Hill to make real-time decisions. Two games over the mark isn't a pattern — yet.",
           tags: ["trust-game-read", "coach-deference"],
           mutations: [
             {
@@ -3278,7 +3278,7 @@ const matchupAdjust: Mission = {
           label: "Coach Complies — Health Protected",
           scoreΔ: 7,
           narrative:
-            "The memo landed. The medical staff's co-signature gave it institutional weight Coach Morris couldn't ignore. Minutes dropped back below 34, and Morris never showed signs of the fatigue the training staff had flagged. The season ended without a minutes-related health incident.",
+            "The memo landed. The medical staff's co-signature gave it institutional weight Coach Hill couldn't ignore. Minutes dropped back below 34, and Morris never showed signs of the fatigue the training staff had flagged. The season ended without a minutes-related health incident.",
           applyStatus: ["high-morale"],
         },
         {
@@ -3286,7 +3286,7 @@ const matchupAdjust: Mission = {
           label: "Coach Pushes Back",
           scoreΔ: 4,
           narrative:
-            "Coach Morris replied to the memo in a press availability, calling it 'front office overreach.' The public friction forced an internal meeting that consumed two days of organizational energy. The relationship between the bench and the front office is now a distraction.",
+            "Coach Hill replied to the memo in a press availability, calling it 'front office overreach.' The public friction forced an internal meeting that consumed two days of organizational energy. The relationship between the bench and the front office is now a distraction.",
           applyStatus: ["coach-conflict"],
         },
       ],
@@ -3299,7 +3299,7 @@ const matchupAdjust: Mission = {
           label: "Coach Vindicated — Morris Performs",
           scoreΔ: 6,
           narrative:
-            "Morris stayed healthy and delivered three of his best performances in a seven-game stretch-run road trip. Coach Morris's in-game reads proved correct — the high-minutes nights came in must-win games, not meaningless ones. Your flexibility bought goodwill with the bench.",
+            "Morris stayed healthy and delivered three of his best performances in a seven-game stretch-run road trip. Coach Hill's in-game reads proved correct — the high-minutes nights came in must-win games, not meaningless ones. Your flexibility bought goodwill with the bench.",
           applyStatus: [],
         },
         {
@@ -3320,7 +3320,7 @@ const matchupAdjust: Mission = {
           label: "Pragmatic Compromise Holds",
           scoreΔ: 6,
           narrative:
-            "The revised plan held for the rest of the season: 36-minute cap on single games, mandatory seat for all back-to-backs. Morris stayed healthy, Coach Morris stopped pushing. A workable ceiling turned out to be better than an aspirational target.",
+            "The revised plan held for the rest of the season: 36-minute cap on single games, mandatory seat for all back-to-backs. Morris stayed healthy, Coach Hill stopped pushing. A workable ceiling turned out to be better than an aspirational target.",
           applyStatus: ["high-morale"],
         },
       ],
