@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ROOM_LAYOUT, RoomMeta } from "@/lib/missionGraph";
+import { ROOM_LAYOUT, MISSION_ORDER, RoomMeta } from "@/lib/missionGraph";
 import { STATUS_EFFECTS } from "@/lib/statusEffects";
 import { CONCEPT_CARDS } from "@/lib/concepts";
 import { getTeamColorHex } from "@/lib/teamColors";
@@ -547,30 +547,169 @@ export default function HQPage() {
         </div>
       </motion.div>
 
-      {/* ── Progress bar ─────────────────────────────────────────────────── */}
+      {/* ── Season Timeline ──────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.15, duration: 0.4 }}
         className="mb-5"
       >
-        <div className="flex justify-between text-[9px] text-[#94a3b8] tracking-widest uppercase mb-1.5 font-medium">
-          <span>Floor Progress</span>
+        {/* Header row */}
+        <div className="flex justify-between text-[9px] text-[#94a3b8] tracking-widest uppercase mb-2 font-medium">
+          <span>Season Timeline</span>
           <span>{completedCount} of {totalRooms} departments cleared</span>
         </div>
-        <div className="h-1.5 bg-[#1e293b] rounded-full overflow-hidden">
-          <motion.div
-            className="h-full rounded-full"
-            style={{
-              background: "linear-gradient(90deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%)",
-            }}
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+
+        {/* Timeline track */}
+        <div className="relative flex items-center" style={{ height: "64px" }}>
+
+          {/* Background rail */}
+          <div
+            className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[3px] rounded-full"
+            style={{ background: "#1e293b" }}
           />
+
+          {/* Filled rail — extends to center of last completed node */}
+          {(() => {
+            const lastCompletedIndex = (MISSION_ORDER as readonly string[]).reduce<number>(
+              (acc, id, i) => (completedMissions.includes(id) ? i : acc),
+              -1
+            );
+            const fillPct = lastCompletedIndex < 0
+              ? 0
+              : (lastCompletedIndex / (MISSION_ORDER.length - 1)) * 100;
+            return (
+              <motion.div
+                className="absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full"
+                style={{
+                  left: 0,
+                  background: "linear-gradient(90deg, #15803d 0%, #22c55e 100%)",
+                  boxShadow: "0 0 6px rgba(34,197,94,0.45)",
+                }}
+                initial={{ width: "0%" }}
+                animate={{ width: `${fillPct}%` }}
+                transition={{ duration: 0.9, ease: "easeOut", delay: 0.25 }}
+              />
+            );
+          })()}
+
+          {/* Nodes */}
+          {(MISSION_ORDER as readonly string[]).map((missionId, index) => {
+            const isCompleted = completedMissions.includes(missionId);
+            const isActive = activeMissionId === missionId;
+            const isUnlocked = unlockedMissions.includes(missionId);
+
+            const abbrMap: Record<string, string> = {
+              "cap-crunch":       "CAP",
+              "contract-choice":  "CTR",
+              "revenue-mix":      "REV",
+              "expense-pressure": "TRD",
+              "stats-lineup":     "ANLY",
+              "matchup-adjust":   "MED",
+              "draft-table":      "DFT",
+              "final-gm-call":    "OWN",
+            };
+            const abbr = abbrMap[missionId] ?? missionId.slice(0, 3).toUpperCase();
+            const roomLabel = ROOM_SVG[missionId]?.label ?? missionId;
+            const icon = ROOM_ICONS[missionId] ?? "🏢";
+            const leftPct = (index / (MISSION_ORDER.length - 1)) * 100;
+            const nodeSize = isActive ? 44 : 36;
+
+            const borderColor = isCompleted ? "#22c55e" : isActive ? "#c9a84c" : isUnlocked ? "#2563eb" : "#334155";
+            const bgColor = isCompleted
+              ? "rgba(34,197,94,0.18)"
+              : isActive
+              ? "rgba(201,168,76,0.18)"
+              : isUnlocked
+              ? "rgba(37,99,235,0.12)"
+              : "rgba(15,23,42,0.80)";
+            const textColor = isCompleted ? "#22c55e" : isActive ? "#c9a84c" : isUnlocked ? "#60a5fa" : "#334155";
+
+            return (
+              <motion.div
+                key={missionId}
+                className="absolute flex flex-col items-center"
+                style={{ left: `${leftPct}%`, top: "50%", transform: "translate(-50%, -50%)", zIndex: isActive ? 10 : 5 }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: isCompleted || isActive || isUnlocked ? 1 : 0.35, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + index * 0.05 }}
+                title={`Mission ${index + 1}: ${roomLabel}`}
+              >
+                {/* Active spotlight glow */}
+                {isActive && (
+                  <motion.div
+                    className="absolute rounded-full"
+                    style={{
+                      width: nodeSize + 16,
+                      height: nodeSize + 16,
+                      background: "radial-gradient(circle, rgba(201,168,76,0.30) 0%, transparent 70%)",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                    animate={{ scale: [1, 1.25, 1], opacity: [0.7, 1, 0.7] }}
+                    transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                  />
+                )}
+
+                {/* Node circle */}
+                <motion.div
+                  className="relative flex items-center justify-center rounded-full border-2 font-mono font-bold select-none"
+                  style={{
+                    width: nodeSize,
+                    height: nodeSize,
+                    borderColor,
+                    background: bgColor,
+                    boxShadow: isActive
+                      ? "0 0 0 3px rgba(201,168,76,0.20), 0 0 16px rgba(201,168,76,0.30)"
+                      : isCompleted
+                      ? "0 0 8px rgba(34,197,94,0.25)"
+                      : "none",
+                    flexShrink: 0,
+                  }}
+                  whileHover={isCompleted || isActive || isUnlocked ? { scale: 1.12, transition: { duration: 0.15 } } : {}}
+                >
+                  {isCompleted ? (
+                    <span style={{ color: "#22c55e", fontSize: "15px", lineHeight: 1 }}>✓</span>
+                  ) : isActive ? (
+                    <span style={{ fontSize: "13px", lineHeight: 1 }}>{icon}</span>
+                  ) : (
+                    <span style={{ fontSize: "8px", letterSpacing: "0.04em", color: textColor }}>
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  )}
+
+                  {/* Active pulsing ring */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full border-2"
+                      style={{ borderColor: "#c9a84c" }}
+                      animate={{ scale: [1, 1.5, 1.5], opacity: [1, 0, 0] }}
+                      transition={{ repeat: Infinity, duration: 1.6, ease: "easeOut" }}
+                    />
+                  )}
+                </motion.div>
+
+                {/* Dept abbreviation label */}
+                <div
+                  className="font-mono tracking-wider text-center mt-0.5 leading-none"
+                  style={{
+                    fontSize: "7px",
+                    color: textColor,
+                    maxWidth: "36px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {abbr}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {/* Dynasty score strip */}
+        {/* Dynasty score strip — preserved */}
         {leaderScore !== null && leaderScore > 0 && (
           <div className="mt-2 flex items-center gap-2">
             <span className="text-[9px] font-mono text-[#6b7280] tracking-widest uppercase shrink-0">Dynasty Score</span>
